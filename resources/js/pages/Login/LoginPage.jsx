@@ -127,6 +127,8 @@ const LoginPage = () => {
             disabled={isLoading}
           />
 
+          {error && <p role="alert" className="login-error">{error}</p>}
+
           <div className="terms-container">
             <p>
               Ao continuar, você concorda com nossos{' '}

@@ -96,6 +96,10 @@ function App() {
         <Route path="/diretora/planejamento" element={ <PrivateRoute requiredRole="diretora"><MainLayout userRole="diretora"><PlanejamentoPage /></MainLayout></PrivateRoute> } />
         <Route path="/diretora/perfil" element={ <PrivateRoute requiredRole="diretora"><MainLayout userRole="diretora"><ProfilePage /></MainLayout></PrivateRoute> } />
 
+        {/* O shell Laravel também pode receber URLs profundas; qualquer rota React
+            desconhecida volta ao login em vez de deixar a tela em branco. */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+
       </Routes>
     </Router>
   );

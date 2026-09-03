@@ -71,6 +71,9 @@ export const formatFriendlyDate = (dateString) => {
 export const formatFriendlyTime = (dateTimeString) => {
      try {
         const date = new Date(dateTimeString);
+        if (Number.isNaN(date.getTime())) {
+            return 'Inválido';
+        }
          return date.toLocaleTimeString('pt-BR', {
             hour: '2-digit',
             minute: '2-digit'

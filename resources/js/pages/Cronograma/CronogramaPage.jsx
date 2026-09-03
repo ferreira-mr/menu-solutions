@@ -92,6 +92,8 @@ const CronogramaPage = () => {
         }
     };
 
+    // A carga inicial deve ocorrer apenas ao montar a tela; fetchData depende do estado do quadro.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => { fetchData(); }, []);
 
     const filteredSourceItems = useMemo(() => {

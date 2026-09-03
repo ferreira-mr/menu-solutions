@@ -58,6 +58,36 @@ O servidor web deve apontar para a pasta `public` do Laravel. As rotas da API
 ficam sob `/api`; as demais rotas da SPA são encaminhadas pelo Laravel para a
 view React.
 
+## Testes
+
+Os testes são separados por camada e podem ser executados no CI ou localmente:
+
+```bash
+# Backend: PHPUnit + Laravel RefreshDatabase (SQLite em memória)
+composer test
+
+# Frontend: Vitest + Testing Library + MSW
+npm run lint
+npm run test:front
+npm run test:front:coverage
+
+# E2E: Playwright/Chromium contra Laravel servindo o build React
+npm run test:e2e:prepare
+npm run test:e2e
+```
+
+`test:e2e:prepare` recria a base SQLite local e usa `E2eSeeder`, que cria as
+contas de teste dos três perfis. A senha padrão é `password`; o NIF da
+nutricionista é `22222222222` (ou use `E2E_NIF` e `E2E_PASSWORD`). Nunca use
+essas contas em ambiente real. O estado autenticado do Playwright e os
+relatórios ficam em pastas ignoradas pelo Git.
+
+O PHPUnit cobre autenticação Sanctum, validações, CRUD, uploads, vínculos,
+contagens, produção, chat e a matriz de permissões. O Vitest cobre o cliente
+HTTP, serialização JSON/FormData, datas, login e mensagens de erro. O Playwright
+valida o shell entregue pelo Laravel, fallback de rotas, navegação autenticada
+e redirecionamento após remoção da sessão.
+
 ## Organização
 
 - `app/`: controllers, models, requests, resources e middleware Laravel
