@@ -39,5 +39,33 @@ class E2eSeeder extends Seeder
                 'nivel_user' => 1,
             ],
         );
+
+        $categoria = \App\Models\Categoria::firstOrCreate(
+            ['nome_categoria' => 'Ensino Médio']
+        );
+
+        \App\Models\Turma::firstOrCreate(
+            ['nome_turma' => '1º Ano A', 'categorias_id' => $categoria->id]
+        );
+
+        \App\Models\Autorizado::firstOrCreate(
+            ['titulo' => 'Autorização Lanche Especial'],
+            [
+                'conteudo' => 'Autorização para lanche especial dos alunos da feira de ciências.',
+                'status' => 'pendente',
+            ]
+        );
+
+        \App\Models\ControleDeProducaoEConsumo::firstOrCreate(
+            ['nome_alimento' => 'Arroz Integral'],
+            [
+                'data_alimento' => now()->toDateString(),
+                'quantidade_alimento' => 45.5,
+                'medida_alimento' => 'kg',
+                'pessoas_alimento' => 280,
+                'sobra_limpa_alimento' => 2.5,
+                'desperdicio_alimento' => 1.0,
+            ]
+        );
     }
 }

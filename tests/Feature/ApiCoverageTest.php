@@ -180,6 +180,10 @@ class ApiCoverageTest extends TestCase
 
         $this->api($this->user(1))->postJson('/api/contagem-nes', [
             'alunos_has_necessidades_id' => $pivot->id,
+        ])->assertCreated();
+
+        $this->api($this->user(3))->postJson('/api/contagem-nes', [
+            'alunos_has_necessidades_id' => $pivot->id,
         ])->assertForbidden();
         $this->api($admin)->deleteJson("/api/necessidades/$necessidade->id/alunos", ['alunos' => $aluno->id])
             ->assertStatus(409);

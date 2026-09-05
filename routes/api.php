@@ -59,8 +59,11 @@ Route::middleware(['auth:sanctum', 'NutriRole'])->group(function () {
     Route::post('/upload/pdf', [FileController::class, 'uploadPdf']);
     Route::apiResource('cardapios', CardapioController::class)->except(['index', 'show']);
     Route::apiResource('users', UserController::class)->only(['store', 'destroy']);
-    Route::apiResource('contagem-nes', ContagemNeController::class)->except(['index', 'show']);
     Route::apiResource('autorizados', AutorizadoController::class)->except(['index', 'show']);
+});
+
+Route::middleware(['auth:sanctum', 'StaffOrNutriRole'])->group(function () {
+    Route::apiResource('contagem-nes', ContagemNeController::class)->except(['index', 'show']);
 });
 
 Route::middleware(['auth:sanctum', 'DiretorRole'])->group(function () {

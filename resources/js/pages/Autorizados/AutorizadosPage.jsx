@@ -83,12 +83,13 @@ const AutorizadosPage = () => {
             if (result.isConfirmed) {
                 try {
                     if (isEditing) {
-                        // REGRA DE ROTAS POR NÍVEL
+                        // REGRA DE ROTAS POR NÍVEL:
+                        // Diretora usa a rota de atualizacao especifica (/update/{id})
+                        // Nutricionista usa o update padrao (/autorizados/{id})
                         if (userLevel === LEVEL_DIRETORA) {
-                            await updateAutorizado(item.id, { ...result.value, status: item.status });
+                            await updateConteudoAutorizado(item.id, { ...result.value, status: item.status });
                         } else {
-                            // Nutri ou Inspetora usam a rota /update/id
-                            await updateConteudoAutorizado(item.id, result.value);
+                            await updateAutorizado(item.id, result.value);
                         }
                     } else {
                         await addAutorizado(result.value);
@@ -135,7 +136,7 @@ const AutorizadosPage = () => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    await updateAutorizado(item.id, { 
+                    await updateConteudoAutorizado(item.id, { 
                         titulo: item.titulo, 
                         conteudo: item.conteudo, 
                         status: 'confirmado' 
@@ -150,12 +151,10 @@ const AutorizadosPage = () => {
     };
 
     // --- CONFIGURAÇÃO DE PERMISSÕES ---
-    const canCreate = userLevel === LEVEL_NUTRI || userLevel === LEVEL_INSPETORA;
+    const canCreate = userLevel === LEVEL_NUTRI;
     const canApprove = userLevel === LEVEL_DIRETORA;
-    // Todos podem editar (Diretora via PUT normal, outros via /update/)
-    const canEdit = true; 
-    // Todos podem deletar conforme seu pedido
-    const canDelete = true; 
+    const canEdit = userLevel === LEVEL_NUTRI || userLevel === LEVEL_DIRETORA; 
+    const canDelete = userLevel === LEVEL_NUTRI; 
 
     return (
         <section className="autorizados-container">

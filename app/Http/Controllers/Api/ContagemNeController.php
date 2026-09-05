@@ -16,7 +16,22 @@ class ContagemNeController extends Controller
      */
     public function index(Request $request)
     {
-        $contagemNes = ContagemNe::with(['alunosHasNecessidade.aluno', 'alunosHasNecessidade.necessidade'])->paginate();
+        $validated = $request->validate([
+            'data' => ['nullable', 'date_format:Y-m-d'],
+            'date' => ['nullable', 'date_format:Y-m-d'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:1000'],
+        ]);
+
+        $day = $validated['data'] ?? $validated['date'] ?? null;
+
+        $query = ContagemNe::with(['alunosHasNecessidade.aluno', 'alunosHasNecessidade.necessidade']);
+
+        if ($day) {
+            $query->whereDate('created_at', $day);
+        }
+
+        $perPage = $validated['limit'] ?? 100;
+        $contagemNes = $query->paginate($perPage);
 
         return ContagemNeResource::collection($contagemNes);
     }
