@@ -1,98 +1,262 @@
-# Contador V2
+# Menu Solutions — Contador V2
 
-Aplicação full stack para gestão de contagens, cardápios, planejamento,
-cronogramas, produção e comunicação entre os perfis do sistema.
+Sistema integrado full stack para gestão de contagens de alunos, planejamento nutricional, controle de produção e desperdício de refeições, cronograma de dietas especiais e comunicação em tempo real no ambiente escolar (SESI).
 
-O Laravel fornece a API, autenticação, regras de acesso e persistência. O
-React mantém a interface SPA, o React Router e os estilos existentes. O Vite
-compila o React diretamente dentro do projeto Laravel.
+O projeto é construído em uma arquitetura desacoplada e moderna:
+- **Backend (Laravel 11 / PHP 8.4)**: API RESTful protegida por tokens Laravel Sanctum, arquitetura em camadas com Enums nativos, Service Layer para regras de negócio (RN01 a RN17) e RBAC estrito.
+- **Frontend (React 19 + Vite)**: SPA responsiva orientada a funcionalidades (*Feature-Driven Architecture*), cliente de API modular por domínio, roteamento aninhado com `<Outlet />` e Design System com tokens CSS centralizados.
+
+---
+
+## Sumário
+
+- [Tecnologias](#tecnologias)
+- [Arquitetura & Organização](#arquitetura--organização)
+- [Perfis de Acesso (RBAC)](#perfis-de-acesso-rbac)
+- [Requisitos](#requisitos)
+- [Instalação](#instalação)
+- [Execução em Desenvolvimento](#execução-em-desenvolvimento)
+- [Build de Produção](#build-de-produção)
+- [Testes Automatizados & Qualidade](#testes-automatizados--qualidade)
+- [Documentação Técnica e Manuais](#documentação-técnica-e-manuais)
+
+---
+
+## Tecnologias
+
+### Backend
+- **Laravel 11** & **PHP 8.4**
+- **Laravel Sanctum**: autenticação via Bearer Tokens para API
+- **SQLite** (testes e desenvolvimento rápido) / **MySQL** (produção)
+- **PHPUnit 11**: suíte de testes unitários e de integração de regras de negócio
+
+### Frontend
+- **React 19** com **Vite 7**
+- **React Router 7**: roteamento client-side com layouts aninhados e `<Outlet />`
+- **SweetAlert2** & **Lucide React** / **Bootstrap Icons**: feedback visual e iconografia
+- **Vitest 3** + **Testing Library**: testes unitários de componentes e hooks
+- **ESLint 9**: padronização e linting estrito de código JavaScript
+
+### End-to-End (E2E)
+- **Playwright**: testes ponta a ponta com navegador Chromium real simulando jornadas completas dos três perfis de usuários.
+
+---
+
+## Arquitetura & Organização
+
+O projeto segue padrões de **Clean Architecture**, **Domain-Driven Design (DDD)** e **Feature-Driven Development**:
+
+### Backend: Clean Layered Architecture
+- **Enums Nativos (`app/Enums/`)**: tipos estritos para papéis de usuário (`UserRole`) e status de autorizações (`AutorizadoStatus`).
+- **Camada de Serviços (`app/Services/`)**: isolamento das regras de negócio complexas fora dos controllers:
+  - `ContagemService`: filtros de data, controle da janela operacional diária (RN14) e consolidação do dashboard.
+  - `ProducaoConsumoService`: pesagens, sobras limpas, resto ingesta e soft deletes auditados.
+  - `AutorizadoService`: priorização de pendências e fluxo de aprovação pela diretoria.
+  - `FileService`: upload seguro de imagens e cardápios em PDF.
+- **Controllers Finos (`app/Http/Controllers/Api/`)**: apenas validam requests, delegam para a Service Layer e retornam recursos JSON.
+- **Model Canônico com Retrocompatibilidade (`app/Models/`)**: `Contagem.php` como model canônico e `Contagen.php` mantido como alias de compatibilidade.
+
+### Frontend: Feature-Driven Architecture
+- **API Modular (`resources/js/services/`)**:
+  - `http/client.js`: cliente centralizado com interceptor de autenticação e tratamento de exceções.
+  - `modules/*.api.js`: clientes específicos por domínio funcional (`auth`, `users`, `cardapios`, `autorizados`, `producao`, `cronograma`, `escolar`, `contagens`, `chat`, `files`).
+  - `api.js`: fachada de re-exportação unificada retrocompatível.
+- **Roteamento Otimizado com `<Outlet />` (`resources/js/App.jsx`)**: o layout principal (`MainLayout`) é mantido em memória via `<RoleShell>`, evitando reconstruções e reflows do DOM a cada transição de rota.
+- **Custom Hooks (`resources/js/hooks/`)**: `useAuth` para sessão e logout; `usePermissions` para checagem declarativa de permissões.
+- **Módulos de Domínio (`resources/js/features/`)**: agrupamento coeso de telas e subcomponentes por funcionalidade.
+- **Design Tokens (`resources/js/styles/variables.css`)**: variáveis CSS padronizadas para paleta de cores, tipografia, superfícies e sombras.
+
+### Estrutura de Diretórios
+
+```
+contador-v2/
+├── app/
+│   ├── Enums/                     # UserRole.php, AutorizadoStatus.php
+│   ├── Http/
+│   │   ├── Controllers/Api/       # Controllers enxutos por domínio
+│   │   └── Middleware/            # RBAC baseado em Enums (StaffOrNutri, Nutri, Diretor)
+│   ├── Models/                    # Contagem.php, Contagen.php, User.php, Autorizado.php
+│   └── Services/                  # ContagemService, ProducaoConsumoService, AutorizadoService
+├── database/
+│   ├── migrations/                # Esquema de banco de dados
+│   └── seeders/                   # E2eSeeder.php e seeders de desenvolvimento
+├── docs/                          # Manuais operacionais (PDFs) e documentação técnica
+├── resources/
+│   ├── js/
+│   │   ├── App.jsx                # Roteamento unificado com <RoleShell> e <Outlet />
+│   │   ├── constants/             # roles.js (constantes e labels de perfis)
+│   │   ├── hooks/                 # useAuth.js, usePermissions.js
+│   │   ├── layouts/               # MainLayout (compartilhado com Outlet)
+│   │   ├── services/
+│   │   │   ├── http/client.js     # Cliente HTTP base com Bearer Token
+│   │   │   ├── modules/           # 10 módulos de API desacoplados
+│   │   │   └── api.js             # Ponto de re-exportação unificado
+│   │   ├── features/              # Barrel exports das 11 áreas funcionais
+│   │   ├── pages/                 # Componentes de páginas do sistema
+│   │   ├── components/            # Componentes reutilizáveis (Header, Navs, Modais)
+│   │   └── styles/                # variables.css e estilos globais
+│   └── views/
+│       └── app.blade.php          # Shell HTML que hospeda a SPA React
+├── routes/
+│   ├── api.php                    # Endpoints RESTful da API
+│   └── web.php                    # Fallback SPA para o React Router
+├── tests/
+│   ├── Feature/
+│   │   ├── ApiCoverageTest.php    # Cobertura de rotas e Sanctum
+│   │   └── BusinessRules/         # Testes de regras de negócio (RN01 a RN17)
+│   └── e2e/                       # Cenários ponta a ponta Playwright (Chromium)
+├── eslint.config.js               # Configuração do ESLint 9
+├── playwright.config.js           # Configuração do Playwright com webServer integrado
+└── vitest.config.js               # Configuração do Vitest para React
+```
+
+---
+
+## Perfis de Acesso (RBAC)
+
+| Perfil | Nível | Enum (`UserRole`) | Principais Responsabilidades |
+| :--- | :---: | :---: | :--- |
+| **Inspetora / Staff** | `1` | `UserRole::Staff` | Registro diário de contagem de turmas, contagem de dietas especiais (NES), visualização de cardápios e chat. |
+| **Nutricionista** | `2` | `UserRole::Nutri` | Gestão completa do sistema: cadastro de cardápios (PDF), controle de produção e sobras, planejamento de dietas, solicitação de autorizações, gerenciamento de turmas/alunos e dashboard analítico. |
+| **Diretoria** | `3` | `UserRole::Diretor` | Painel gerencial, aprovação/recusa de autorizações de refeições e gerenciamento de usuários da equipe escolar. |
+
+---
 
 ## Requisitos
 
-- PHP 8.2+
-- Composer
-- Node.js 20+
-- SQLite ou outro banco configurado no `.env`
+- **PHP 8.2+** (recomendado **PHP 8.4**) com extensões `pdo_sqlite`, `pdo_mysql`, `mbstring`, `fileinfo`
+- **Composer 2+**
+- **Node.js 20+** e **npm**
+- **SQLite** ou **MySQL**
+
+---
 
 ## Instalação
 
 ```bash
+# 1. Clonar o repositório e acessar a pasta
+git clone <url-do-repositorio>
+cd contador-v2
+
+# 2. Instalar dependências do Backend (PHP)
 composer install
-copy .env.example .env
-php artisan key:generate
-php artisan migrate
+
+# 3. Instalar dependências do Frontend (Node.js)
 npm install
+
+# 4. Configurar variáveis de ambiente
+cp .env.example .env
+php artisan key:generate
+
+# 5. Executar as migrações do banco de dados
+php artisan migrate
 ```
 
-Os arquivos enviados são gravados em `public/uploads` e ficam disponíveis
-pelas URLs `/uploads` e `/uploads/pdf`.
+Os arquivos de upload (fotos e PDFs de cardápios) são gravados em `public/uploads` e expostos através de `/uploads` e `/uploads/pdf`.
 
-## Desenvolvimento
+---
 
-Em um terminal, execute:
+## Execução em Desenvolvimento
+
+Em terminais separados:
 
 ```bash
+# Terminal 1: Servidor Backend Laravel
 php artisan serve
+
+# Terminal 2: Servidor de desenvolvimento Vite (com Hot Module Replacement)
 npm run dev
 ```
 
-Abra `http://localhost:8000`. O Laravel entrega a página inicial e o Vite
-atualiza os módulos React durante o desenvolvimento.
-
-Para iniciar os processos Laravel e Vite juntos, também é possível usar:
+Ou execute ambos em conjunto:
 
 ```bash
 composer run dev
 ```
 
-## Produção
+Acesse no navegador: `http://localhost:8000`.
+
+---
+
+## Build de Produção
 
 ```bash
+# Compilar assets otimizados do frontend
 npm run build
+
+# Otimizar caches do Laravel
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 ```
 
-O servidor web deve apontar para a pasta `public` do Laravel. As rotas da API
-ficam sob `/api`; as demais rotas da SPA são encaminhadas pelo Laravel para a
-view React.
+O servidor web de produção (Nginx ou Apache) deve apontar o document root para a pasta `public/`.
 
-## Testes
+---
 
-Os testes são separados por camada e podem ser executados no CI ou localmente:
+## Testes Automatizados & Qualidade
 
-```bash
-# Backend: PHPUnit + Laravel RefreshDatabase (SQLite em memória)
-composer test
+O projeto conta com **172 testes automatizados** distribuídos em 3 camadas complementares:
 
-# Frontend: Vitest + Testing Library + MSW
-npm run lint
-npm run test:front
-npm run test:front:coverage
-
-# E2E: Playwright/Chromium contra Laravel servindo o build React
-npm run test:e2e:prepare
-npm run test:e2e
+```
+Total: 172 Testes Verdes (100% PASS)
+├── Backend (PHPUnit): 52 testes (221 asserções)
+├── Frontend (Vitest): 100 testes (32 arquivos)
+└── E2E (Playwright): 20 testes completos em navegador real
 ```
 
-`test:e2e:prepare` recria a base SQLite local e usa `E2eSeeder`, que cria as
-contas de teste dos três perfis. A senha padrão é `password`; o NIF da
-nutricionista é `22222222222` (ou use `E2E_NIF` e `E2E_PASSWORD`). Nunca use
-essas contas em ambiente real. O estado autenticado do Playwright e os
-relatórios ficam em pastas ignoradas pelo Git.
+### 1. Testes do Backend (PHPUnit / Laravel)
+Testa autenticação Sanctum, matriz de RBAC, limites de contagem (RN14), upload estrito de PDF, ciclo de vida de autorizações e integridade relacional.
 
-O PHPUnit cobre autenticação Sanctum, validações, CRUD, uploads, vínculos,
-contagens, produção, chat e a matriz de permissões. O Vitest cobre o cliente
-HTTP, serialização JSON/FormData, datas, login e mensagens de erro. O Playwright
-valida o shell entregue pelo Laravel, fallback de rotas, navegação autenticada
-e redirecionamento após remoção da sessão.
+```bash
+php artisan test
+# ou: composer test
+```
 
-## Organização
+### 2. Testes do Frontend (Vitest + React Testing Library)
+Testa componentes de páginas, cliente de API modular, modais, custom hooks (`useAuth`, `usePermissions`), filtros e relatórios.
 
-- `app/`: controllers, models, requests, resources e middleware Laravel
-- `routes/api.php`: endpoints da API
-- `routes/web.php`: entrada e fallback do React Router
-- `resources/js/`: páginas, componentes, estilos e serviços React
-- `resources/views/app.blade.php`: shell HTML que inicializa o React
-- `vite.config.js`: integração Laravel + Vite + React
+```bash
+# Execução padrão
+npm run test:front
+
+# Execução com relatório de cobertura de código
+npm run test:front:coverage
+```
+
+### 3. Análise Estática de Código (ESLint)
+Verificação de sintaxe, boas práticas do React 19 e consistência de imports.
+
+```bash
+npm run lint
+```
+
+### 4. Testes Ponta a Ponta (Playwright E2E)
+Executa cenários reais em navegadores Chromium simulando login, troca de perfis, navegação sem reflows e envio de mensagens assíncronas no chat.
+
+```bash
+# 1. Preparar a base de dados isolada para E2E (executa E2eSeeder)
+npm run test:e2e:prepare
+
+# 2. Executar a suíte Playwright
+npm run test:e2e
+
+# Opcional: Executar com interface interativa
+npx playwright test --ui
+```
+
+> **Credenciais de Teste E2E (criadas pelo `E2eSeeder`):**
+> - **Inspetora**: NIF `11111111111` | Senha: `password`
+> - **Nutricionista**: NIF `22222222222` | Senha: `password`
+> - **Diretoria**: NIF `33333333333` | Senha: `password`
+
+---
+
+## Documentação Técnica e Manuais
+
+A pasta [`docs/`](docs/) contém a documentação detalhada do sistema:
+- `docs/MANUAL_DEPLOY_MENU_SOLUTIONS.pdf`: guia de implantação e infraestrutura.
+- `docs/MANUAL_DESENVOLVIMENTO_HISTORIA_ROADMAP.pdf`: histórico do projeto, arquitetura e roadmap.
+- `docs/MANUAL_INSPETORA_MENU_SOLUTIONS.pdf`: manual operacional do perfil Inspetora.
+- `docs/MANUAL_NUTRICIONISTA_MENU_SOLUTIONS.pdf`: manual operacional do perfil Nutricionista.
+- `docs/docs/`: documentação dividida em tópicos (visão de negócio, requisitos, arquitetura, design system, QA e operação).
