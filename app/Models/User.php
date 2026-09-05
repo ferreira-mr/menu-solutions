@@ -50,4 +50,19 @@ class User extends Authenticatable
     {
         return $this->hasMany(Chat::class, 'users_id');
     }
+
+    public function isNutri(): bool
+    {
+        return (int) $this->nivel_user === \App\Enums\UserRole::Nutri->value;
+    }
+
+    public function isStaff(): bool
+    {
+        return (int) $this->nivel_user === \App\Enums\UserRole::Staff->value;
+    }
+
+    public function isDiretor(): bool
+    {
+        return (int) $this->nivel_user === \App\Enums\UserRole::Diretor->value;
+    }
 }

@@ -6,26 +6,29 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ContagenRequest;
 use App\Http\Resources\ContagenResource;
 use App\Models\Contagen;
+use App\Services\ContagemService;
 use Illuminate\Http\Request;
 
 class ContagenController extends Controller
 {
+    public function __construct(
+        protected ContagemService $contagemService
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $day = $request->validate([
+        $validated = $request->validate([
             'date' => ['nullable', 'date_format:Y-m-d'],
-        ])['date'] ?? null;
+            'data' => ['nullable', 'date_format:Y-m-d'],
+            'data_inicio' => ['nullable', 'date_format:Y-m-d'],
+            'data_fim' => ['nullable', 'date_format:Y-m-d'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:1000'],
+        ]);
 
-        if ($day) {
-            $contagens = Contagen::with(['turma.categoria'])->orderBy('data_contagem', 'DESC')->orderBy('hora_contagem', 'DESC')->where('data_contagem', $day)->paginate();
-
-            return ContagenResource::collection($contagens);
-        }
-
-        $contagens = Contagen::with(['turma.categoria'])->orderBy('data_contagem', 'DESC')->orderBy('hora_contagem', 'DESC')->paginate();
+        $contagens = $this->contagemService->list($validated);
 
         return ContagenResource::collection($contagens);
     }
@@ -35,12 +38,7 @@ class ContagenController extends Controller
      */
     public function store(ContagenRequest $request)
     {
-        $agora = now();
-        $contagen = Contagen::create(array_merge($request->validated(), [
-            'data_contagem' => $agora->toDateString(),
-            'hora_contagem' => $agora->toTimeString(),
-            'users_id' => auth()->id(),
-        ]));
+        $contagen = $this->contagemService->create($request->validated(), auth()->id());
 
         return (new ContagenResource($contagen))->response()->setStatusCode(201);
     }
@@ -62,7 +60,8 @@ class ContagenController extends Controller
             return response()->json(['message' => 'Update nao permitido / Fora de horario permitido'], 400);
         }
 
-        $contagen->update($request->validate(Contagen::updateRule()));
+        $validated = $request->validate(Contagen::updateRule());
+        $contagen = $this->contagemService->update($contagen, $validated);
 
         return new ContagenResource($contagen);
     }

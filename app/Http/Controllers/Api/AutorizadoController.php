@@ -7,18 +7,23 @@ use App\Http\Requests\AutorizadoRequest;
 use App\Http\Requests\AutorizarUpdateRequest;
 use App\Http\Resources\AutorizadoResource;
 use App\Models\Autorizado;
+use App\Services\AutorizadoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class AutorizadoController extends Controller
 {
+    public function __construct(
+        protected AutorizadoService $autorizadoService
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $autorizados = Autorizado::paginate();
+        $autorizados = $this->autorizadoService->list();
 
         return AutorizadoResource::collection($autorizados);
     }
@@ -28,7 +33,7 @@ class AutorizadoController extends Controller
      */
     public function store(AutorizadoRequest $request): JsonResponse
     {
-        $autorizado = Autorizado::create($request->validated());
+        $autorizado = $this->autorizadoService->create($request->validated());
 
         return (new AutorizadoResource($autorizado))->response()->setStatusCode(201);
     }
@@ -46,7 +51,8 @@ class AutorizadoController extends Controller
      */
     public function update(Request $request, Autorizado $autorizado)
     {
-        $autorizado->update($request->validate(Autorizado::updateRule()));
+        $validated = $request->validate(Autorizado::updateRule());
+        $autorizado = $this->autorizadoService->update($autorizado, $validated);
 
         return new AutorizadoResource($autorizado);
     }
@@ -56,15 +62,14 @@ class AutorizadoController extends Controller
      */
     public function destroy(Autorizado $autorizado): Response
     {
-        $autorizado->delete();
+        $this->autorizadoService->delete($autorizado);
 
         return response()->noContent();
     }
 
     public function atualizar(AutorizarUpdateRequest $request, Autorizado $autorizado)
     {
-        $dados = $request->validated();
-        $autorizado->update($dados);
+        $autorizado = $this->autorizadoService->approve($autorizado, $request->validated());
 
         return new AutorizadoResource($autorizado);
     }

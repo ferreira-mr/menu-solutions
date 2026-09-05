@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\DashboardResource;
-use App\Models\Categoria;
+use App\Services\ContagemService;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
+    public function __construct(
+        protected ContagemService $contagemService
+    ) {}
+
     public function contagemDashboard(Request $request)
     {
         $validated = $request->validate([
@@ -15,10 +18,6 @@ class DashboardController extends Controller
         ]);
         $date = $validated['data'] ?? today()->toDateString();
 
-        $data = Categoria::with(['turmas.contagen' => function ($query) use ($date) {
-            $query->where('data_contagem', $date)->latest('hora_contagem');
-        }])->get();
-
-        return DashboardResource::collection($data);
+        return $this->contagemService->getDashboard($date);
     }
 }

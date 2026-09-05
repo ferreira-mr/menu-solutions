@@ -6,18 +6,23 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ControleDeProducaoEConsumoRequest;
 use App\Http\Resources\ControleDeProducaoEConsumoResource;
 use App\Models\ControleDeProducaoEConsumo;
+use App\Services\ProducaoConsumoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class ControleDeProducaoEConsumoController extends Controller
 {
+    public function __construct(
+        protected ProducaoConsumoService $producaoService
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $controleDeProducaoEConsumos = ControleDeProducaoEConsumo::paginate();
+        $controleDeProducaoEConsumos = $this->producaoService->list();
 
         return ControleDeProducaoEConsumoResource::collection($controleDeProducaoEConsumos);
     }
@@ -27,7 +32,7 @@ class ControleDeProducaoEConsumoController extends Controller
      */
     public function store(ControleDeProducaoEConsumoRequest $request): JsonResponse
     {
-        $controleDeProducaoEConsumo = ControleDeProducaoEConsumo::create($request->validated());
+        $controleDeProducaoEConsumo = $this->producaoService->create($request->validated());
 
         return (new ControleDeProducaoEConsumoResource($controleDeProducaoEConsumo))->response()->setStatusCode(201);
     }
@@ -45,7 +50,8 @@ class ControleDeProducaoEConsumoController extends Controller
      */
     public function update(Request $request, ControleDeProducaoEConsumo $controle_de_producao)
     {
-        $controle_de_producao->update($request->validate(ControleDeProducaoEConsumo::updateRule()));
+        $validated = $request->validate(ControleDeProducaoEConsumo::updateRule());
+        $controle_de_producao = $this->producaoService->update($controle_de_producao, $validated);
 
         return new ControleDeProducaoEConsumoResource($controle_de_producao);
     }
@@ -55,7 +61,7 @@ class ControleDeProducaoEConsumoController extends Controller
      */
     public function destroy(ControleDeProducaoEConsumo $controle_de_producao): Response
     {
-        $controle_de_producao->delete();
+        $this->producaoService->delete($controle_de_producao);
 
         return response()->noContent();
     }

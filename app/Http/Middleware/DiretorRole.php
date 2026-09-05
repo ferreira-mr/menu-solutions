@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\UserRole;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,7 +16,10 @@ class DiretorRole
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->user() && (int) $request->user()->nivel_user === 3) {
+        $user = $request->user();
+        $isDiretor = $user && ($user->nivel_user === UserRole::Diretor || (int) $user->nivel_user === UserRole::Diretor->value);
+
+        if ($isDiretor) {
             return $next($request);
         }
 

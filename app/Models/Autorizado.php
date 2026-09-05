@@ -24,6 +24,10 @@ class Autorizado extends Model
 
     protected $perPage = 20;
 
+    protected $attributes = [
+        'status' => 'pendente',
+    ];
+
     /**
      * The attributes that are mass assignable.
      *
