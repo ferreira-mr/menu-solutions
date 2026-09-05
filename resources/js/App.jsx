@@ -1,33 +1,34 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 
-// Importações
-import LoginPage from './pages/Login/LoginPage';
+// Importações de Constantes e Layout
+import { ROLE_NAMES, ROLE_HOME_ROUTES } from './constants/roles';
 import MainLayout from './layouts/MainLayout/MainLayout';
-import InicioPage from './pages/Inicio/InicioPage';
-import DashboardNutri from './pages/DashboardNutri/DashboardNutri';
-import ControleProducaoPage from './pages/ControleProducao/ControleProducaoPage';
-import CategoriasPage from './pages/GerenciarCategorias/CategoriasPage';
-import UsuariosPage from './pages/GerenciarUsuarios/UsuariosPage';
-import CronogramaPage from './pages/Cronograma/CronogramaPage';
-import PlanejamentoPage from './pages/Planejamento/PlanejamentoPage';
-import ContagemPage from './pages/Inspetora/ContagemPage';
-import ContagemGeralPage from './pages/ContagemGeral/ContagemGeralPage';
-import ProfilePage from './pages/ProfilePage/ProfilePage';
-import ViewCardapioPage from './pages/Inspetora/ViewCardapioPage';
-import CardapiosPage from './pages/Cardapios/CardapiosPage';
-import AutorizadosPage from './pages/Autorizados/AutorizadosPage';
-import ChatPage from './pages/Chat/ChatPage';
 
-const roleMap = { '1': 'inspetora', '2': 'nutri', '3': 'diretora' };
+// Importações de Features (Feature-Driven Architecture)
+import { LoginPage } from './features/auth';
+import { ContagemPage, ContagemGeralPage } from './features/contagem';
+import { ControleProducaoPage } from './features/producao';
+import { AutorizadosPage } from './features/autorizados';
+import { CardapiosPage, ViewCardapioPage } from './features/cardapios';
+import { ChatPage } from './features/chat';
+import { CronogramaPage } from './features/cronograma';
+import { PlanejamentoPage } from './features/planejamento';
+import { CategoriasPage } from './features/escolar';
+import { UsuariosPage } from './features/usuarios';
+import { DashboardNutri } from './features/dashboard';
+
+// Páginas Compartilhadas
+import InicioPage from './pages/Inicio/InicioPage';
+import ProfilePage from './pages/ProfilePage/ProfilePage';
 
 const PrivateRoute = ({ children, requiredRole }) => {
   const token = localStorage.getItem('authToken');
   const userLevel = localStorage.getItem('userLevel');
-  const userRole = roleMap[userLevel];
+  const userRole = ROLE_NAMES[userLevel];
   
   if (!token || userRole !== requiredRole) {
-    return <Navigate to="/" />;
+    return <Navigate to="/" replace />;
   }
   return children;
 };
@@ -36,70 +37,72 @@ const PublicRoute = ({ children }) => {
   const token = localStorage.getItem('authToken');
   const userLevel = localStorage.getItem('userLevel');
   if (token && userLevel) {
-    const redirectMap = { 
-      '1': '/inspetora/inicio',
-      '2': '/nutri/dashboard',
-      '3': '/diretora/inicio',
-    };
-    const redirectTo = redirectMap[userLevel] || '/';
-    return <Navigate to={redirectTo} />;
+    const redirectTo = ROLE_HOME_ROUTES[userLevel] || '/';
+    return <Navigate to={redirectTo} replace />;
   }
   return children;
 };
+
+// Shell com Layout aninhado para cada papel operacional
+const RoleShell = ({ role }) => (
+  <PrivateRoute requiredRole={role}>
+    <MainLayout userRole={role}>
+      <Outlet />
+    </MainLayout>
+  </PrivateRoute>
+);
 
 function App() {
   return (
     <Router>
       <Routes>
         {/* ROTA PÚBLICA */}
-        <Route path="/" element={ <PublicRoute><LoginPage /></PublicRoute> } />
+        <Route path="/" element={<PublicRoute><LoginPage /></PublicRoute>} />
         
         {/* ================== ROTAS DA INSPETORA ================== */}
-        <Route path="/inspetora/inicio" element={ <PrivateRoute requiredRole="inspetora"><MainLayout userRole="inspetora"><InicioPage userRole="inspetora" /></MainLayout></PrivateRoute> } />
-        <Route path="/nova-contagem" element={ <PrivateRoute requiredRole="inspetora"><MainLayout userRole="inspetora"><ContagemPage /></MainLayout></PrivateRoute> } />
-        <Route path="/cardapio" element={ <PrivateRoute requiredRole="inspetora"><MainLayout userRole="inspetora"><ViewCardapioPage /></MainLayout></PrivateRoute> } />
-        <Route path="/inspetora/autorizados" element={ <PrivateRoute requiredRole="inspetora"><MainLayout userRole="inspetora"><AutorizadosPage /></MainLayout></PrivateRoute> } />
-        <Route path="/inspetora/perfil" element={ <PrivateRoute requiredRole="inspetora"><MainLayout userRole="inspetora"><ProfilePage /></MainLayout></PrivateRoute> } />
-        <Route path="/inspetora/chat" element={ <PrivateRoute requiredRole="inspetora"><MainLayout userRole="inspetora"><ChatPage /></MainLayout></PrivateRoute> } />
-        
+        <Route element={<RoleShell role="inspetora" />}>
+          <Route path="/inspetora/inicio" element={<InicioPage userRole="inspetora" />} />
+          <Route path="/nova-contagem" element={<ContagemPage />} />
+          <Route path="/cardapio" element={<ViewCardapioPage />} />
+          <Route path="/inspetora/autorizados" element={<AutorizadosPage />} />
+          <Route path="/inspetora/perfil" element={<ProfilePage />} />
+          <Route path="/inspetora/chat" element={<ChatPage />} />
+        </Route>
+
         {/* ================== ROTAS DA NUTRICIONISTA ================== */}
-        <Route path="/nutri/dashboard" element={ <PrivateRoute requiredRole="nutri"><MainLayout userRole="nutri"><DashboardNutri /></MainLayout></PrivateRoute> } />
-        <Route path="/nutri/relatorio-geral" element={ <PrivateRoute requiredRole="nutri"><MainLayout userRole="nutri"><ContagemGeralPage /></MainLayout></PrivateRoute> } />
-        <Route path="/nutri/inicio" element={ <PrivateRoute requiredRole="nutri"><MainLayout userRole="nutri"><InicioPage userRole="nutri" /></MainLayout></PrivateRoute> } />
-        <Route path="/nutri/controle-producao" element={ <PrivateRoute requiredRole="nutri"><MainLayout userRole="nutri"><ControleProducaoPage /></MainLayout></PrivateRoute> } />
-        <Route path="/nutri/gerenciar/categorias" element={ <PrivateRoute requiredRole="nutri"><MainLayout userRole="nutri"><CategoriasPage /></MainLayout></PrivateRoute> } />
-        <Route path="/nutri/gerenciar/usuarios" element={ <PrivateRoute requiredRole="nutri"><MainLayout userRole="nutri"><UsuariosPage /></MainLayout></PrivateRoute> } />
-        <Route path="/nutri/cronograma" element={ <PrivateRoute requiredRole="nutri"><MainLayout userRole="nutri"><CronogramaPage /></MainLayout></PrivateRoute> } />
-        <Route path="/nutri/planejamento" element={ <PrivateRoute requiredRole="nutri"><MainLayout userRole="nutri"><PlanejamentoPage /></MainLayout></PrivateRoute> } />
-        <Route path="/nutri/cardapios" element={ <PrivateRoute requiredRole="nutri"><MainLayout userRole="nutri"><CardapiosPage /></MainLayout></PrivateRoute> } />
-        <Route path="/nutri/autorizados" element={ <PrivateRoute requiredRole="nutri"><MainLayout userRole="nutri"><AutorizadosPage /></MainLayout></PrivateRoute> } />
-        <Route path="/nutri/perfil" element={ <PrivateRoute requiredRole="nutri"><MainLayout userRole="nutri"><ProfilePage /></MainLayout></PrivateRoute> } />
-        <Route path="/nutri/chat" element={ <PrivateRoute requiredRole="nutri"><MainLayout userRole="nutri"><ChatPage /></MainLayout></PrivateRoute> } />
+        <Route element={<RoleShell role="nutri" />}>
+          <Route path="/nutri/dashboard" element={<DashboardNutri />} />
+          <Route path="/nutri/relatorio-geral" element={<ContagemGeralPage />} />
+          <Route path="/nutri/inicio" element={<InicioPage userRole="nutri" />} />
+          <Route path="/nutri/controle-producao" element={<ControleProducaoPage />} />
+          <Route path="/nutri/gerenciar/categorias" element={<CategoriasPage />} />
+          <Route path="/nutri/gerenciar/usuarios" element={<UsuariosPage />} />
+          <Route path="/nutri/cronograma" element={<CronogramaPage />} />
+          <Route path="/nutri/planejamento" element={<PlanejamentoPage />} />
+          <Route path="/nutri/cardapios" element={<CardapiosPage />} />
+          <Route path="/nutri/autorizados" element={<AutorizadosPage />} />
+          <Route path="/nutri/perfil" element={<ProfilePage />} />
+          <Route path="/nutri/chat" element={<ChatPage />} />
+        </Route>
 
         {/* ================== ROTAS DA DIRETORA ================== */}
-        {/* Acessa os mesmos componentes da Nutri, mas com rotas /diretora/... para a validação de segurança funcionar */}
-        <Route path="/diretora/inicio" element={ <PrivateRoute requiredRole="diretora"><MainLayout userRole="diretora"><InicioPage userRole="diretora" /></MainLayout></PrivateRoute> } />
-        <Route path="/diretora/dashboard" element={ <PrivateRoute requiredRole="diretora"><MainLayout userRole="diretora"><DashboardNutri /></MainLayout></PrivateRoute> } />
-        
-        <Route path="/diretora/controle-producao" element={ <PrivateRoute requiredRole="diretora"><MainLayout userRole="diretora"><ControleProducaoPage /></MainLayout></PrivateRoute> } />
-        <Route path="/diretora/relatorio-geral" element={ <PrivateRoute requiredRole="diretora"><MainLayout userRole="diretora"><ContagemGeralPage /></MainLayout></PrivateRoute> } />
-        
-        {/* Gerenciamento */}
-        <Route path="/diretora/gerenciar/categorias" element={ <PrivateRoute requiredRole="diretora"><MainLayout userRole="diretora"><CategoriasPage /></MainLayout></PrivateRoute> } />
-        <Route path="/diretora/gerenciar/usuarios" element={ <PrivateRoute requiredRole="diretora"><MainLayout userRole="diretora"><UsuariosPage /></MainLayout></PrivateRoute> } />
-        
-        {/* Funcionalidades Extras */}
-        <Route path="/diretora/cardapios" element={ <PrivateRoute requiredRole="diretora"><MainLayout userRole="diretora"><CardapiosPage /></MainLayout></PrivateRoute> } />
-        <Route path="/diretora/chat" element={ <PrivateRoute requiredRole="diretora"><MainLayout userRole="diretora"><ChatPage /></MainLayout></PrivateRoute> } />
-        <Route path="/diretora/cronograma" element={ <PrivateRoute requiredRole="diretora"><MainLayout userRole="diretora"><CronogramaPage /></MainLayout></PrivateRoute> } />
-        <Route path="/diretora/autorizados" element={ <PrivateRoute requiredRole="diretora"><MainLayout userRole="diretora"><AutorizadosPage /></MainLayout></PrivateRoute> } />
-        <Route path="/diretora/planejamento" element={ <PrivateRoute requiredRole="diretora"><MainLayout userRole="diretora"><PlanejamentoPage /></MainLayout></PrivateRoute> } />
-        <Route path="/diretora/perfil" element={ <PrivateRoute requiredRole="diretora"><MainLayout userRole="diretora"><ProfilePage /></MainLayout></PrivateRoute> } />
+        <Route element={<RoleShell role="diretora" />}>
+          <Route path="/diretora/inicio" element={<InicioPage userRole="diretora" />} />
+          <Route path="/diretora/dashboard" element={<DashboardNutri />} />
+          <Route path="/diretora/controle-producao" element={<ControleProducaoPage />} />
+          <Route path="/diretora/relatorio-geral" element={<ContagemGeralPage />} />
+          <Route path="/diretora/gerenciar/categorias" element={<CategoriasPage />} />
+          <Route path="/diretora/gerenciar/usuarios" element={<UsuariosPage />} />
+          <Route path="/diretora/cardapios" element={<CardapiosPage />} />
+          <Route path="/diretora/chat" element={<ChatPage />} />
+          <Route path="/diretora/cronograma" element={<CronogramaPage />} />
+          <Route path="/diretora/autorizados" element={<AutorizadosPage />} />
+          <Route path="/diretora/planejamento" element={<PlanejamentoPage />} />
+          <Route path="/diretora/perfil" element={<ProfilePage />} />
+        </Route>
 
-        {/* O shell Laravel também pode receber URLs profundas; qualquer rota React
-            desconhecida volta ao login em vez de deixar a tela em branco. */}
+        {/* Redirecionamento de rotas desconhecidas para a raiz */}
         <Route path="*" element={<Navigate to="/" replace />} />
-
       </Routes>
     </Router>
   );

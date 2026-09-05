@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import Swal from '../../utils/sweetAlert';
 import { logoutUser, getUserData } from '../../services/api';
 
@@ -142,7 +142,7 @@ const MainLayout = ({ userRole, children }) => {
                 style={{ backgroundImage: `url(${background})` }}
                 key={location.pathname} 
             >
-                {children}
+                {children || <Outlet />}
             </main>
 
             {!isChatPage && <Footer />}
