@@ -196,11 +196,11 @@ O servidor web de produção (Nginx ou Apache) deve apontar o document root para
 
 ## Testes Automatizados & Qualidade
 
-O projeto conta com **172 testes automatizados** distribuídos em 3 camadas complementares:
+O projeto conta com **173 testes automatizados** distribuídos em 3 camadas complementares:
 
 ```
-Total: 172 Testes Verdes (100% PASS)
-├── Backend (PHPUnit): 52 testes (221 asserções)
+Total: 173 Testes Verdes (100% PASS)
+├── Backend (PHPUnit): 53 testes (245 asserções)
 ├── Frontend (Vitest): 100 testes (32 arquivos)
 └── E2E (Playwright): 20 testes completos em navegador real
 ```
