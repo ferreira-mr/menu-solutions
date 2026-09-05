@@ -1,0 +1,22 @@
+# Requisitos Não-Funcionais (RNF) do Sistema Menu Solutions
+
+Os Requisitos Não-Funcionais (RNF) estabelecem as qualidades operacionais, restrições arquiteturais, padrões de segurança e parâmetros de desempenho exigidos para o ecossistema **Menu Solutions**.
+
+---
+
+## 1. Classificação e Matriz de Requisitos Não-Funcionais
+
+| Código | Categoria | Descrição Técnica | Métrica / Critério de Aceitação |
+| :--- | :--- | :--- | :--- |
+| **RNF01** | **Desempenho & Latência** | As respostas a operações de contagem e renderização de cards móveis devem ser instantâneas. | Tempo de resposta de requisições de salvamento inferior a **800 milissegundos** sob rede local/Wi-Fi. |
+| **RNF02** | **Sincronização em Tempo Real** | O dashboard da nutricionista deve refletir novas contagens sem necessidade de recarregamento manual da página inteira (Full Page Reload). | Atualização assíncrona automática via polling assíncrono (intervalo configurado para **60 segundos**) ou WebSockets. |
+| **RNF03** | **Segurança Criptográfica** | Nenhuma senha de usuário deve ser persistida em texto puro ou com algoritmos obsoletos (como MD5 ou SHA-1). | Utilização mandatória de algoritmos seguros de hashing unidirecional com salt dinâmico (**Bcrypt** ou **Argon2** no Laravel). |
+| **RNF04** | **Sanitização de Entradas (Segurança Web)** | Todas as entradas fornecidas pelo usuário em inputs de texto, mensagens de chat e descrições de autorizados devem ser estritamente sanitizadas contra ataques de injeção. | Bloqueio contra **Cross-Site Scripting (XSS)** (rejeição ou escape de tags HTML/`<script>`) e contra **SQL Injection** via uso exclusivo de Prepared Statements / Eloquent ORM. |
+| **RNF05** | **Autenticação e Sessões (API)** | A versão 2 do sistema deve gerenciar o estado e as permissões de acesso por meio de mecanismos modernos de tokens. | Implementação do **Laravel Sanctum** com expiração de tokens e controle rigoroso de expiração de sessão. |
+| **RNF06** | **Usabilidade e Ergonomia Mobile** | A interface da Inspetora deve ser projetada sob a filosofia *Mobile-First*, com botões de tamanho adequado para toque rápido em tela durante deslocamento nos corredores. | Alvos de toque (touch targets) com dimensões mínimas de **44 x 44 pixels**, espaçamento amplo e contraste visual conforme WCAG 2.1 AA. |
+| **RNF07** | **Compatibilidade Cross-Browser e Responsividade** | O sistema deve funcionar perfeitamente em múltiplos dispositivos (smartphones Android/iOS, tablets e computadores desktop Full HD). | Suporte oficial validado para as versões modernas dos navegadores: **Google Chrome, Mozilla Firefox, Microsoft Edge e Safari**. Resoluções testadas de 360x640px até 1920x1080px sem quebra de layout. |
+| **RNF08** | **Independência de Dependências Externas Frágeis** | Em face das limitações de sinal de rede externa em algumas salas de aula, as bibliotecas fundamentais de layout e scripts devem ser hospedadas localmente. | O framework de estilos (Bootstrap/Tailwind) e ícones devem ser servidos diretamente do servidor local da escola, eliminando dependência estrita de CDNs externas. |
+| **RNF09** | **Privacidade e Proteção de Dados (LGPD)** | Os dados cadastrais dos estudantes (especialmente laudos médicos de restrições alimentares, dados de saúde e fotografias de menores de idade) devem ser armazenados com estrita confidencialidade. | Conformidade com os artigos da Lei Geral de Proteção de Dados (Lei nº 13.709/2018). Proibição de exposição pública de listas médicas sem autenticação. |
+| **RNF10** | **Manutenibilidade e Arquitetura Limpa** | O código-fonte deve ser modularizado, com separação clara de responsabilidades entre Back-End (API RESTful) e Front-End (SPA/Client). | Adoção do padrão MVC/REST no Laravel, uso de Migrations para versionamento de banco de dados e controle de versão no GitHub. |
+| **RNF11** | **Orçamento Zero e Tecnologias Livres** | Toda a pilha tecnológica utilizada no projeto deve ser estritamente composta por softwares livres, código aberto e sem custos de royalties ou licenças comerciais. | Uso de PHP, Laravel, MySQL/MariaDB, JavaScript, Nginx/Apache e Linux. |
+| **RNF12** | **Confiabilidade e Soft Deletes** | Exclusões acidentais de turmas, alunos ou registros de consumo não devem provocar perda irreversível ou corrupção de integridade referencial. | Implementação de **Soft Deletes** (`deleted_at`) nas tabelas estruturantes do banco de dados `cont_v2`. |
