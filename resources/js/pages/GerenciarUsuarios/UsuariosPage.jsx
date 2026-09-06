@@ -66,7 +66,7 @@ const UsuariosPage = () => {
                         ${isEditing ? 'Nova Senha (Opcional)' : 'Senha Inicial'}
                     </label>
                     <input id="swal-password" type="password" class="swal2-input" 
-                        placeholder="${isEditing ? 'Deixe em branco para manter' : 'Mínimo 6 caracteres'}" 
+                        placeholder="${isEditing ? 'Deixe em branco para manter' : 'Mínimo 8 caracteres'}" 
                         style="margin: 0; width: 100%">
                 </div>
             `,
@@ -88,17 +88,18 @@ const UsuariosPage = () => {
                     return false;
                 }
                 
-                if (!isEditing && (!password || password.length < 6)) {
-                    Swal.showValidationMessage('A senha inicial deve ter pelo menos 6 caracteres');
+                if (!isEditing && (!password || password.length < 8)) {
+                    Swal.showValidationMessage('A senha inicial deve ter pelo menos 8 caracteres');
                     return false;
                 }
 
-                // Montagem dos dados: E-mail fixo conforme solicitado
+                // Montagem dos dados: E-mail único derivado do NIF
+                const cleanNif = nif.replace(/\D/g, '') || nif;
                 const data = { 
                     name, 
                     nif, 
-                    nivel_user,
-                    email: 'example@gmail.com' // E-mail automático invisível
+                    nivel_user: Number(nivel_user),
+                    email: user?.email || `${cleanNif}@menusolutions.local`
                 };
 
                 if (password) {
@@ -130,13 +131,14 @@ const UsuariosPage = () => {
         Swal.fire({
             title: `Nova senha para ${user.name}`,
             input: 'password',
-            inputPlaceholder: 'Digite a nova senha',
+            inputPlaceholder: 'Digite a nova senha (mínimo 8 caracteres)',
             showCancelButton: true,
             confirmButtonText: 'Alterar',
             confirmButtonColor: '#fd7e14',
             preConfirm: (newPass) => {
-                if (!newPass || newPass.length < 6) {
-                    Swal.showValidationMessage('Mínimo 6 caracteres');
+                if (!newPass || newPass.length < 8) {
+                    Swal.showValidationMessage('A nova senha deve ter pelo menos 8 caracteres');
+                    return false;
                 }
                 return newPass;
             }
@@ -146,7 +148,7 @@ const UsuariosPage = () => {
                     await updateUser(user.id, { 
                         password: result.value,
                         password_confirmation: result.value,
-                        email: user.email || 'example@gmail.com' // Mantém o padrão no reset
+                        email: user.email || `${user.nif}@menusolutions.local`
                     });
                     Swal.fire({ icon: 'success', title: 'Senha alterada!', timer: 1500, showConfirmButton: false });
                 } catch (error) {

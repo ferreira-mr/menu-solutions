@@ -7,11 +7,12 @@ import {
     updateConteudoAutorizado, 
     deleteAutorizado 
 } from '../../services/api';
+import { USER_ROLES } from '../../constants/roles';
 import './AutorizadosPage.css';
 
-const LEVEL_INSPETORA = '1';
-const LEVEL_NUTRI = '2';
-const LEVEL_DIRETORA = '3';
+const LEVEL_INSPETORA = String(USER_ROLES.STAFF);
+const LEVEL_NUTRI = String(USER_ROLES.NUTRI);
+const LEVEL_DIRETORA = String(USER_ROLES.DIRETORA);
 
 const AutorizadosPage = () => {
     const [autorizados, setAutorizados] = useState([]);

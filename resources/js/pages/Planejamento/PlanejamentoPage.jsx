@@ -140,6 +140,44 @@ const PlanejamentoPage = () => {
         }
     };
 
+    const handleEditNecessidade = async (nec) => {
+        const { value: nome } = await Swal.fire({
+            title: 'Editar Categoria',
+            input: 'text',
+            inputValue: nec.necessidade,
+            inputPlaceholder: 'Ex: Sem Glúten',
+            showCancelButton: true,
+            confirmButtonText: 'Salvar',
+            confirmButtonColor: '#28a745',
+            cancelButtonText: 'Cancelar'
+        });
+        if (nome && nome.trim() !== '') {
+            try {
+                await updateNecessidade(nec.id, nome.trim());
+                fetchData();
+            } catch (e) { Swal.fire('Erro', 'Falha ao atualizar.', 'error'); }
+        }
+    };
+
+    const handleDeleteNecessidade = async (nec) => {
+        const result = await Swal.fire({
+            title: `Excluir "${nec.necessidade}"?`,
+            text: 'Isso só será permitido se não houver alunos vinculados.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sim, excluir',
+            confirmButtonColor: '#dc3545',
+            cancelButtonText: 'Cancelar'
+        });
+        if (result.isConfirmed) {
+            try {
+                await deleteNecessidade(nec.id);
+                if (selectedNecessidadeId === nec.id) setSelectedNecessidadeId(null);
+                fetchData();
+            } catch (e) { Swal.fire('Erro', 'Remova as relações dos alunos antes de excluir.', 'error'); }
+        }
+    };
+
     // --- CRUD ALUNOS (RM E DATA AUTOMÁTICOS) ---
 
     const handleOpenAlunoModal = (aluno = null) => {
@@ -310,7 +348,8 @@ const PlanejamentoPage = () => {
                         <div key={nec.id} className={`list-item-container ${selectedNecessidadeId === nec.id ? 'active' : ''}`} onClick={() => handleSelectNecessidade(nec.id)}>
                             <span className="list-item-name">{nec.necessidade}</span>
                             <div className="list-item-actions">
-                                <button onClick={(e) => { e.stopPropagation(); /* edit nec */ }}><i className="bi bi-pencil-fill"></i></button>
+                                <button title="Editar Categoria" onClick={(e) => { e.stopPropagation(); handleEditNecessidade(nec); }}><i className="bi bi-pencil-fill"></i></button>
+                                <button title="Excluir Categoria" onClick={(e) => { e.stopPropagation(); handleDeleteNecessidade(nec); }}><i className="bi bi-trash-fill"></i></button>
                             </div>
                         </div>
                     ))}

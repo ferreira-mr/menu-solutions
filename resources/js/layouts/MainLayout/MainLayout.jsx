@@ -45,7 +45,8 @@ const MainLayout = ({ userRole, children }) => {
         const fetchInitialData = async () => {
             try {
                 const data = await getUserData();
-                setUsuario(data.name);
+                const userName = data?.data?.name || data?.name || localStorage.getItem('userName') || 'Usuário';
+                setUsuario(userName);
             } catch (error) {
                 console.error("Não foi possível buscar os dados do usuário. Forçando logout.", error);
                 handleFinalLogout(false); 
