@@ -123,4 +123,59 @@ describe('ContagemPage (Inspetora)', () => {
       expect(api.addContagem).toHaveBeenCalledWith({ quantidade: 32, turmaId: 2 });
     });
   });
+
+  it('exibe alunos com dieta especial no modal e permite alternar presença', async () => {
+    api.getNecessidades.mockResolvedValue({
+      data: [{ id: 5, necessidade: 'NAE' }],
+    });
+    api.getNecessidadeComAlunos.mockResolvedValue({
+      id: 5,
+      necessidade: 'NAE',
+      alunos: [
+        { id: 20, nome: 'Pedro Alergico', turmas_id: 1, pivot: { id: 77 } },
+      ],
+    });
+    api.addContagem.mockResolvedValue({ id: 10, qtd_contagem: 25 });
+    api.updateContagem.mockResolvedValue({ id: 10, qtd_contagem: 26 });
+    api.addAlunoNaContagemNes.mockResolvedValue({ data: { id: 101 } });
+
+    // Simula didOpen disparando o clique no switch
+    Swal.fire.mockImplementation(async (options) => {
+      if (options?.didOpen) {
+        // Cria elementos virtuais para simular o DOM do modal
+        const container = document.createElement('div');
+        container.innerHTML = options.html || '';
+        document.body.appendChild(container);
+
+        try {
+          options.didOpen();
+          const chk = document.querySelector('.check-nes');
+          if (chk) {
+            chk.checked = true;
+            chk.onchange?.({ target: chk });
+          }
+        } finally {
+          container.remove();
+        }
+      }
+      return { isConfirmed: true, value: { quantidadeFinal: 26 } };
+    });
+
+    render(
+      <MemoryRouter>
+        <ContagemPage />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('1º Ano A')).toBeInTheDocument();
+    });
+
+    const card = screen.getByText('1º Ano A').closest('.turma-card');
+    card.click();
+
+    await waitFor(() => {
+      expect(api.updateContagem).toHaveBeenCalled();
+    });
+  });
 });

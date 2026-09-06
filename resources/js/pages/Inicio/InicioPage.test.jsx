@@ -27,4 +27,16 @@ describe('InicioPage', () => {
     expect(screen.getByText('Contagem Geral')).toBeInTheDocument();
     expect(screen.getByText('Gerenciar Usuários')).toBeInTheDocument();
   });
+
+  it('exibe atalhos gerenciais para a Diretora', () => {
+    render(
+      <MemoryRouter>
+        <InicioPage userRole="diretora" />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('Autorizados Direção')).toBeInTheDocument();
+    expect(screen.getByText('Gerenciar Usuários')).toBeInTheDocument();
+    expect(screen.getByText('Contagem Geral')).toBeInTheDocument();
+  });
 });

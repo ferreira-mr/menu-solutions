@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { usePermissions } from './usePermissions';
 import { useAuth } from './useAuth';
 import * as api from '../services/api';
@@ -59,6 +59,11 @@ describe('Custom Hooks (usePermissions & useAuth)', () => {
 
       expect(result.current.role).toBe('nutri');
       expect(result.current.isNutri).toBe(true);
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false);
+      });
+      expect(result.current.user).toEqual({ id: 1, name: 'Jaqueline Nutri' });
     });
 
     it('executa logout com limpeza do storage', async () => {

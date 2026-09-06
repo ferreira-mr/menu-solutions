@@ -151,8 +151,9 @@ describe('PlanejamentoPage', () => {
     });
   });
 
-  it('permite excluir permanentemente um aluno da base', async () => {
-    Swal.fire.mockResolvedValue({ isConfirmed: true });
+  it('permite editar uma categoria existente', async () => {
+    api.updateNecessidade.mockResolvedValue({});
+    Swal.fire.mockResolvedValueOnce({ value: 'Celiaquismo Severo' });
 
     render(
       <MemoryRouter>
@@ -161,13 +162,36 @@ describe('PlanejamentoPage', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByTitle('Deletar Aluno')).toBeInTheDocument();
+      expect(screen.getByText('Celiaquismo')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByTitle('Deletar Aluno'));
+    const editCatBtn = screen.getByTitle('Editar Categoria');
+    fireEvent.click(editCatBtn);
 
     await waitFor(() => {
-      expect(api.deleteAluno).toHaveBeenCalledWith(10);
+      expect(api.updateNecessidade).toHaveBeenCalledWith(1, 'Celiaquismo Severo');
+    });
+  });
+
+  it('permite excluir uma categoria de necessidade sem alunos', async () => {
+    api.deleteNecessidade.mockResolvedValue({});
+    Swal.fire.mockResolvedValueOnce({ isConfirmed: true });
+
+    render(
+      <MemoryRouter>
+        <PlanejamentoPage />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Celiaquismo')).toBeInTheDocument();
+    });
+
+    const deleteCatBtn = screen.getByTitle('Excluir Categoria');
+    fireEvent.click(deleteCatBtn);
+
+    await waitFor(() => {
+      expect(api.deleteNecessidade).toHaveBeenCalledWith(1);
     });
   });
 });
