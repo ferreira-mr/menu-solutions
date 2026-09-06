@@ -40,14 +40,63 @@ class E2eSeeder extends Seeder
             ],
         );
 
-        $categoria = \App\Models\Categoria::firstOrCreate(
-            ['nome_categoria' => 'Ensino Médio']
-        );
+        // 2. Categorias e Turmas Oficiais do Projeto SESI
+        $categoriasTurmas = [
+            'Fundamental 1A' => [
+                '1º Ano A',
+                '2º Ano A',
+            ],
+            'Fundamental 1B' => [
+                '3º Ano A',
+                '4º Ano A',
+                '5º Ano A',
+            ],
+            'Fundamental 2' => [
+                '6º Ano A',
+                '7º Ano A',
+                '8º Ano A',
+                '9º Ano A',
+            ],
+            'Ensino Médio' => [
+                '1º Ano A',
+                '2º Ano A',
+                '3º Ano A',
+            ],
+            'Outros' => [
+                'Robótica',
+                'Personaliza',
+            ],
+        ];
 
-        \App\Models\Turma::firstOrCreate(
-            ['nome_turma' => '1º Ano A', 'categorias_id' => $categoria->id]
-        );
+        foreach ($categoriasTurmas as $catNome => $turmas) {
+            $cat = \App\Models\Categoria::firstOrCreate(['nome_categoria' => $catNome]);
+            foreach ($turmas as $turmaNome) {
+                \App\Models\Turma::firstOrCreate([
+                    'nome_turma' => $turmaNome,
+                    'categorias_id' => $cat->id,
+                ]);
+            }
+        }
 
+        // 3. Cronogramas (Dias da Semana)
+        $dias = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
+        foreach ($dias as $dia) {
+            \App\Models\Cronograma::firstOrCreate(['dia' => $dia]);
+        }
+
+        // 4. Necessidades Especiais e Dietas
+        $necessidades = [
+            'NAI',
+            'Personaliza',
+            'Robótica',
+            'Sem Glúten',
+            'Sem Lactose',
+        ];
+        foreach ($necessidades as $nec) {
+            \App\Models\Necessidade::firstOrCreate(['necessidade' => $nec]);
+        }
+
+        // 5. Autorizado de Exemplo
         \App\Models\Autorizado::firstOrCreate(
             ['titulo' => 'Autorização Lanche Especial'],
             [
@@ -56,6 +105,7 @@ class E2eSeeder extends Seeder
             ]
         );
 
+        // 6. Registro de Produção de Exemplo
         \App\Models\ControleDeProducaoEConsumo::firstOrCreate(
             ['nome_alimento' => 'Arroz Integral'],
             [
