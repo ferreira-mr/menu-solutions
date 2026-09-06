@@ -42,9 +42,13 @@ const LoginPage = () => {
       // Salva token primeiro para poder buscar dados do usuário
       localStorage.setItem('authToken', token);
 
-      const userData = await getUserData(token);
-      localStorage.setItem('userName', userData.name);
-      localStorage.setItem('userLevel', userData.nivel_user);
+      const rawUserData = await getUserData(token).catch(() => null);
+      const userData = rawUserData?.data || rawUserData || loginResponse?.user?.data || loginResponse?.user;
+      const userName = userData?.name || 'Usuário';
+      const userLevel = userData?.nivel_user;
+
+      localStorage.setItem('userName', userName);
+      localStorage.setItem('userLevel', String(userLevel));
       
       setIsLoading(false);
       
@@ -52,13 +56,13 @@ const LoginPage = () => {
       await Swal.fire({
         icon: 'success',
         title: 'Bem-vindo(a)!',
-        text: userData.name,
+        text: userName,
         timer: 1500,
         showConfirmButton: false,
         allowOutsideClick: false
       });
 
-      navigateBasedOnLevel(userData.nivel_user);
+      navigateBasedOnLevel(userLevel);
 
     } catch (err) {
       setIsLoading(false);

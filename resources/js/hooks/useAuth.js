@@ -21,7 +21,8 @@ export const useAuth = () => {
     let isMounted = true;
     getUserData()
       .then((data) => {
-        if (isMounted) setUser(data);
+        const userData = data?.data || data;
+        if (isMounted) setUser(userData);
       })
       .catch(() => {
         if (isMounted) setUser(null);
