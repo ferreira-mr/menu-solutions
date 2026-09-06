@@ -1,0 +1,18 @@
+# Terraform local state, providers and active vars
+.terraform/
+*.tfstate
+*.tfstate.*
+terraform.tfvars
+
+# Generated scripts by local-exec
+scripts/*_generated.ps1
+
+# Cache, appliances and large virtual disks
+cache/
+*.ova
+*.vdi
+*.vmdk
+*.box
+
+# Vagrant local state
+.vagrant/

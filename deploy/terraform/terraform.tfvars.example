@@ -1,0 +1,26 @@
+# ==============================================================================
+# Menu Solutions (Contador V2) - Exemplo de Configuração Terraform
+# Renomeie este arquivo para 'terraform.tfvars' se desejar customizar os valores.
+# ==============================================================================
+
+vm_name          = "MenuSolutions-ContadorV2"
+os_type          = "Ubuntu_64"
+cpus             = 2
+memory_mb        = 2048
+disk_size_mb     = 25600
+
+# Porta na máquina hospedeira que receberá as conexões da escola:
+# Use 80 para acesso direto (ex: http://192.168.1.100).
+# Se o Apache do XAMPP estiver ativo no host, altere para 8080 (http://192.168.1.100:8080).
+host_http_port   = 80
+guest_http_port  = 80
+
+# Porta de administração SSH:
+host_ssh_port    = 2222
+guest_ssh_port   = 22
+
+# Caminho do VirtualBox:
+vbox_manage_path = "C:\\Program Files\\Oracle\\VirtualBox\\VBoxManage.exe"
+
+# Iniciar a VM após a criação:
+auto_start       = false

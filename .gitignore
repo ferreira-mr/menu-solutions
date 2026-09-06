@@ -30,5 +30,17 @@ Thumbs.db
 public/uploads/**
 !public/uploads/
 !public/uploads/.gitkeep
+public/uploads/pdf/**
 !public/uploads/pdf/
 !public/uploads/pdf/.gitkeep
+
+# VM & Deploy artifacts
+/.vagrant/
+/deploy/cache/
+/deploy/*.ova
+*.tfstate
+*.tfstate.*
+deploy/terraform/.terraform/
+deploy/terraform/terraform.tfvars
+deploy/terraform/scripts/*_generated.ps1
+
