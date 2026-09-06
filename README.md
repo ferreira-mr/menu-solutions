@@ -16,6 +16,7 @@ O projeto é construído em uma arquitetura desacoplada e moderna:
 - [Requisitos](#requisitos)
 - [Instalação](#instalação)
 - [Execução em Desenvolvimento](#execução-em-desenvolvimento)
+- [Implantação em Máquina Virtual (Escola)](#implantação-em-máquina-virtual-escola)
 - [Build de Produção](#build-de-produção)
 - [Testes Automatizados & Qualidade](#testes-automatizados--qualidade)
 - [Documentação Técnica e Manuais](#documentação-técnica-e-manuais)
@@ -175,6 +176,67 @@ composer run dev
 ```
 
 Acesse no navegador: `http://localhost:8000`.
+
+---
+
+## Implantação em Máquina Virtual (Escola)
+
+Para escolas públicas ou unidades do SESI/SENAI onde o sistema rodará em um computador comum acessado por 2 a 3 pessoas simultaneamente na rede local:
+
+### 1. Inicialização Rápida em 1 Comando (`up`)
+
+Na raiz do projeto, execute:
+
+```cmd
+up
+```
+*(ou no PowerShell: `.\up`)*
+
+**O que o comando faz automaticamente:**
+1. Compila os assets otimizados do React 19 via Vite (`npm run build`).
+2. Obtém a imagem oficial do **Ubuntu 22.04 LTS Server** (mantida em cache local).
+3. Cria a VM no **VirtualBox** dimensionada com 2 vCPUs e 2048 MB de RAM.
+4. Configura a placa de rede em modo **NAT com Redirecionamento de Portas (Port Forwarding)**:
+   - Porta `80` do computador hospedeiro redirecionada para a porta `80` da VM (Nginx).
+   - Porta `2222` do computador hospedeiro para SSH (`22`).
+5. Provisiona os serviços dentro do Ubuntu (Nginx, PHP 8.3-FPM, SQLite, Composer, migrações e seeders com usuários oficiais).
+6. Valida a disponibilidade e exibe os links de acesso.
+
+---
+
+### 2. Por que Modo NAT com Port Forwarding?
+
+Em redes escolares corporativas, os roteadores/switches bloqueiam a atribuição de IP via DHCP para adaptadores virtuais (filtro MAC / 802.1x). Em modo *Bridged*, a VM não recebe IP.
+
+Com **NAT e Port Forwarding**:
+- A VM compartilha a conexão e o endereço IP do computador físico hospedeiro.
+- **No próprio computador**: acesse via `http://localhost`.
+- **Nos outros aparelhos (celulares das inspetoras, notebooks da nutrição e direção)**: acesse pelo IP do computador hospedeiro na rede escolar (ex: `http://192.168.1.50`).
+
+---
+
+### 3. Transporte em Pendrive via Appliance (.OVA)
+
+Caso o computador definitivo da escola não possua ferramentas de desenvolvedor (Terraform/Git):
+1. No computador onde a VM foi gerada, execute:
+   ```powershell
+   cd deploy\terraform
+   powershell -ExecutionPolicy Bypass -File .\scripts\export-appliance.ps1
+   ```
+2. Copie o arquivo gerado `deploy/MenuSolutions-ContadorV2.ova` para um pendrive.
+3. No computador da escola (com VirtualBox instalado), abra o menu **Arquivo** > **Importar Appliance...** e selecione o `.ova`.
+4. A VM já será importada com sistema, Nginx, PHP, banco de dados e regras de rede da porta 80 100% configurados.
+
+---
+
+### 4. Alternativa via Vagrant
+
+O repositório também inclui um [`Vagrantfile`](Vagrantfile) pronto. Se preferir:
+```bash
+vagrant up
+```
+
+> **Manual Completo da Escola:** Consulte [`deploy/docs/GUIA_IMPLANTACAO_ESCOLA.md`](deploy/docs/GUIA_IMPLANTACAO_ESCOLA.md) para detalhes de firewall, regras do Windows e solução de dúvidas.
 
 ---
 

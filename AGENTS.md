@@ -9,8 +9,8 @@ Este documento estabelece as diretrizes arquiteturais, padrões de código, regr
 - **Aplicação**: Sistema full stack de gestão de alimentação escolar, contagem de alunos, controle de produção/desperdício de refeições, dietas especiais (NES) e chat corporativo para o SESI.
 - **Backend**: Laravel 11 rodando em PHP 8.4 (API RESTful protegida por Laravel Sanctum).
 - **Frontend**: Single Page Application (SPA) em React 19 + Vite 7 + React Router 7.
-- **Banco de Dados**: SQLite em memória para testes e desenvolvimento rápido; MySQL em produção.
-- **Qualidade & Testes**: Suíte de 173 testes automatizados (PHPUnit + Vitest + Playwright + ESLint).
+- **Banco de Dados**: SQLite em memória para testes e desenvolvimento rápido; MySQL em produção ou SQLite autônomo na VM escolar.
+- **Qualidade & Testes**: Suíte de testes automatizados (PHPUnit + Vitest + Playwright + ESLint).
 
 ---
 
@@ -78,10 +78,10 @@ Este documento estabelece as diretrizes arquiteturais, padrões de código, regr
 Antes de concluir qualquer tarefa ou realizar commits, execute a verificação completa das 3 camadas de teste:
 
 ```bash
-# 1. Backend: 53 testes PHPUnit (245 asserções)
+# 1. Backend: 59 testes PHPUnit (266 asserções)
 php artisan test
 
-# 2. Frontend: 100 testes Vitest (32 arquivos)
+# 2. Frontend: 116 testes Vitest (32 arquivos)
 npm run test:front
 
 # 3. Linter: ESLint 9 (0 erros, 0 avisos)
@@ -94,14 +94,47 @@ npm run build
 npm run test:e2e
 ```
 
-> **Critério de Aceite**: Nenhuma alteração de código é considerada pronta se qualquer um dos 173 testes falhar ou se o ESLint acusar erros/avisos.
+> **Critério de Aceite**: Nenhuma alteração de código é considerada pronta se qualquer teste falhar ou se o ESLint acusar erros/avisos.
 
 ---
 
-## 5. Padrões de Commit
+## 5. Infraestrutura e Implantação Escolar (VirtualBox + Terraform)
+
+Para permitir a operação em escolas públicas ou unidades do SESI/SENAI em computadores comuns:
+
+### 5.1. Restrição de Rede & Modo NAT Obrigatório
+- Em redes escolares corporativas, os roteadores/switches bloqueiam a atribuição de IP DHCP a interfaces virtuais desconhecidas. Por isso, o modo *Bridged* **NÃO** deve ser utilizado.
+- A VM é configurada obrigatoriamente em modo **NAT com Redirecionamento de Portas (Port Forwarding)**:
+  - `Host :80 -> VM :80`: tráfego HTTP escuta em todas as interfaces físicas do host (`0.0.0.0:80`).
+  - `Host 127.0.0.1:2222 -> VM :22`: tráfego SSH exclusivo para manutenção local.
+  - Qualquer computador, celular ou tablet na rede escolar acessa a aplicação digitando o IP do computador hospedeiro (`http://<IP_HOST>`).
+
+### 5.2. Fluxo de Inicialização "Zero-Touch" (`up`)
+- O comando `up` (via [`up.bat`](up.bat) ou [`up.ps1`](up.ps1)) na raiz do repositório executa:
+  1. `npm run build` para garantir que os assets do Vite estão atualizados.
+  2. Chamada automatizada do Terraform (`deploy/terraform/`).
+  3. Download e importação da imagem base do **Ubuntu 22.04 LTS Server** (em cache local).
+  4. Configuração dos recursos (2 vCPUs, 2048 MB RAM, NAT e Port Forwarding).
+  5. Sincronização e provisionamento do Nginx, PHP 8.3-FPM, SQLite e migrações/seeders oficiais.
+  6. Validação do health check HTTP e exibição das URLs de acesso local e na rede escolar.
+
+### 5.3. Portabilidade via Appliance (.OVA)
+- Para escolas onde não é permitida a instalação do Terraform, a VM gerada pode ser empacotada em um único arquivo `.OVA` executando:
+  ```powershell
+  cd deploy\terraform
+  powershell -ExecutionPolicy Bypass -File .\scripts\export-appliance.ps1
+  ```
+- O arquivo `.OVA` resultante pode ser copiado em um pendrive e importado em 2 cliques no VirtualBox de qualquer computador da escola (`Arquivo` > `Importar Appliance...`).
+
+### 5.4. Documentação Operacional
+- O guia completo passo a passo voltado a operadores e técnicos de TI da escola reside em [`deploy/docs/GUIA_IMPLANTACAO_ESCOLA.md`](deploy/docs/GUIA_IMPLANTACAO_ESCOLA.md).
+
+---
+
+## 6. Padrões de Commit
 
 Siga estritamente o formato **Conventional Commits**:
-- `feat:` nova funcionalidade para o usuário.
+- `feat:` nova funcionalidade para o usuário ou infraestrutura.
 - `fix:` correção de bug ou divergência de contrato.
 - `refactor:` reestruturação de código sem alteração de comportamento externo.
 - `test:` adição ou ajuste de testes automatizados.
