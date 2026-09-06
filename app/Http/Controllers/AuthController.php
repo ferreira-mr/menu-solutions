@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\UserRole;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -20,7 +21,7 @@ class AuthController extends Controller
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
-        User::create(array_merge($validated, ['nivel_user' => 1]));
+        User::create(array_merge($validated, ['nivel_user' => UserRole::Staff->value]));
 
         return response()->json(['message' => 'Usuario criado com sucesso'], 201);
     }

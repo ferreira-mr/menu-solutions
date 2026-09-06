@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UserRequest;
 use App\Http\Resources\UserResource;
@@ -20,7 +21,7 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        if ((int) auth()->user()->nivel_user !== 2) {
+        if (! auth()->user()->isNutri()) {
             return response()->json(['message' => 'Permissão negada'], 403);
         }
 
@@ -44,7 +45,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        if ($user->id != auth()->user()->id and (int) auth()->user()->nivel_user !== 2) {
+        if ($user->id != auth()->user()->id && ! auth()->user()->isNutri()) {
             return response()->json(['message' => 'Permissão negada'], 403);
         }
 
@@ -57,11 +58,11 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        if ($user->id != auth()->user()->id and (int) auth()->user()->nivel_user !== 2) {
+        if ($user->id != auth()->user()->id && ! auth()->user()->isNutri()) {
             return response()->json(['message' => 'Permissão negada'], 403);
         }
 
-        $user->update($request->validate([
+        $rules = [
             'name' => 'sometimes|string|max:255',
             'email' => [
                 'sometimes', 'email', 'max:255',
@@ -71,7 +72,20 @@ class UserController extends Controller
                 'sometimes', 'string', 'max:255',
                 Rule::unique('users', 'nif')->ignore($user->id),
             ],
-        ]));
+        ];
+
+        if (auth()->user()->isNutri()) {
+            $rules['nivel_user'] = 'sometimes|integer|in:1,2,3';
+            $rules['password'] = 'sometimes|string|min:8|max:72|confirmed';
+        }
+
+        $validated = $request->validate($rules);
+
+        if (! empty($validated['password'])) {
+            $validated['password'] = Hash::make($validated['password']);
+        }
+
+        $user->update($validated);
 
         return new UserResource($user);
     }

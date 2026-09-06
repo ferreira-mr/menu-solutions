@@ -73,7 +73,7 @@ class ContagemNeController extends Controller
      */
     public function destroy(ContagemNe $contagemNe)
     {
-        if ($contagemNe->created_at->toDateString() !== today()->toDateString()) {
+        if ($contagemNe->created_at?->toDateString() !== today()->toDateString()) {
             return response()->json(['message' => 'Ação negada / Fora de horario permitido'], 400);
         }
 
