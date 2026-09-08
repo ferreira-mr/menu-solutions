@@ -3,11 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2/dist/sweetalert2.all.min.js';
 import {
     getContagensDashboard,
-    getAlunosContagemNes,
-    getNecessidades,
+    getTodosAlunosContagemNes,
+    getTodasNecessidades,
     getNecessidadeComAlunos,
-    getTurmas
+    getTodasTurmas
 } from '../../services/api'; 
+import { createDomElement } from '../../utils/safeDom';
+import { useSchoolCalendar } from '../../features/contagem/useSchoolCalendar';
+import { getSchoolDateFromInstant } from '../../features/contagem/schoolCalendar';
+import { normalizeCountTotals, summarizeDashboardTotals } from '../../features/contagem/countTotals';
 import './DashboardNutri.css';
 
 // Componente de Card Reutilizável
@@ -47,41 +51,48 @@ const DashboardNutri = () => {
     const [loading, setLoading] = useState(true);
     
     const [dashboardData, setDashboardData] = useState([]);
+    const [dashboardTotals, setDashboardTotals] = useState({
+        total_regular: 0,
+        total_outros: 0,
+        total_combinado: 0,
+    });
     const [nesData, setNesData] = useState([]);
     
     const [relacaoToTurmaMap, setRelacaoToTurmaMap] = useState(new Map());
     const [turmaInfoMap, setTurmaInfoMap] = useState(new Map());
 
     // Define a data de hoje formatada (YYYY-MM-DD)
-    const hoje = useMemo(() => new Date().toISOString().slice(0, 10), []);
+    const { schoolDay: hoje, timezone } = useSchoolCalendar();
 
     const carregarDadosDashboard = useCallback(async () => {
         setLoading(true);
         try {
             const [dashRes, nesRes, turmasRes, necessidadesRes] = await Promise.all([
-                getContagensDashboard(),
-                getAlunosContagemNes(),
-                getTurmas(),
-                getNecessidades()
+                getContagensDashboard(hoje),
+                getTodosAlunosContagemNes(hoje),
+                getTodasTurmas(),
+                getTodasNecessidades()
             ]);
 
-            setDashboardData(dashRes.data || []);
-            setNesData(nesRes.data || []);
+            const dashboardItems = Array.isArray(dashRes?.data) ? dashRes.data : [];
+            setDashboardData(dashboardItems);
+            setDashboardTotals(normalizeCountTotals(dashRes?.totals, summarizeDashboardTotals(dashboardItems)));
+            setNesData(nesRes || []);
 
             const tMap = new Map();
-            (turmasRes.data || []).forEach(turma => {
+            (turmasRes || []).forEach(turma => {
                 tMap.set(turma.id, turma.nome_turma);
             });
             setTurmaInfoMap(tMap);
 
             const necComAlunosRes = await Promise.all(
-                (necessidadesRes.data || []).map(n => getNecessidadeComAlunos(n.id))
+                (necessidadesRes || []).map(n => getNecessidadeComAlunos(n.id))
             );
 
             const rMap = new Map();
             necComAlunosRes.forEach(nec => {
                 (nec.alunos || []).forEach(aluno => {
-                    const relId = aluno.pivot?.id || aluno.alunos_has_necessidades_id;
+                    const relId = aluno.alunos_has_necessidades_id;
                     if (relId && aluno.turmas_id) {
                         rMap.set(String(relId), aluno.turmas_id);
                     }
@@ -95,7 +106,7 @@ const DashboardNutri = () => {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [hoje]);
 
     useEffect(() => {
         carregarDadosDashboard();
@@ -104,22 +115,13 @@ const DashboardNutri = () => {
     // --- FILTROS PARA "APENAS HOJE" ---
 
     // Filtra as contagens das turmas para somar apenas as de hoje
-    const totalGeralContagens = useMemo(() => {
-        return (dashboardData || []).reduce((sumCat, categoria) => {
-            const sumTurmas = (categoria.turmas || [])
-                .filter(t => t.data_contagem === hoje) // FILTRO DE DATA
-                .reduce((sumT, turma) => sumT + Number(turma.qtd_contagem || 0), 0);
-            return sumCat + sumTurmas;
-        }, 0);
-    }, [dashboardData, hoje]);
-
     // Filtra alunos com necessidades especiais registrados hoje
     const nesHojeFiltrado = useMemo(() => {
         return (nesData || []).filter(item => {
             const dataRegistro = item.data_hora_contagem || (item.contagem && item.contagem.data_contagem);
-            return dataRegistro && dataRegistro.startsWith(hoje);
+            return getSchoolDateFromInstant(dataRegistro, timezone) === hoje;
         });
-    }, [nesData, hoje]);
+    }, [nesData, hoje, timezone]);
 
     const naiData = useMemo(() => {
         return nesHojeFiltrado
@@ -134,7 +136,7 @@ const DashboardNutri = () => {
             if (!necMap.has(necNome)) {
                 necMap.set(necNome, []);
             }
-            necMap.get(necNome).push(item.aluno);
+            necMap.get(necNome).push({ ...item.aluno, relacao_id: item.relacao_id });
         });
         return necMap;
     }, [nesHojeFiltrado]);
@@ -143,36 +145,43 @@ const DashboardNutri = () => {
 
     const handleCategoriaClick = (categoria) => {
         const turmasHoje = (categoria.turmas || []).filter(t => t.data_contagem === hoje);
-        
-        const turmasHtml = turmasHoje
-            .map(turma => `
-                <div class="modal-list-item">
-                    <span>${turma.nome_turma}</span>
-                    <strong>${turma.qtd_contagem}</strong>
-                </div>
-            `)
-            .join('') || '<p>Nenhuma contagem realizada hoje para esta categoria.</p>';
+        const content = createDomElement('div', { className: 'modal-list scrollable' });
+
+        if (turmasHoje.length === 0) {
+            content.append(createDomElement('p', { textContent: 'Nenhuma contagem realizada hoje para esta categoria.' }));
+        } else {
+            turmasHoje.forEach(turma => {
+                content.append(createDomElement('div', { className: 'modal-list-item' }, [
+                    createDomElement('span', { textContent: turma.nome_turma }),
+                    createDomElement('strong', { textContent: turma.qtd_contagem }),
+                ]));
+            });
+        }
 
         Swal.fire({
-            title: `Turmas - ${categoria.nome_categoria}`,
-            html: `<div class="modal-list scrollable">${turmasHtml}</div>`,
+            titleText: `Turmas - ${categoria.nome_categoria}`,
+            html: content,
             confirmButtonText: 'Fechar',
             confirmButtonColor: '#dc3545',
         });
     };
 
     const handleNaiClick = () => {
-        const alunosHtml = naiData
-            .map(aluno => `
-                <div class="modal-list-item simple">
-                    <span>${aluno.nome}</span>
-                </div>
-            `)
-            .join('') || '<p>Nenhum aluno NAE contado hoje.</p>';
+        const content = createDomElement('div', { className: 'modal-list scrollable' });
+
+        if (naiData.length === 0) {
+            content.append(createDomElement('p', { textContent: 'Nenhum aluno NAE contado hoje.' }));
+        } else {
+            naiData.forEach(aluno => {
+                content.append(createDomElement('div', { className: 'modal-list-item simple' }, [
+                    createDomElement('span', { textContent: aluno.nome }),
+                ]));
+            });
+        }
 
         Swal.fire({
             title: 'Alunos - NAE Hoje',
-            html: `<div class="modal-list scrollable">${alunosHtml}</div>`,
+            html: content,
             confirmButtonText: 'Fechar',
             confirmButtonColor: '#dc3545',
         });
@@ -183,7 +192,8 @@ const DashboardNutri = () => {
         const turmasMap = new Map();
 
         alunos.forEach(aluno => {
-            const relId = String(aluno.id); // No seu sistema, aluno.id é o ID da relação
+            if (!aluno.relacao_id) return;
+            const relId = String(aluno.relacao_id);
             const turmaId = relacaoToTurmaMap.get(relId);
             const turmaNome = turmaInfoMap.get(turmaId) || 'Turma não identificada';
 
@@ -193,19 +203,23 @@ const DashboardNutri = () => {
             turmasMap.get(turmaNome).push(aluno);
         });
         
-        let html = '';
+        const content = createDomElement('div', { className: 'modal-list scrollable' });
         turmasMap.forEach((alunosDaTurma, turmaNome) => {
-            html += `<h4 class="modal-turma-header">${turmaNome}</h4>`;
-            html += alunosDaTurma.map(aluno => `
-                <div class="modal-list-item simple">
-                    <span>${aluno.nome} (RM: ${aluno.rm || 'N/A'})</span>
-                </div>
-            `).join('');
+            content.append(createDomElement('h4', { className: 'modal-turma-header', textContent: turmaNome }));
+            alunosDaTurma.forEach(aluno => {
+                content.append(createDomElement('div', { className: 'modal-list-item simple' }, [
+                    createDomElement('span', { textContent: `${aluno.nome} (RM: ${aluno.rm || 'N/A'})` }),
+                ]));
+            });
         });
 
+        if (content.childElementCount === 0) {
+            content.append(createDomElement('p', { textContent: 'Nenhum aluno encontrado hoje.' }));
+        }
+
         Swal.fire({
-            title: `${necNome} - Hoje`,
-            html: `<div class="modal-list scrollable">${html || '<p>Nenhum aluno encontrado hoje.</p>'}</div>`,
+            titleText: `${necNome} - Hoje`,
+            html: content,
             confirmButtonText: 'Fechar',
             confirmButtonColor: '#dc3545',
         });
@@ -240,8 +254,24 @@ const DashboardNutri = () => {
             />
 
             <DashboardCard
-                title="Total Geral"
-                count={totalGeralContagens}
+                title="Total Regular"
+                count={dashboardTotals.total_regular}
+                icon="bi-people-fill"
+                className="total-card"
+                onClick={null}
+            />
+
+            <DashboardCard
+                title="Total Outros"
+                count={dashboardTotals.total_outros}
+                icon="bi-people"
+                className="total-card"
+                onClick={null}
+            />
+
+            <DashboardCard
+                title={<><span>Total Geral</span> <small>(Combinado)</small></>}
+                count={dashboardTotals.total_combinado}
                 icon="bi-bar-chart-fill"
                 className="total-card"
                 onClick={null}

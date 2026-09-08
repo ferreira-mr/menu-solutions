@@ -8,6 +8,7 @@ use App\Http\Resources\ContagenResource;
 use App\Models\Contagen;
 use App\Services\ContagemService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class ContagenController extends Controller
 {
@@ -25,8 +26,17 @@ class ContagenController extends Controller
             'data' => ['nullable', 'date_format:Y-m-d'],
             'data_inicio' => ['nullable', 'date_format:Y-m-d'],
             'data_fim' => ['nullable', 'date_format:Y-m-d'],
+            'page' => ['nullable', 'integer', 'min:1'],
             'limit' => ['nullable', 'integer', 'min:1', 'max:1000'],
         ]);
+
+        if (($validated['data_inicio'] ?? null) !== null
+            && ($validated['data_fim'] ?? null) !== null
+            && $validated['data_fim'] < $validated['data_inicio']) {
+            throw ValidationException::withMessages([
+                'data_fim' => ['A data final deve ser igual ou posterior à data inicial.'],
+            ]);
+        }
 
         $contagens = $this->contagemService->list($validated);
 
@@ -56,7 +66,7 @@ class ContagenController extends Controller
      */
     public function update(Request $request, Contagen $contagen)
     {
-        if ($contagen->data_contagem?->toDateString() !== today()->toDateString()) {
+        if (! $this->contagemService->isCurrentSchoolDate($contagen->data_contagem?->toDateString())) {
             return response()->json(['message' => 'Update nao permitido / Fora de horario permitido'], 400);
         }
 

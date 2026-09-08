@@ -2,6 +2,13 @@
 
 return [
 
+    // The database keeps only a controlled relative filename. The default
+    // disk preserves the existing /uploads URL; tests/deployments may replace
+    // it with a fake or another configured disk.
+    'cardapio_disk' => env('CARDAPIO_FILESYSTEM_DISK', 'uploads'),
+
+    'student_photo_disk' => env('STUDENT_PHOTOS_DISK', 'student_photos'),
+
     /*
     |--------------------------------------------------------------------------
     | Default Filesystem Disk
@@ -46,6 +53,25 @@ return [
             'throw' => false,
             'report' => false,
         ],  
+
+        // Keeps the legacy /uploads URL while allowing tests and deployments
+        // to replace the backing disk through CARDAPIO_FILESYSTEM_DISK.
+        'uploads' => [
+            'driver' => 'local',
+            'root' => public_path(),
+            'url' => env('APP_URL'),
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
+        'student_photos' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/student-photos'),
+            'visibility' => 'private',
+            'throw' => false,
+            'report' => false,
+        ],
 
         's3' => [
             'driver' => 's3',

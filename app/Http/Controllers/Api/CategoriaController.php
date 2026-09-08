@@ -17,7 +17,15 @@ class CategoriaController extends Controller
      */
     public function index(Request $request)
     {
-        $categorias = Categoria::with(['turmas'])->paginate();
+        $validated = $request->validate([
+            'page' => ['nullable', 'integer', 'min:1'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:1000'],
+        ]);
+
+        $categorias = Categoria::with(['turmas'])
+            ->orderBy('id')
+            ->paginate($validated['limit'] ?? 15)
+            ->withQueryString();
 
         return CategoriaResource::collection($categorias);
     }

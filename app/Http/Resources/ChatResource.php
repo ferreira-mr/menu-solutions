@@ -22,7 +22,7 @@ class ChatResource extends JsonResource
             'visto' => $this->visto,
             'data' => $this->data,
             'users_id' => $this->users_id,
-            'user' => UserResource::make($this->whenLoaded('user')),
+            'user' => ChatParticipantResource::make($this->whenLoaded('user')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

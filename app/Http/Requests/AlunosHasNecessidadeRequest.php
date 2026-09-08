@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class AlunosHasNecessidadeRequest extends FormRequest
 {
@@ -23,8 +24,8 @@ class AlunosHasNecessidadeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'alunos_id' => 'required|integer|exists:alunos,id',
-            'necessidades_id' => 'required|integer|exists:necessidades,id',
+            'alunos_id' => ['required', 'integer', Rule::exists('alunos', 'id')->whereNull('deleted_at')],
+            'necessidades_id' => ['required', 'integer', Rule::exists('necessidades', 'id')->whereNull('deleted_at')],
         ];
     }
 }

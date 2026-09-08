@@ -26,4 +26,9 @@ enum AutorizadoStatus: string
     {
         return $this === self::Confirmado;
     }
+
+    public function isRecusado(): bool
+    {
+        return $this === self::Recusado;
+    }
 }

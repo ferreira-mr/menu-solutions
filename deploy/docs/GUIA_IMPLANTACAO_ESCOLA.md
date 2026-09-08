@@ -156,15 +156,25 @@ New-NetFirewallRule -DisplayName "Menu Solutions (Porta 8080 HTTP)" `
 
 ---
 
-## 7. Credenciais Padrão de Acesso
+## 7. Criar o primeiro gestor
 
-O sistema vem pré-configurado com os seguintes usuários do projeto SESI para os testes operacionais:
+A instalação cria somente o catálogo inicial (categorias, turmas, dias e necessidades). Ela não cria contas E2E, senhas conhecidas nem fatos de demonstração.
 
-| Perfil | NIF / Login | Senha | Finalidade |
-| :--- | :--- | :--- | :--- |
-| **Inspetora** | `11111111111` | `password` | Lançamento diário de contagem de alunos e NES |
-| **Nutricionista** | `22222222222` | `password` | Gestão de cardápios, sobras limpas, resto ingesta e pedidos |
-| **Diretoria** | `33333333333` | `password` | Painel gerencial, relatórios e aprovação de autorizações |
+Depois que a VM estiver iniciada, abra um terminal no Ubuntu (ou entre por SSH) e execute:
+
+```bash
+cd /var/www/contador-v2
+sudo php artisan app:bootstrap-admin \
+  --name="Nome do gestor" \
+  --nif="NIF_DO_GESTOR" \
+  --email="gestor@escola.local"
+```
+
+O comando solicitará a senha em entrada oculta e a confirmação. A senha nunca é exibida no terminal nem gravada em texto. Se o NIF já existir, o comando encerra sem alterar nome, perfil ou credenciais.
+
+Após a criação, o gestor pode cadastrar os demais usuários pela tela de gerenciamento, com senhas individuais.
+
+Os usuários e fatos usados pelos testes automatizados são criados exclusivamente pelo `E2eSeeder` no runtime E2E descartável; não são credenciais de produção.
 
 ---
 

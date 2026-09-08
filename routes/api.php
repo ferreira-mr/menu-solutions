@@ -6,12 +6,14 @@ use App\Http\Controllers\Api\CardapioController;
 use App\Http\Controllers\Api\CategoriaController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\ContagemNeController;
+use App\Http\Controllers\Api\ContagemOperationController;
 use App\Http\Controllers\Api\ContagenController;
 use App\Http\Controllers\Api\ControleDeProducaoEConsumoController;
 use App\Http\Controllers\Api\CronogramaController;
 use App\Http\Controllers\Api\NecessidadeController;
 use App\Http\Controllers\Api\TurmaController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\SchoolCalendarController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FileController;
@@ -27,16 +29,18 @@ Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10
 Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/contexto-escolar', [SchoolCalendarController::class, 'show']);
     Route::get('/contagens/dashboard', [DashboardController::class, 'contagemDashboard']);
     Route::apiResource('categorias', CategoriaController::class)->only(['show', 'index']);
     Route::apiResource('turmas', TurmaController::class)->only(['show', 'index']);
-    Route::apiResource('contagens', ContagenController::class)->only(['index', 'store', 'show', 'update']);
+    Route::apiResource('contagens', ContagenController::class)->only(['index', 'show']);
     Route::apiResource('necessidades', NecessidadeController::class)->only(['index', 'show']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::apiResource('contagem-nes', ContagemNeController::class)->only(['index', 'show']);
     Route::apiResource('cronogramas', CronogramaController::class)->only(['show', 'index']);
     Route::apiResource('users', UserController::class)->except(['store', 'destroy']);
     Route::apiResource('alunos', AlunoController::class)->only(['index', 'show']);
+    Route::get('/alunos/{aluno}/foto', [FileController::class, 'studentPhoto'])->name('alunos.foto');
     Route::post('/reset-password', [UserController::class, 'resetPassword']);
     Route::apiResource('cardapios', CardapioController::class)->only(['index', 'show']);
     Route::apiResource('autorizados', AutorizadoController::class)->only(['index', 'show']);
@@ -56,13 +60,19 @@ Route::middleware(['auth:sanctum', 'NutriRole'])->group(function () {
     Route::delete('/alunos-necessidades/{necessidade}/dias', [NecessidadeController::class, 'deleteCronograma']);
     Route::delete('/necessidades/{necessidade}/alunos', [NecessidadeController::class, 'disableAluno']);
     Route::post('/upload', [FileController::class, 'uploadImage']);
+    Route::post('/alunos/{aluno}/foto', [FileController::class, 'uploadStudentPhoto']);
     Route::post('/upload/pdf', [FileController::class, 'uploadPdf']);
     Route::apiResource('cardapios', CardapioController::class)->except(['index', 'show']);
-    Route::apiResource('users', UserController::class)->only(['store', 'destroy']);
     Route::apiResource('autorizados', AutorizadoController::class)->except(['index', 'show']);
 });
 
+Route::middleware(['auth:sanctum', 'UserManagementRole'])->group(function () {
+    Route::apiResource('users', UserController::class)->only(['store', 'destroy']);
+});
+
 Route::middleware(['auth:sanctum', 'StaffOrNutriRole'])->group(function () {
+    Route::apiResource('contagens', ContagenController::class)->only(['store', 'update']);
+    Route::post('/contagens/operacao', [ContagemOperationController::class, 'store']);
     Route::apiResource('contagem-nes', ContagemNeController::class)->except(['index', 'show']);
 });
 

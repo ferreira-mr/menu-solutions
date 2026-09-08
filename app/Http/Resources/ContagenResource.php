@@ -16,7 +16,7 @@ class ContagenResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'data_contagem' => $this->data_contagem,
+            'data_contagem' => $this->data_contagem?->toDateString(),
             'hora_contagem' => $this->hora_contagem,
             'qtd_contagem' => $this->qtd_contagem,
             'turmas_id' => $this->turmas_id,

@@ -2,111 +2,61 @@
 
 namespace Database\Seeders;
 
+use App\Models\Autorizado;
+use App\Models\ControleDeProducaoEConsumo;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use RuntimeException;
 
 class E2eSeeder extends Seeder
 {
     public function run(): void
     {
-        User::updateOrCreate(
-            ['nif' => '22222222222'],
+        $this->assertDisposableTestingRuntime();
+        $this->call(CatalogSeeder::class);
+
+        foreach ([
             [
+                'nif' => '22222222222',
                 'name' => 'Nutricionista E2E',
                 'email' => 'e2e-nutri@example.test',
-                'password' => Hash::make('password'),
+                'password' => 'password',
                 'nivel_user' => 2,
             ],
-        );
-
-        User::updateOrCreate(
-            ['nif' => '33333333333'],
             [
+                'nif' => '33333333333',
                 'name' => 'Diretora E2E',
                 'email' => 'e2e-diretora@example.test',
-                'password' => Hash::make('password'),
+                'password' => 'password',
                 'nivel_user' => 3,
             ],
-        );
-
-        User::updateOrCreate(
-            ['nif' => '11111111111'],
             [
+                'nif' => '11111111111',
                 'name' => 'Inspetora E2E',
                 'email' => 'e2e-inspetora@example.test',
-                'password' => Hash::make('password'),
+                'password' => 'password',
                 'nivel_user' => 1,
             ],
-        );
-
-        // 2. Categorias e Turmas Oficiais do Projeto SESI
-        $categoriasTurmas = [
-            'Fundamental 1A' => [
-                '1º Ano A',
-                '2º Ano A',
-            ],
-            'Fundamental 1B' => [
-                '3º Ano A',
-                '4º Ano A',
-                '5º Ano A',
-            ],
-            'Fundamental 2' => [
-                '6º Ano A',
-                '7º Ano A',
-                '8º Ano A',
-                '9º Ano A',
-            ],
-            'Ensino Médio' => [
-                '1º Ano A',
-                '2º Ano A',
-                '3º Ano A',
-            ],
-            'Outros' => [
-                'Robótica',
-                'Personaliza',
-            ],
-        ];
-
-        foreach ($categoriasTurmas as $catNome => $turmas) {
-            $cat = \App\Models\Categoria::firstOrCreate(['nome_categoria' => $catNome]);
-            foreach ($turmas as $turmaNome) {
-                \App\Models\Turma::firstOrCreate([
-                    'nome_turma' => $turmaNome,
-                    'categorias_id' => $cat->id,
-                ]);
-            }
+        ] as $account) {
+            $password = $account['password'];
+            unset($account['password']);
+            User::firstOrCreate(
+                ['nif' => $account['nif']],
+                [...$account, 'password' => Hash::make($password)],
+            );
         }
 
-        // 3. Cronogramas (Dias da Semana)
-        $dias = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
-        foreach ($dias as $dia) {
-            \App\Models\Cronograma::firstOrCreate(['dia' => $dia]);
-        }
-
-        // 4. Necessidades Especiais e Dietas
-        $necessidades = [
-            'NAI',
-            'Personaliza',
-            'Robótica',
-            'Sem Glúten',
-            'Sem Lactose',
-        ];
-        foreach ($necessidades as $nec) {
-            \App\Models\Necessidade::firstOrCreate(['necessidade' => $nec]);
-        }
-
-        // 5. Autorizado de Exemplo
-        \App\Models\Autorizado::firstOrCreate(
+        // These rows are disposable fixtures for browser scenarios only.
+        Autorizado::firstOrCreate(
             ['titulo' => 'Autorização Lanche Especial'],
             [
                 'conteudo' => 'Autorização para lanche especial dos alunos da feira de ciências.',
                 'status' => 'pendente',
-            ]
+            ],
         );
 
-        // 6. Registro de Produção de Exemplo
-        \App\Models\ControleDeProducaoEConsumo::firstOrCreate(
+        ControleDeProducaoEConsumo::withTrashed()->firstOrCreate(
             ['nome_alimento' => 'Arroz Integral'],
             [
                 'data_alimento' => now()->toDateString(),
@@ -115,7 +65,41 @@ class E2eSeeder extends Seeder
                 'pessoas_alimento' => 280,
                 'sobra_limpa_alimento' => 2.5,
                 'desperdicio_alimento' => 1.0,
-            ]
+            ],
         );
+    }
+
+    private function assertDisposableTestingRuntime(): void
+    {
+        if (! app()->environment('testing')) {
+            throw new RuntimeException('E2eSeeder só pode ser executado em APP_ENV=testing.');
+        }
+
+        $runToken = (string) env('E2E_RUN_TOKEN', '');
+        $runtimePath = realpath((string) env('E2E_RUNTIME_DIR', ''));
+        $databasePath = realpath((string) config('database.connections.sqlite.database', ''));
+        $testResultsPath = realpath(base_path('test-results')) ?: base_path('test-results');
+
+        if (! preg_match('/^[A-Za-z0-9._-]{8,128}$/', $runToken)
+            || $runtimePath === false
+            || $databasePath === false
+            || config('database.default') !== 'sqlite'
+            || ! $this->isPathWithin($runtimePath, $testResultsPath)
+            || ! $this->isPathWithin($databasePath, $runtimePath)) {
+            throw new RuntimeException('E2eSeeder exige um banco SQLite descartável identificado pelo runner E2E.');
+        }
+    }
+
+    private function isPathWithin(string $path, string $parent): bool
+    {
+        $normalize = static fn (string $value): string => strtolower(rtrim(
+            str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $value),
+            DIRECTORY_SEPARATOR,
+        ));
+        $normalizedPath = $normalize($path);
+        $normalizedParent = $normalize(realpath($parent) ?: $parent);
+
+        return $normalizedPath === $normalizedParent
+            || str_starts_with($normalizedPath, $normalizedParent.DIRECTORY_SEPARATOR);
     }
 }

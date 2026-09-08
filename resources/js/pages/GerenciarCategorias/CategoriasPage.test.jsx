@@ -7,8 +7,8 @@ import * as api from '../../services/api';
 import Swal from 'sweetalert2/dist/sweetalert2.all.min.js';
 
 vi.mock('../../services/api', () => ({
-  getCategorias: vi.fn(),
-  getTurmas: vi.fn(),
+  getTodasCategorias: vi.fn(),
+  getTodasTurmas: vi.fn(),
   addCategoria: vi.fn(),
   updateCategoria: vi.fn(),
   deleteCategoria: vi.fn(),
@@ -28,18 +28,14 @@ describe('CategoriasPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     Swal.fire.mockResolvedValue({ isConfirmed: true, value: 'Nova Categoria Teste' });
-    api.getCategorias.mockResolvedValue({
-      data: [
+    api.getTodasCategorias.mockResolvedValue([
         { id: 1, nome_categoria: 'Fundamental 1' },
         { id: 2, nome_categoria: 'Ensino Médio' },
-      ],
-    });
-    api.getTurmas.mockResolvedValue({
-      data: [
+    ]);
+    api.getTodasTurmas.mockResolvedValue([
         { id: 10, nome_turma: '5º Ano A', categorias_id: 1 },
         { id: 20, nome_turma: '3º EM B', categorias_id: 2 },
-      ],
-    });
+    ]);
   });
 
   it('carrega e lista categorias e turmas cadastradas', async () => {

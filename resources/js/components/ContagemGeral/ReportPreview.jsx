@@ -1,6 +1,8 @@
 // /src/components/ContagemGeral/ReportPreview.jsx
 import React, { useMemo } from 'react';
 import { formatFriendlyDate, formatFriendlyTime } from './utils';
+import { summarizeContagemTotals } from '../../features/contagem/countTotals';
+import { selectEffectiveContagens } from '../../features/contagem/schoolCalendar';
 import './ReportPreview.css'; 
 
 // Importe sua logo (ajuste o caminho se necessário)
@@ -63,7 +65,7 @@ const ReportPreview = ({ data, loading, title, dataType }) => {
 
         // Agrupa Contagens
         if (dataType === 'tudo' || dataType === 'contagens') {
-            data.contagens.forEach(item => {
+            selectEffectiveContagens(data.contagens || []).forEach(item => {
                 const dateStr = item.data_contagem;
                 if (!map.has(dateStr)) map.set(dateStr, { contagens: [], necessidades: [] });
                 map.get(dateStr).contagens.push(item);
@@ -128,6 +130,17 @@ const ReportPreview = ({ data, loading, title, dataType }) => {
                 {groupedData.map(([date, dailyData]) => (
                     <div key={date} className="report-day-group">
                         <h3 className="report-day-header">{formatFriendlyDate(date)}</h3>
+
+                        {dailyData.contagens.length > 0 && (
+                            <div className="report-totals" aria-label="Totais de contagens">
+                                {Object.entries(summarizeContagemTotals(dailyData.contagens, date)).map(([key, value]) => (
+                                    <span key={key}>
+                                        {key === 'total_regular' ? 'Total Regular' : key === 'total_outros' ? 'Total Outros' : 'Total Combinado'}:
+                                        <strong>{value}</strong>
+                                    </span>
+                                ))}
+                            </div>
+                        )}
                         
                         {(dataType === 'tudo' || dataType === 'contagens') && dailyData.contagens.length > 0 && (
                             <>

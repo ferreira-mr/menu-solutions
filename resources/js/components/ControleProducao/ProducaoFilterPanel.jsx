@@ -1,18 +1,11 @@
 // /src/components/ControleProducao/ProducaoFilterPanel.jsx
 import React from 'react';
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Swal from 'sweetalert2/dist/sweetalert2.all.min.js'; // <-- ADICIONE ESTA LINHA
 import './ProducaoFilterPanel.css'; 
 
-// Função de Download do PDF (movida para cá)
-const handleDownloadPdf = (data, title, logo) => {
-    if (!data) {
-        // Agora o Swal está definido e vai funcionar
-        Swal.fire('Atenção', 'Gere um relatório antes de baixar.', 'info');
-        return;
-    }
-    
+export const buildProductionPdf = (data, title, logo) => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -78,7 +71,17 @@ const handleDownloadPdf = (data, title, logo) => {
         },
     });
 
-    doc.save(`Producao_Consumo_${today.replace(/\//g, '-')}.pdf`);
+    return { doc, filename: `Producao_Consumo_${today.replace(/\//g, '-')}.pdf` };
+};
+
+const handleDownloadPdf = (data, title, logo) => {
+    if (!data) {
+        Swal.fire('Atenção', 'Gere um relatório antes de baixar.', 'info');
+        return;
+    }
+
+    const { doc, filename } = buildProductionPdf(data, title, logo);
+    doc.save(filename);
 };
 
 

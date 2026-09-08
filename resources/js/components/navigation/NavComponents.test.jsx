@@ -38,7 +38,8 @@ describe('Componentes de Navegação por Perfil', () => {
     );
 
     expect(screen.getByText(/início/i)).toBeInTheDocument();
-    expect(screen.getByText(/controle de produção/i)).toBeInTheDocument();
+    expect(screen.getByText(/contagem geral/i)).toBeInTheDocument();
     expect(screen.getByText(/autorizados direção/i)).toBeInTheDocument();
+    expect(screen.queryByText(/controle de produção/i)).not.toBeInTheDocument();
   });
 });

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2/dist/sweetalert2.all.min.js';
 import { getUsers, addUser, updateUser, deleteUser } from '../../services/api';
+import { createDomElement, createSelect, safePaginatorLabel } from '../../utils/safeDom';
 import './UsuariosPage.css';
 
 const UsuariosPage = () => {
@@ -44,32 +45,50 @@ const UsuariosPage = () => {
     // --- CRIAR / EDITAR USUÁRIO ---
     const handleOpenUserModal = (user = null) => {
         const isEditing = !!user;
-        
-        Swal.fire({
-            title: isEditing ? 'Editar Usuário' : 'Novo Usuário',
-            html: `
-                <div style="text-align: left">
-                    <label style="display:block; margin-bottom:5px; font-weight:600">Nome Completo</label>
-                    <input id="swal-name" class="swal2-input" placeholder="Ex: Maria Silva" value="${user ? user.name : ''}" style="margin: 0 0 15px 0; width: 100%">
-                    
-                    <label style="display:block; margin-bottom:5px; font-weight:600">NIF (Login)</label>
-                    <input id="swal-nif" class="swal2-input" placeholder="Ex: 123456" value="${user ? user.nif : ''}" style="margin: 0 0 15px 0; width: 100%">
-                    
-                    <label style="display:block; margin-bottom:5px; font-weight:600">Nível de Acesso</label>
-                    <select id="swal-level" class="swal2-select" style="margin: 0 0 15px 0; width: 100%; display:block">
-                        <option value="1" ${user && user.nivel_user == 1 ? 'selected' : ''}>Inspetora / Apoio</option>
-                        <option value="2" ${user && user.nivel_user == 2 ? 'selected' : ''}>Nutricionista</option>
-                        <option value="3" ${user && user.nivel_user == 3 ? 'selected' : ''}>Diretora (Admin)</option>
-                    </select>
+        const form = createDomElement('div', { style: { textAlign: 'left' } });
+        const nameInput = createDomElement('input', {
+            id: 'swal-name',
+            className: 'swal2-input',
+            placeholder: 'Ex: Maria Silva',
+            value: user?.name || '',
+            style: 'margin: 0 0 15px 0; width: 100%',
+        });
+        const nifInput = createDomElement('input', {
+            id: 'swal-nif',
+            className: 'swal2-input',
+            placeholder: 'Ex: 123456',
+            value: user?.nif || '',
+            style: 'margin: 0 0 15px 0; width: 100%',
+        });
+        const levelSelect = createSelect('swal-level', [
+            { value: '1', label: 'Inspetora / Apoio' },
+            { value: '2', label: 'Nutricionista' },
+            { value: '3', label: 'Diretora (Admin)' },
+        ], user?.nivel_user || '1');
+        levelSelect.className = 'swal2-select';
+        levelSelect.style.cssText = 'margin: 0 0 15px 0; width: 100%; display:block';
+        const passwordInput = createDomElement('input', {
+            id: 'swal-password',
+            type: 'password',
+            className: 'swal2-input',
+            placeholder: isEditing ? 'Deixe em branco para manter' : 'Mínimo 8 caracteres',
+            style: 'margin: 0; width: 100%',
+        });
+        const label = text => createDomElement('label', {
+            textContent: text,
+            style: { display: 'block', marginBottom: '5px', fontWeight: '600' },
+        });
 
-                    <label style="display:block; margin-bottom:5px; font-weight:600">
-                        ${isEditing ? 'Nova Senha (Opcional)' : 'Senha Inicial'}
-                    </label>
-                    <input id="swal-password" type="password" class="swal2-input" 
-                        placeholder="${isEditing ? 'Deixe em branco para manter' : 'Mínimo 8 caracteres'}" 
-                        style="margin: 0; width: 100%">
-                </div>
-            `,
+        form.append(
+            label('Nome Completo'), nameInput,
+            label('NIF (Login)'), nifInput,
+            label('Nível de Acesso'), levelSelect,
+            label(isEditing ? 'Nova Senha (Opcional)' : 'Senha Inicial'), passwordInput,
+        );
+
+        Swal.fire({
+            titleText: isEditing ? 'Editar Usuário' : 'Novo Usuário',
+            html: form,
             showCancelButton: true,
             confirmButtonText: 'Salvar',
             confirmButtonColor: '#28a745',
@@ -129,7 +148,7 @@ const UsuariosPage = () => {
     // --- RESETAR SENHA ---
     const handleResetPassword = (user) => {
         Swal.fire({
-            title: `Nova senha para ${user.name}`,
+            titleText: `Nova senha para ${user.name}`,
             input: 'password',
             inputPlaceholder: 'Digite a nova senha (mínimo 8 caracteres)',
             showCancelButton: true,
@@ -255,8 +274,9 @@ const UsuariosPage = () => {
                                 const page = new URL(link.url).searchParams.get('page');
                                 fetchUsers(page);
                             }}
-                            dangerouslySetInnerHTML={{ __html: link.label }}
-                        />
+                        >
+                            {safePaginatorLabel(link.label)}
+                        </button>
                     ))}
                 </div>
             )}

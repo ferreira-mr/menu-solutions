@@ -6,21 +6,11 @@ use App\Models\Cardapio;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\File;
 use Tests\TestCase;
 
 class CardapioAndStorageTest extends TestCase
 {
     use RefreshDatabase;
-
-    protected function tearDown(): void
-    {
-        $uploadDir = public_path('uploads/pdf');
-        if (File::isDirectory($uploadDir)) {
-            File::cleanDirectory($uploadDir);
-        }
-        parent::tearDown();
-    }
 
     public function test_nutricionista_can_upload_pdf_cardapio(): void
     {

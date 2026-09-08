@@ -21,7 +21,7 @@ describe('DashboardWelcomeModal', () => {
 
     expect(Swal.fire).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: 'Olá, Jaqueline!',
+        titleText: 'Olá, Jaqueline!',
       })
     );
   });

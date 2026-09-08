@@ -9,7 +9,7 @@ const DashboardWelcomeModal = () => {
   useEffect(() => {
     if (!shown) {
       Swal.fire({
-        title: `Olá, ${userName}!`,
+        titleText: `Olá, ${userName}!`,
         html: `
           <div class="welcome-modal-content">
             <i class="bi bi-clipboard2-pulse-fill welcome-icon"></i>

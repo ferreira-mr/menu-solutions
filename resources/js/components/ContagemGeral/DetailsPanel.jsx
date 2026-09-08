@@ -29,7 +29,12 @@ export const DetailsPanel = ({ details, loading }) => {
         );
     }
 
-    const { date, totalGeralContagens, contagens, necessidades } = details;
+    const { date, totalGeralContagens, totals, contagens, necessidades } = details;
+    const resolvedTotals = totals || {
+        total_regular: 0,
+        total_outros: 0,
+        total_combinado: totalGeralContagens,
+    };
     const hasNec = [...necessidades.keys()].length > 0;
 
     return (
@@ -50,8 +55,12 @@ export const DetailsPanel = ({ details, loading }) => {
             {/* ABA: CONTAGENS */}
             <div className={`details-tab-content ${activeTab === 'contagens' ? 'active' : ''}`}>
                 <div className="modal-total-card">
-                    <span>Total de Alunos</span>
-                    <strong>{totalGeralContagens}</strong>
+                    <span>Total de Alunos (Combinado)</span>
+                    <strong>{resolvedTotals.total_combinado}</strong>
+                </div>
+                <div className="modal-count-totals" aria-label="Totais de contagens">
+                    <span>Regular: <strong>{resolvedTotals.total_regular}</strong></span>
+                    <span>Outros: <strong>{resolvedTotals.total_outros}</strong></span>
                 </div>
                 
                 <div className="modal-list scrollable">
@@ -90,7 +99,7 @@ export const DetailsPanel = ({ details, loading }) => {
                                             <i className="bi bi-chevron-down"></i>
                                         </summary>
                                         <div className="modal-accordion-content">
-                                            <div dangerouslySetInnerHTML={{ __html: aluno.descricao }} />
+                                            <div>{aluno.descricao}</div>
                                         </div>
                                     </details>
                                 ))}

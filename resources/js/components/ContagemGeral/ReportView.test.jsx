@@ -4,8 +4,8 @@ import ReportView from './ReportView';
 import * as api from '../../services/api';
 
 vi.mock('../../services/api', () => ({
-  getContagensPorRange: vi.fn(),
-  getAlunosNesPorData: vi.fn(),
+  getTodosContagensPorRange: vi.fn(),
+  getTodosAlunosNesPorData: vi.fn(),
   getNecessidades: vi.fn(),
   getNecessidadeComAlunos: vi.fn(),
   getCategorias: vi.fn(),

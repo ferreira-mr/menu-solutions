@@ -5,27 +5,31 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CardapioResource;
 use App\Models\Cardapio;
-use App\Services\FileService;
+use App\Services\CardapioService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\File;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class CardapioController extends Controller
 {
-    public $fileService;
-
-    public function __construct(Request $request)
+    public function __construct(private readonly CardapioService $cardapioService)
     {
-        $this->fileService = new FileService($request);
     }
 
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $cardapios = Cardapio::orderBy('created_at', 'DESC')->paginate();
+        $validated = $request->validate([
+            'page' => ['nullable', 'integer', 'min:1'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:1000'],
+        ]);
+
+        $cardapios = Cardapio::orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->paginate($validated['limit'] ?? 15)
+            ->withQueryString();
 
         return CardapioResource::collection($cardapios);
     }
@@ -36,11 +40,7 @@ class CardapioController extends Controller
     public function store(Request $request)
     {
         try {
-            $name = $this->fileService->FileUpload($request);
-
-            Cardapio::create([
-                'path' => $name,
-            ]);
+            [, $name] = $this->cardapioService->create($request);
 
             return response()->json(['message' => 'success', 'name' => $name], 201);
         } catch (ValidationException $e) {
@@ -48,7 +48,7 @@ class CardapioController extends Controller
         } catch (Throwable $e) {
             report($e);
 
-            return response()->json(['message' => 'Não foi possível armazenar o cardápio'], 422);
+            return response()->json(['message' => 'Não foi possível concluir a operação.'], 500);
         }
     }
 
@@ -63,13 +63,7 @@ class CardapioController extends Controller
     public function update(Request $request, Cardapio $cardapio)
     {
         try {
-            $name = $this->fileService->FileUpload($request);
-            $oldPath = public_path('uploads/pdf/'.$cardapio->path);
-            $cardapio->update(['path' => $name]);
-
-            if (File::exists($oldPath)) {
-                File::delete($oldPath);
-            }
+            $cardapio = $this->cardapioService->update($request, $cardapio);
 
             return new CardapioResource($cardapio);
         } catch (ValidationException $e) {
@@ -77,7 +71,7 @@ class CardapioController extends Controller
         } catch (Throwable $e) {
             report($e);
 
-            return response()->json(['message' => 'Não foi possível atualizar o cardápio'], 422);
+            return response()->json(['message' => 'Não foi possível concluir a operação.'], 500);
         }
     }
 
@@ -86,11 +80,12 @@ class CardapioController extends Controller
      */
     public function destroy(Cardapio $cardapio)
     {
-        $path = public_path('uploads/pdf/'.$cardapio->path);
-        $cardapio->delete();
+        try {
+            $this->cardapioService->delete($cardapio);
+        } catch (Throwable $e) {
+            report($e);
 
-        if (File::exists($path)) {
-            File::delete($path);
+            return response()->json(['message' => 'Não foi possível concluir a operação.'], 500);
         }
 
         return response()->noContent();

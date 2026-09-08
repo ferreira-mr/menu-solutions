@@ -12,6 +12,11 @@ use Illuminate\Validation\ValidationException;
 
 class ContagemService
 {
+    public function __construct(
+        protected SchoolCalendarService $schoolCalendar,
+        protected ContagemTotalsService $contagemTotals,
+    ) {}
+
     /**
      * Retorna contagens com filtros e ordenação padrão.
      */
@@ -23,7 +28,8 @@ class ContagemService
 
         $query = Contagen::with(['turma.categoria'])
             ->orderBy('data_contagem', 'DESC')
-            ->orderBy('hora_contagem', 'DESC');
+            ->orderBy('hora_contagem', 'DESC')
+            ->orderBy('id', 'DESC');
 
         if ($day) {
             $query->where('data_contagem', $day);
@@ -37,7 +43,7 @@ class ContagemService
 
         $perPage = $filters['limit'] ?? 15;
 
-        return $query->paginate($perPage);
+        return $query->paginate($perPage)->withQueryString();
     }
 
     /**
@@ -45,7 +51,7 @@ class ContagemService
      */
     public function create(array $data, int $userId): Contagen
     {
-        $agora = now();
+        $agora = $this->schoolCalendar->nowLocal();
 
         return Contagen::create(array_merge($data, [
             'data_contagem' => $agora->toDateString(),
@@ -60,7 +66,7 @@ class ContagemService
     public function update(Contagen $contagem, array $data): Contagen
     {
         $dataContagemStr = $contagem->data_contagem?->format('Y-m-d') ?? (string) $contagem->data_contagem;
-        $hojeStr = now()->toDateString();
+        $hojeStr = $this->schoolCalendar->currentDate();
 
         if ($dataContagemStr !== $hojeStr) {
             throw ValidationException::withMessages([
@@ -71,6 +77,11 @@ class ContagemService
         $contagem->update($data);
 
         return $contagem;
+    }
+
+    public function isCurrentSchoolDate(?string $civilDate): bool
+    {
+        return $this->schoolCalendar->isCurrentDate($civilDate);
     }
 
     /**
@@ -87,9 +98,13 @@ class ContagemService
     public function getDashboard(string $date): AnonymousResourceCollection
     {
         $data = Categoria::with(['turmas.contagen' => function ($query) use ($date) {
-            $query->where('data_contagem', $date)->latest('hora_contagem');
+            $query->where('data_contagem', $date)
+                ->orderByDesc('hora_contagem')
+                ->orderByDesc('id');
         }])->get();
 
-        return DashboardResource::collection($data);
+        return DashboardResource::collection($data)->additional([
+            'totals' => $this->contagemTotals->fromDashboardCategories($data),
+        ]);
     }
 }

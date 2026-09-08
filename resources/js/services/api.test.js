@@ -12,7 +12,6 @@ import {
   updateTurma,
   deleteTurma,
   getCronograma,
-  getDiasDaRelacao,
   agendarRelacaoNosDias,
   removerAgendamentoDoDia,
   loginUser,
@@ -47,6 +46,7 @@ import {
   getContagensDeHoje,
   addContagem,
   updateContagem,
+  saveContagemOperation,
   getAlunosContagemNes,
   addAlunoNaContagemNes,
   removeAlunoDaContagemNes,
@@ -54,11 +54,15 @@ import {
   getContagensPorRange,
   getDashboardPorData,
   getAlunosNesPorData,
+  getContextoEscolar,
   getChatMessages,
+  getChatMessagesPage,
   sendMessage,
   getChatMembers,
   getChatContacts,
   uploadFile,
+  uploadAlunoFoto,
+  fetchProtectedAsset,
 } from './api';
 
 function jsonResponse(body, status = 200) {
@@ -135,11 +139,26 @@ describe('cliente da API - Cobertura Completa', () => {
       mockFetchJson({ path: 'foto.jpg' });
       const file = new File(['img'], 'foto.jpg', { type: 'image/jpeg' });
 
-      await uploadFile(file);
+      await uploadFile(file, 10);
       expect(fetch).toHaveBeenCalledWith('/api/upload', expect.objectContaining({ method: 'POST' }));
 
       await addCardapio(file);
       expect(fetch).toHaveBeenCalledWith('/api/cardapios', expect.objectContaining({ method: 'POST' }));
+    });
+
+    it('vincula upload de foto ao aluno e busca arquivo protegido com Bearer, sem query token', async () => {
+      mockFetchJson({ data: { id: 10, foto_url: '/api/alunos/10/foto' } });
+      const file = new File(['img'], 'foto.jpg', { type: 'image/jpeg' });
+
+      await uploadAlunoFoto(10, file);
+      expect(fetch).toHaveBeenCalledWith('/api/alunos/10/foto', expect.objectContaining({ method: 'POST' }));
+
+      fetch.mockImplementationOnce(() => Promise.resolve(new Response(new Blob(['img']), { status: 200 })));
+      await fetchProtectedAsset('/api/alunos/10/foto');
+      expect(fetch).toHaveBeenCalledWith('/api/alunos/10/foto', expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: 'Bearer token-de-teste' }),
+      }));
+      expect(fetch.mock.calls.at(-1)[0]).not.toContain('token=');
     });
 
     it('getCardapios, getLatestCardapio e deleteCardapio', async () => {
@@ -158,7 +177,7 @@ describe('cliente da API - Cobertura Completa', () => {
   });
 
   describe('Autorizados (Refeições Avulsas)', () => {
-    it('getAutorizados, addAutorizado com status pendente, updateAutorizado e deleteAutorizado', async () => {
+    it('getAutorizados, addAutorizado, updateAutorizado e deleteAutorizado', async () => {
       mockFetchJson({ data: [] });
 
       await getAutorizados();
@@ -167,7 +186,7 @@ describe('cliente da API - Cobertura Completa', () => {
       await addAutorizado({ titulo: 'Visita' });
       expect(fetch).toHaveBeenCalledWith('/api/autorizados', expect.objectContaining({
         method: 'POST',
-        body: JSON.stringify({ titulo: 'Visita', status: 'pendente' }),
+        body: JSON.stringify({ titulo: 'Visita' }),
       }));
 
       await updateAutorizado(3, { titulo: 'Novo' });
@@ -312,6 +331,13 @@ describe('cliente da API - Cobertura Completa', () => {
         method: 'PUT',
         body: JSON.stringify({ qtd_contagem: 30 }),
       }));
+
+      await saveContagemOperation({ turmas_id: 3, qtd_contagem: 25, presencas: [] }, '2f4f4383-8ff0-4d91-a1c9-b3b9a6a1c901');
+      expect(fetch).toHaveBeenCalledWith('/api/contagens/operacao', expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({ 'Idempotency-Key': '2f4f4383-8ff0-4d91-a1c9-b3b9a6a1c901' }),
+        body: JSON.stringify({ turmas_id: 3, qtd_contagem: 25, presencas: [] }),
+      }));
     });
 
     it('Contagem de Necessidades Especiais (NES)', async () => {
@@ -319,6 +345,9 @@ describe('cliente da API - Cobertura Completa', () => {
 
       await getAlunosContagemNes();
       expect(fetch).toHaveBeenCalledWith('/api/contagem-nes', expect.any(Object));
+
+      await getAlunosContagemNes('2026-09-07');
+      expect(fetch).toHaveBeenCalledWith('/api/contagem-nes?data=2026-09-07', expect.any(Object));
 
       await addAlunoNaContagemNes(10, 4);
       expect(fetch).toHaveBeenCalledWith('/api/contagem-nes', expect.objectContaining({
@@ -339,6 +368,9 @@ describe('cliente da API - Cobertura Completa', () => {
       await getContagensDashboard();
       expect(fetch).toHaveBeenCalledWith('/api/contagens/dashboard', expect.any(Object));
 
+      await getContagensDashboard('2026-09-07');
+      expect(fetch).toHaveBeenCalledWith('/api/contagens/dashboard?data=2026-09-07', expect.any(Object));
+
       await getContagensPorRange('2026-09-01', '2026-09-04');
       expect(fetch).toHaveBeenCalledWith('/api/contagens?data_inicio=2026-09-01&data_fim=2026-09-04', expect.any(Object));
 
@@ -350,12 +382,27 @@ describe('cliente da API - Cobertura Completa', () => {
     });
   });
 
+  describe('Contexto escolar', () => {
+    it('consulta o dia escolar autenticado', async () => {
+      mockFetchJson({ data: { data_atual: '2026-09-07', timezone: 'America/Sao_Paulo', agora: '2026-09-08T01:00:00.000000Z' } });
+
+      await getContextoEscolar();
+      expect(fetch).toHaveBeenCalledWith('/api/contexto-escolar', expect.any(Object));
+    });
+  });
+
   describe('Chat Operacional', () => {
-    it('getChatMessages, sendMessage, getChatMembers, getChatContacts', async () => {
+    it('getChatMessages, getChatMessagesPage, sendMessage, getChatMembers, getChatContacts', async () => {
       mockFetchJson({ data: [] });
 
       await getChatMessages();
       expect(fetch).toHaveBeenCalledWith('/api/chats', expect.any(Object));
+
+      const controller = new AbortController();
+      await getChatMessagesPage(2, 20, { signal: controller.signal });
+      expect(fetch).toHaveBeenCalledWith('/api/chats?page=2&limit=20', expect.objectContaining({
+        signal: controller.signal,
+      }));
 
       await sendMessage({ mensagem_chat: 'Olá' });
       expect(fetch).toHaveBeenCalledWith('/api/chats', expect.objectContaining({

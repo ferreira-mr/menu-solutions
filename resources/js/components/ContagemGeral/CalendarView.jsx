@@ -2,20 +2,23 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Swal from 'sweetalert2/dist/sweetalert2.all.min.js';
 import {
-    getContagensPorRange,
+    getTodosContagensPorRange,
     getDashboardPorData,
-    getAlunosNesPorData,
-    getNecessidades,
+    getTodosAlunosNesPorData,
+    getTodasNecessidades,
     getNecessidadeComAlunos,
     getTurmas
 } from '../../services/api';
+import { useSchoolCalendar } from '../../features/contagem/useSchoolCalendar';
+import { getSchoolDate, getSchoolDateFromInstant, selectEffectiveContagens } from '../../features/contagem/schoolCalendar';
+import { summarizeDashboardTotals } from '../../features/contagem/countTotals';
 
 import { DetailsPanel } from './DetailsPanel';
 import './CalendarView.css';
 
 // Função para formatar data como AAAA-MM-DD sem erros de fuso horário
 const toISODateString = (date) => {
-    if (!date || isNaN(date.getTime())) return new Date().toISOString().split("T")[0];
+    if (!date || isNaN(date.getTime())) return getSchoolDate();
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
@@ -23,8 +26,9 @@ const toISODateString = (date) => {
 };
 
 const CalendarView = () => {
-    const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-    const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+    const { schoolDay, timezone } = useSchoolCalendar();
+    const [currentYear, setCurrentYear] = useState(() => Number(schoolDay.slice(0, 4)));
+    const [currentMonth, setCurrentMonth] = useState(() => Number(schoolDay.slice(5, 7)) - 1);
     const [countsData, setCountsData] = useState(new Map());
     const [loadingCalendar, setLoadingCalendar] = useState(true);
     const [selectedDate, setSelectedDate] = useState(null);
@@ -40,14 +44,14 @@ const CalendarView = () => {
     // Carrega descrições fixas para complementar o que vem na API de contagem
     const carregarMapasDeApoio = useCallback(async () => {
         try {
-            const necessidadesRes = await getNecessidades();
+            const necessidadesRes = await getTodasNecessidades();
             const necComAlunosRes = await Promise.all(
-                (necessidadesRes.data || []).map(n => getNecessidadeComAlunos(n.id))
+                (necessidadesRes || []).map(n => getNecessidadeComAlunos(n.id))
             );
             const dMap = new Map();
             necComAlunosRes.forEach(nec => {
                 (nec.alunos || []).forEach(aluno => {
-                    const relacaoId = aluno.pivot?.id || aluno.alunos_has_necessidades_id;
+                    const relacaoId = aluno.alunos_has_necessidades_id;
                     if (relacaoId) {
                         dMap.set(String(relacaoId), aluno.descricao || '<i>Nenhuma descrição disponível.</i>');
                     }
@@ -64,10 +68,11 @@ const CalendarView = () => {
         try {
             const dataInicio = toISODateString(new Date(year, month, 1));
             const dataFim = toISODateString(new Date(year, month + 1, 0));
-            const contagensRes = await getContagensPorRange(dataInicio, dataFim);
+            const contagensRes = await getTodosContagensPorRange(dataInicio, dataFim);
             
             const totalsMap = new Map();
-            (contagensRes.data || []).forEach(contagem => {
+            const contagens = Array.isArray(contagensRes) ? contagensRes : (contagensRes?.data || []);
+            selectEffectiveContagens(contagens).forEach(contagem => {
                 const dateStr = contagem.data_contagem;
                 const qtd = Number(contagem.qtd_contagem || 0);
                 totalsMap.set(dateStr, (totalsMap.get(dateStr) || 0) + qtd);
@@ -85,7 +90,13 @@ const CalendarView = () => {
         
         // Se o calendário diz que não tem nada nesse dia, nem chama a API
         if (!countsData.has(dateStr)) {
-            setSelectedDayDetails({ date, totalGeralContagens: 0, contagens: [], necessidades: new Map() });
+            setSelectedDayDetails({
+                date,
+                totalGeralContagens: 0,
+                totals: { total_regular: 0, total_outros: 0, total_combinado: 0 },
+                contagens: [],
+                necessidades: new Map(),
+            });
             return;
         }
 
@@ -93,15 +104,15 @@ const CalendarView = () => {
         try {
             const [dashRes, nesRes] = await Promise.all([
                 getDashboardPorData(dateStr),
-                getAlunosNesPorData(dateStr)
+                getTodosAlunosNesPorData(dateStr)
             ]);
 
             const dashboardData = dashRes?.data || [];
-            const nesDataTotal = nesRes?.data || [];
+            const nesDataTotal = nesRes || [];
 
             // FILTRO CRUCIAL: Filtra os alunos NES para mostrar APENAS os do dia clicado
-            const nesDataFiltrado = nesDataTotal.filter(item => 
-                item.data_hora_contagem && item.data_hora_contagem.startsWith(dateStr)
+            const nesDataFiltrado = nesDataTotal.filter(item =>
+                getSchoolDateFromInstant(item.data_hora_contagem, timezone) === dateStr
             );
 
             const contagensDetalhes = dashboardData.map(cat => ({
@@ -112,8 +123,7 @@ const CalendarView = () => {
                 }))
             }));
 
-            const totalGeral = dashboardData.reduce((acc, cat) => 
-                acc + (cat.turmas || []).reduce((sum, t) => sum + Number(t.qtd_contagem || 0), 0), 0);
+            const totals = dashRes?.totals || summarizeDashboardTotals(dashboardData);
 
             const necessidadesMap = new Map();
             nesDataFiltrado.forEach(item => {
@@ -121,7 +131,7 @@ const CalendarView = () => {
                 const necNome = item.aluno.necessidade || 'Outros';
                 if (!necessidadesMap.has(necNome)) necessidadesMap.set(necNome, []);
                 
-                const relId = String(item.aluno.id);
+                const relId = String(item.relacao_id);
                 necessidadesMap.get(necNome).push({
                     nome: item.aluno.nome,
                     rm: item.aluno.rm,
@@ -131,7 +141,8 @@ const CalendarView = () => {
 
             setSelectedDayDetails({
                 date,
-                totalGeralContagens: totalGeral,
+                totalGeralContagens: totals.total_combinado,
+                totals,
                 contagens: contagensDetalhes,
                 necessidades: necessidadesMap
             });
@@ -141,7 +152,7 @@ const CalendarView = () => {
         } finally {
             setLoadingDetails(false);
         }
-    }, [countsData, relacaoToDescricaoMap]);
+    }, [countsData, relacaoToDescricaoMap, timezone]);
 
     useEffect(() => { carregarMapasDeApoio(); }, [carregarMapasDeApoio]);
     useEffect(() => { carregarTotaisDoMes(currentYear, currentMonth); }, [currentYear, currentMonth, carregarTotaisDoMes]);
@@ -162,12 +173,12 @@ const CalendarView = () => {
                 dayOfMonth: i,
                 date,
                 total: countsData.get(dateStr) || 0,
-                isToday: toISODateString(new Date()) === dateStr,
+                isToday: schoolDay === dateStr,
                 isSelected: selectedDate && toISODateString(selectedDate) === dateStr
             });
         }
         return days;
-    }, [currentYear, currentMonth, countsData, selectedDate]);
+    }, [currentYear, currentMonth, countsData, selectedDate, schoolDay]);
 
     return (
         <div className="calendar-main-grid">

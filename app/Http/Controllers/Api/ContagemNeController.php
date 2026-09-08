@@ -8,9 +8,16 @@ use App\Http\Resources\ContagemNeResource;
 use App\Models\ContagemNe;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Services\SchoolCalendarService;
+use App\Services\VinculoService;
 
 class ContagemNeController extends Controller
 {
+    public function __construct(
+        protected SchoolCalendarService $schoolCalendar,
+        protected VinculoService $vinculoService,
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -19,6 +26,7 @@ class ContagemNeController extends Controller
         $validated = $request->validate([
             'data' => ['nullable', 'date_format:Y-m-d'],
             'date' => ['nullable', 'date_format:Y-m-d'],
+            'page' => ['nullable', 'integer', 'min:1'],
             'limit' => ['nullable', 'integer', 'min:1', 'max:1000'],
         ]);
 
@@ -27,11 +35,17 @@ class ContagemNeController extends Controller
         $query = ContagemNe::with(['alunosHasNecessidade.aluno', 'alunosHasNecessidade.necessidade']);
 
         if ($day) {
-            $query->whereDate('created_at', $day);
+            [$startUtc, $endUtc] = $this->schoolCalendar->utcWindowForDate($day);
+            $query->where('created_at', '>=', $startUtc->toDateTimeString())
+                ->where('created_at', '<', $endUtc->toDateTimeString());
         }
 
         $perPage = $validated['limit'] ?? 100;
-        $contagemNes = $query->paginate($perPage);
+        $contagemNes = $query
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->paginate($perPage)
+            ->withQueryString();
 
         return ContagemNeResource::collection($contagemNes);
     }
@@ -41,7 +55,9 @@ class ContagemNeController extends Controller
      */
     public function store(ContagemNeRequest $request): JsonResponse
     {
-        $contagemNe = ContagemNe::create($request->validated());
+        $contagemNe = $this->vinculoService->createPresence(
+            (int) $request->validated('alunos_has_necessidades_id'),
+        );
 
         return (new ContagemNeResource($contagemNe))->response()->setStatusCode(201);
     }
@@ -59,11 +75,14 @@ class ContagemNeController extends Controller
      */
     public function update(ContagemNeRequest $request, ContagemNe $contagemNe)
     {
-        if ($contagemNe->created_at?->toDateString() !== today()->toDateString()) {
+        if (! $this->schoolCalendar->isCurrentDate($this->schoolCalendar->dateForInstant($contagemNe->created_at))) {
             return response()->json(['message' => 'Atualização permitida somente no dia do registro'], 422);
         }
 
-        $contagemNe->update($request->validated());
+        $contagemNe = $this->vinculoService->updatePresence(
+            $contagemNe,
+            (int) $request->validated('alunos_has_necessidades_id'),
+        );
 
         return new ContagemNeResource($contagemNe);
     }
@@ -73,7 +92,7 @@ class ContagemNeController extends Controller
      */
     public function destroy(ContagemNe $contagemNe)
     {
-        if ($contagemNe->created_at?->toDateString() !== today()->toDateString()) {
+        if (! $this->schoolCalendar->isCurrentDate($this->schoolCalendar->dateForInstant($contagemNe->created_at))) {
             return response()->json(['message' => 'Ação negada / Fora de horario permitido'], 400);
         }
 

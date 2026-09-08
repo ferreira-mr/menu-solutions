@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Swal from 'sweetalert2/dist/sweetalert2.all.min.js';
 import { getCardapios, addCardapio, deleteCardapio } from '../../services/api';
 import { API_BASE_URL } from '../../config/apiConfig';
+import { safeHttpUrl } from '../../utils/safeDom';
 
 import './CardapiosPage.css';
 
@@ -81,11 +82,12 @@ const CardapiosPage = () => {
 
     const handleView = (path) => {
         let url = path;
-        if (!path.startsWith('http')) {
+        if (!/^https?:\/\//i.test(path)) {
             const cleanBaseUrl = API_BASE_URL.replace('/api', '');
             url = `${cleanBaseUrl}/uploads/pdf/${path}`; 
         }
-        window.open(url, '_blank');
+        const safeUrl = safeHttpUrl(url, null);
+        if (safeUrl) window.open(safeUrl, '_blank');
     };
 
     const formatDateName = (dateString) => {

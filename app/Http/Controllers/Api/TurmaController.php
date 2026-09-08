@@ -17,7 +17,15 @@ class TurmaController extends Controller
      */
     public function index(Request $request)
     {
-        $turmas = Turma::with(['categoria'])->paginate();
+        $validated = $request->validate([
+            'page' => ['nullable', 'integer', 'min:1'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:1000'],
+        ]);
+
+        $turmas = Turma::with(['categoria'])
+            ->orderBy('id')
+            ->paginate($validated['limit'] ?? 15)
+            ->withQueryString();
 
         return TurmaResource::collection($turmas);
     }
@@ -45,7 +53,8 @@ class TurmaController extends Controller
      */
     public function update(Request $request, Turma $turma)
     {
-        $turma->update($request->validate(Turma::updateRule()));
+        $attributes = $request->all();
+        $turma->update($request->validate(Turma::updateRule($turma, $attributes)));
 
         return new TurmaResource($turma);
     }

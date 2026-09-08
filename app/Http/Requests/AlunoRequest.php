@@ -31,8 +31,12 @@ class AlunoRequest extends FormRequest
             'nome' => 'required|string|max:45',
             'genero' => 'required|string|max:200',
             'descricao' => 'nullable|string|max:10000',
-            'foto' => 'nullable|string|max:255',
-            'turmas_id' => 'required|integer|exists:turmas,id',
+            'foto' => 'prohibited',
+            'turmas_id' => [
+                'required',
+                'integer',
+                Rule::exists('turmas', 'id')->whereNull('deleted_at'),
+            ],
             'data_nascimento' => 'required|date_format:Y-m-d',
             'rm' => ['required', 'string', 'max:200', Rule::unique('alunos', 'rm')->ignore($alunoId)],
         ];

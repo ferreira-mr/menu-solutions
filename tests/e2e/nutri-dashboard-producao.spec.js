@@ -1,7 +1,8 @@
 import { test, expect } from '@playwright/test';
+import { authState } from './auth-paths.js';
 
 test.describe('Fluxos E2E - Nutricionista', () => {
-  test.use({ storageState: 'tests/e2e/.auth/nutri.json' });
+  test.use({ storageState: authState('nutri') });
 
   test('acessa dashboard da nutricionista com painéis e métricas', async ({ page }) => {
     await page.goto('/nutri/dashboard');

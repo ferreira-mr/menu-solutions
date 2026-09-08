@@ -1,0 +1,46 @@
+Saída original da compilação na auditoria.
+
+> build
+> vite build
+
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 418 modules transformed.
+rendering chunks...
+computing gzip size...
+public/build/assets/avatar-DFjyBb_F.png                 3.57 kB
+public/build/manifest.json                              4.61 kB │ gzip:   0.85 kB
+public/build/assets/logo-B4pD9qWW.png                  12.41 kB
+public/build/assets/setas-IPcsLXKa.png                 14.35 kB
+public/build/assets/setas2-CnVTDfiJ.png                14.41 kB
+public/build/assets/ms-DMqXvkkg.png                    14.55 kB
+public/build/assets/Nilo-B3Z2wx77.jpg                  49.41 kB
+public/build/assets/main-D6oiGPTD.jpg                  71.78 kB
+public/build/assets/sesisenai-CZr6skUX.png             76.09 kB
+public/build/assets/bootstrap-icons-mSm7cUeB.woff2    134.04 kB
+public/build/assets/bootstrap-icons-BeopsB42.woff     180.29 kB
+public/build/assets/Andre-CrxeOeku.png                200.69 kB
+public/build/assets/Marcos-CTMzDZop.png               245.81 kB
+public/build/assets/larissa-Cm_VS2PE.png              384.34 kB
+public/build/assets/code-CePFy8ex.png                 527.90 kB
+public/build/assets/code2-DCkq-IP2.png                585.50 kB
+public/build/assets/cesar-DipoxthV.png                616.43 kB
+public/build/assets/Bianca-B5SGl8w3.png               635.92 kB
+public/build/assets/isa-DHb3mLpd.png                  669.58 kB
+public/build/assets/app-kr4n5JdB.css                   39.65 kB │ gzip:   9.47 kB
+public/build/assets/main-BjwNQzxF.css                 192.63 kB │ gzip:  33.64 kB
+public/build/assets/purify.es-4eNOHKSq.js              28.74 kB │ gzip:  11.02 kB
+public/build/assets/index.es-B11e-9j7.js              158.91 kB │ gzip:  53.03 kB
+public/build/assets/html2canvas.esm-DXEQVQnt.js       201.04 kB │ gzip:  47.43 kB
+public/build/assets/main-3mkupzK3.js                1,303.73 kB │ gzip: 378.28 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 18.68s
+npm notice
+npm notice New minor version of npm available! 11.9.0 -> 11.19.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.19.1
+npm notice To update run: npm install -g npm@11.19.1
+npm notice

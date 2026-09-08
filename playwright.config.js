@@ -1,28 +1,29 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const baseURL = process.env.E2E_BASE_URL || 'http://127.0.0.1:8010';
+if (!process.env.E2E_RUN_TOKEN || !process.env.E2E_RUNTIME_DIR || !process.env.E2E_BASE_URL) {
+  throw new Error('Use npm run test:e2e para criar um runtime E2E isolado.');
+}
+
+const baseURL = process.env.E2E_BASE_URL;
+const outputDir = process.env.E2E_OUTPUT_DIR;
+const reportDir = process.env.E2E_REPORT_DIR;
+const authState = process.env.E2E_DEFAULT_AUTH_STATE;
 
 export default defineConfig({
   testDir: './tests/e2e',
-  outputDir: './test-results/e2e',
+  outputDir,
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 1,
   reporter: process.env.CI
-    ? [['line'], ['html', { outputFolder: 'playwright-report', open: 'never' }]]
-    : [['list'], ['html', { outputFolder: 'playwright-report', open: 'never' }]],
+    ? [['line'], ['html', { outputFolder: reportDir, open: 'never' }]]
+    : [['list'], ['html', { outputFolder: reportDir, open: 'never' }]],
   use: {
     baseURL,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-  },
-  webServer: {
-    command: 'php artisan serve --host=127.0.0.1 --port=8010',
-    url: `${baseURL}/up`,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
   },
   projects: [
     {
@@ -34,7 +35,7 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        storageState: 'tests/e2e/.auth/user.json',
+        storageState: authState,
       },
       dependencies: ['setup'],
     },

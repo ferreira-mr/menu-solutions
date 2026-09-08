@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  *
  * @property $id
  * @property $nome_categoria
+ * @property bool $inclui_total_regular
  * @property $created_at
  * @property $updated_at
  * @property $deleted_at
@@ -33,6 +34,13 @@ class Categoria extends Model
      * @var array<int, string>
      */
     protected $fillable = ['nome_categoria'];
+
+    protected function casts(): array
+    {
+        return [
+            'inclui_total_regular' => 'boolean',
+        ];
+    }
 
     /**
      * @return HasMany

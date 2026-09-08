@@ -1,0 +1,30 @@
+{
+  "name": "contador-v2",
+  "dependencies": {
+    "html2pdf.js": {
+      "version": "0.12.1",
+      "resolved": "https://registry.npmjs.org/html2pdf.js/-/html2pdf.js-0.12.1.tgz",
+      "overridden": false,
+      "dependencies": {
+        "jspdf": {
+          "version": "3.0.4"
+        }
+      }
+    },
+    "jspdf-autotable": {
+      "version": "5.0.8",
+      "resolved": "https://registry.npmjs.org/jspdf-autotable/-/jspdf-autotable-5.0.8.tgz",
+      "overridden": false,
+      "dependencies": {
+        "jspdf": {
+          "version": "3.0.4"
+        }
+      }
+    },
+    "jspdf": {
+      "version": "3.0.4",
+      "resolved": "https://registry.npmjs.org/jspdf/-/jspdf-3.0.4.tgz",
+      "overridden": false
+    }
+  }
+}

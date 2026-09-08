@@ -67,6 +67,8 @@ return [
 
     'timezone' => 'UTC',
 
+    'school_timezone' => env('SCHOOL_TIMEZONE', 'America/Sao_Paulo'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration

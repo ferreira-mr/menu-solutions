@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\AutorizadoStatus;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class AutorizarUpdateRequest extends FormRequest
 {
@@ -23,9 +25,9 @@ class AutorizarUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'titulo' => 'sometimes|string|max:255',
-            'conteudo' => 'sometimes|string|max:10000',
-            'status' => 'sometimes|in:pendente,confirmado',
+            'titulo' => 'prohibited',
+            'conteudo' => 'prohibited',
+            'status' => ['required', Rule::enum(AutorizadoStatus::class)],
         ];
     }
 }

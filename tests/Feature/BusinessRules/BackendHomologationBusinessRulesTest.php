@@ -166,11 +166,19 @@ class BackendHomologationBusinessRulesTest extends TestCase
         $nutri = $this->user(UserRole::Nutri, '20000000005');
         $catRegular = Categoria::create(['nome_categoria' => 'Fundamental 2']);
         $catOutros = Categoria::create(['nome_categoria' => 'Outros']);
+        $catOutros->forceFill(['inclui_total_regular' => false])->save();
 
         $turmaRegular = Turma::create(['nome_turma' => '7º Ano A', 'categorias_id' => $catRegular->id]);
         $turmaOutros = Turma::create(['nome_turma' => 'Robótica Contraturno', 'categorias_id' => $catOutros->id]);
 
         $hoje = today()->toDateString();
+        Contagem::create([
+            'turmas_id' => $turmaRegular->id,
+            'qtd_contagem' => 10,
+            'data_contagem' => $hoje,
+            'hora_contagem' => '07:10:00',
+            'users_id' => $nutri->id,
+        ]);
         Contagem::create([
             'turmas_id' => $turmaRegular->id,
             'qtd_contagem' => 28,
@@ -196,5 +204,8 @@ class BackendHomologationBusinessRulesTest extends TestCase
         $this->assertNotNull($outrosItem);
         $this->assertSame(28, (int) $regularItem['turmas'][0]['qtd_contagem']);
         $this->assertSame(15, (int) $outrosItem['turmas'][0]['qtd_contagem']);
+        $this->assertSame(28, (int) $response->json('totals.total_regular'));
+        $this->assertSame(15, (int) $response->json('totals.total_outros'));
+        $this->assertSame(43, (int) $response->json('totals.total_combinado'));
     }
 }

@@ -153,7 +153,16 @@ php artisan key:generate
 php artisan migrate
 ```
 
-Os arquivos de upload (fotos e PDFs de cardápios) são gravados em `public/uploads` e expostos através de `/uploads` e `/uploads/pdf`.
+Os PDFs de cardápio continuam referenciados pelo nome relativo e expostos através de `/uploads/pdf`; por padrão, o disco configurado `CARDAPIO_FILESYSTEM_DISK=uploads` grava em `public/uploads`. A criação, substituição e exclusão registram falhas de limpeza para retentativa sem alterar o contrato de URL.
+
+Fotos de alunos usam o disco privado `STUDENT_PHOTOS_DISK=student_photos` e são entregues somente por `GET /api/alunos/{id}/foto` com autenticação Sanctum. Em uma instalação que já tenha referências em `public/uploads`, faça primeiro uma simulação e depois a migração verificada; a remoção pública é opcional e específica por arquivo:
+
+```bash
+php artisan photos:migrate-to-private --dry-run
+php artisan photos:migrate-to-private --remove-public
+```
+
+O comando mantém referências e dados históricos, calcula e confere SHA-256 antes de remover a origem e pode ser repetido. Ele não percorre nem apaga diretórios inteiros e não deve ser executado em produção sem backup e janela operacional autorizada.
 
 ---
 
@@ -199,8 +208,24 @@ up
 4. Configura a placa de rede em modo **NAT com Redirecionamento de Portas (Port Forwarding)**:
    - Porta `80` do computador hospedeiro redirecionada para a porta `80` da VM (Nginx).
    - Porta `2222` do computador hospedeiro para SSH (`22`).
-5. Provisiona os serviços dentro do Ubuntu (Nginx, PHP 8.3-FPM, SQLite, Composer, migrações e seeders com usuários oficiais).
+5. Provisiona os serviços dentro do Ubuntu (Nginx, PHP 8.3-FPM, SQLite, Composer, migrações e catálogo inicial; contas são criadas pelo bootstrap protegido do primeiro gestor).
 6. Valida a disponibilidade e exibe os links de acesso.
+
+---
+
+### 1.1. Bootstrap do primeiro gestor
+
+O provisionamento cria apenas o catálogo inicial e não instala contas E2E, senhas conhecidas ou fatos de demonstração. Depois de iniciar a VM, execute dentro dela:
+
+```bash
+cd /var/www/contador-v2
+sudo php artisan app:bootstrap-admin \
+  --name="Nome do gestor" \
+  --nif="NIF_DO_GESTOR" \
+  --email="gestor@escola.local"
+```
+
+A senha será solicitada em entrada oculta, com confirmação, e nunca será exibida. Se o NIF já existir, o comando não altera as credenciais existentes. O `E2eSeeder` é reservado ao runtime descartável dos testes e não deve ser executado em produção.
 
 ---
 

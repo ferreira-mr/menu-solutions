@@ -7,6 +7,8 @@ use App\Models\AlunosHasNecessidade;
 use App\Models\ContagemNe;
 use App\Models\Necessidade;
 use App\Models\User;
+use App\Services\SchoolCalendarService;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -61,6 +63,7 @@ class ContagemNesBusinessRulesTest extends TestCase
     {
         $inspetora = $this->user(1);
         $pivot = $this->createPivot();
+        $schoolDay = app(SchoolCalendarService::class)->currentDate();
 
         // Presença de hoje
         $todayAttendance = ContagemNe::create([
@@ -76,7 +79,7 @@ class ContagemNesBusinessRulesTest extends TestCase
         $pastAttendance = ContagemNe::create([
             'alunos_has_necessidades_id' => $pivot->id,
         ]);
-        $pastAttendance->created_at = today()->subDay();
+        $pastAttendance->created_at = CarbonImmutable::createFromFormat('Y-m-d', $schoolDay)->subDay()->startOfDay();
         $pastAttendance->saveQuietly();
 
         $resPastDelete = $this->actingAs($inspetora, 'sanctum')
@@ -89,6 +92,7 @@ class ContagemNesBusinessRulesTest extends TestCase
     {
         $user = $this->user(1);
         $pivot = $this->createPivot();
+        $schoolDay = app(SchoolCalendarService::class)->currentDate();
 
         $today = ContagemNe::create(['alunos_has_necessidades_id' => $pivot->id]);
 
@@ -98,7 +102,7 @@ class ContagemNesBusinessRulesTest extends TestCase
 
         // Busca por data de hoje
         $resToday = $this->actingAs($user, 'sanctum')
-            ->getJson('/api/contagem-nes?data=' . today()->toDateString());
+            ->getJson('/api/contagem-nes?data=' . $schoolDay);
         $resToday->assertOk();
         $ids = collect($resToday->json('data'))->pluck('id');
         $this->assertTrue($ids->contains($today->id));

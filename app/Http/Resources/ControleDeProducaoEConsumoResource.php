@@ -17,7 +17,7 @@ class ControleDeProducaoEConsumoResource extends JsonResource
         return [
             'id' => $this->id,
             'nome_alimento' => $this->nome_alimento,
-            'data_alimento' => $this->data_alimento,
+            'data_alimento' => $this->data_alimento?->toDateString(),
             'quantidade_alimento' => $this->quantidade_alimento,
             'medida_alimento' => $this->medida_alimento,
             'pessoas_alimento' => $this->pessoas_alimento,

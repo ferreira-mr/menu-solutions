@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Validation\Rule;
 
 /**
  * Class Contagen
@@ -40,8 +41,8 @@ class Contagen extends Model
     public static function updateRule()
     {
         return [
-            'qtd_contagem' => 'sometimes|int|min:0',
-            'turmas_id' => 'sometimes|int|exists:turmas,id',
+            'qtd_contagem' => ['sometimes', 'integer', 'min:0', 'max:2147483647'],
+            'turmas_id' => ['sometimes', 'integer', Rule::exists('turmas', 'id')->whereNull('deleted_at')],
         ];
     }
 

@@ -64,7 +64,7 @@ class AuthorizationMatrixTest extends TestCase
 
         $this->actingAs($admin, 'sanctum')
             ->putJson('/api/autorizados/'.$card->id, ['titulo' => 'Editado'])
-            ->assertOk();
+            ->assertStatus(409);
     }
 
     public function test_administrator_delete_guard_does_not_allow_self_deletion(): void

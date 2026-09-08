@@ -121,7 +121,7 @@ const ProfilePage = () => {
                 <div className="left-column">
                     <div className="profile-card identity-card">
                         <img 
-                            src={`https://ui-avatars.com/api/?name=${user.name}&background=28a745&color=fff&size=128&bold=true`} 
+                            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || '')}&background=28a745&color=fff&size=128&bold=true`}
                             alt="Avatar" 
                             className="avatar-large" 
                         />

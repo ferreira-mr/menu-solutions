@@ -6,7 +6,7 @@ import * as api from '../../services/api';
 import Swal from 'sweetalert2/dist/sweetalert2.all.min.js';
 
 vi.mock('../../services/api', () => ({
-  getProducao: vi.fn(),
+  getTodosProducao: vi.fn(),
   addProducao: vi.fn(),
   updateProducao: vi.fn(),
   deleteProducao: vi.fn(),
@@ -56,11 +56,9 @@ describe('ControleProducaoPage', () => {
       },
     });
 
-    api.getProducao.mockResolvedValue({
-      data: [
+    api.getTodosProducao.mockResolvedValue([
         { id: 1, nome_alimento: 'Arroz', quantidade_alimento: 20, pessoas_alimento: 150, data_alimento: '2026-09-04' },
-      ],
-    });
+    ]);
     api.addProducao.mockResolvedValue({ id: 2 });
   });
 

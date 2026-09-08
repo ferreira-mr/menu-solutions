@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\UserRole;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -13,17 +12,7 @@ class AuthController extends Controller
 {
     public function register(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email',
-            'password' => 'required|string|min:8|max:72|confirmed',
-            'nif' => 'required|string|max:255|unique:users,nif',
-        ]);
-
-        $validated['password'] = Hash::make($validated['password']);
-        User::create(array_merge($validated, ['nivel_user' => UserRole::Staff->value]));
-
-        return response()->json(['message' => 'Usuario criado com sucesso'], 201);
+        return response()->json(['message' => 'Cadastro público desativado'], 403);
     }
 
     public function login(Request $request)
@@ -35,10 +24,7 @@ class AuthController extends Controller
 
         $user = User::where('nif', $credentials['nif'])->first();
 
-        $isValidPassword = $user && (
-            Hash::check($credentials['password'], $user->password) ||
-            (app()->isLocal() && in_array($credentials['password'], ['password', 'password123']))
-        );
+        $isValidPassword = $user && Hash::check($credentials['password'], $user->password);
 
         if ($isValidPassword) {
             $token = $user->createToken('api')->plainTextToken;

@@ -25,6 +25,7 @@ class AutorizadoRequest extends FormRequest
         return [
             'titulo' => 'required|string|max:255',
             'conteudo' => 'required|string|max:10000',
+            'status' => 'prohibited',
         ];
     }
 }

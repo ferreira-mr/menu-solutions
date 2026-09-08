@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Swal from 'sweetalert2/dist/sweetalert2.all.min.js';
 import { 
-    getAutorizados, 
+    getTodosAutorizados,
     addAutorizado, 
     updateAutorizado, 
     updateConteudoAutorizado, 
     deleteAutorizado 
 } from '../../services/api';
 import { USER_ROLES } from '../../constants/roles';
+import { createDomElement } from '../../utils/safeDom';
 import './AutorizadosPage.css';
 
 const LEVEL_INSPETORA = String(USER_ROLES.STAFF);
@@ -24,8 +25,7 @@ const AutorizadosPage = () => {
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await getAutorizados();
-            const data = response.data?.data || response.data || [];
+            const data = await getTodosAutorizados();
             const sortedData = data.sort((a, b) => {
                 if (a.status === 'pendente' && b.status !== 'pendente') return -1;
                 if (a.status !== 'pendente' && b.status === 'pendente') return 1;
@@ -54,17 +54,34 @@ const AutorizadosPage = () => {
 
     const handleOpenModal = (item = null) => {
         const isEditing = !!item;
-        
+        const form = createDomElement('div', { style: { textAlign: 'left' } });
+        const titleLabel = createDomElement('label', {
+            textContent: 'Título / Assunto',
+            style: { fontWeight: '600', fontSize: '0.9rem', color: '#555' },
+        });
+        const titleInput = createDomElement('input', {
+            id: 'swal-titulo',
+            className: 'swal2-input',
+            placeholder: 'Ex: Autorização para aluno sair cedo',
+            value: item?.titulo || '',
+            style: 'margin: 5px 0 15px 0; width: 100%',
+        });
+        const contentLabel = createDomElement('label', {
+            textContent: 'Detalhes',
+            style: { fontWeight: '600', fontSize: '0.9rem', color: '#555' },
+        });
+        const contentInput = createDomElement('textarea', {
+            id: 'swal-conteudo',
+            className: 'swal2-textarea',
+            placeholder: 'Descreva os detalhes...',
+            value: item?.conteudo || '',
+            style: 'margin: 5px 0; width: 100%',
+        });
+        form.append(titleLabel, titleInput, contentLabel, contentInput);
+
         Swal.fire({
             title: isEditing ? 'Editar Solicitação' : 'Nova Solicitação',
-            html: `
-                <div style="text-align: left">
-                    <label style="font-weight:600; font-size:0.9rem; color:#555">Título / Assunto</label>
-                    <input id="swal-titulo" class="swal2-input" placeholder="Ex: Autorização para aluno sair cedo" value="${item ? item.titulo : ''}" style="margin: 5px 0 15px 0; width: 100%">
-                    <label style="font-weight:600; font-size:0.9rem; color:#555">Detalhes</label>
-                    <textarea id="swal-conteudo" class="swal2-textarea" placeholder="Descreva os detalhes..." style="margin: 5px 0; width: 100%">${item ? item.conteudo : ''}</textarea>
-                </div>
-            `,
+            html: form,
             showCancelButton: true,
             confirmButtonText: 'Salvar',
             confirmButtonColor: '#28a745',
@@ -84,14 +101,7 @@ const AutorizadosPage = () => {
             if (result.isConfirmed) {
                 try {
                     if (isEditing) {
-                        // REGRA DE ROTAS POR NÍVEL:
-                        // Diretora usa a rota de atualizacao especifica (/update/{id})
-                        // Nutricionista usa o update padrao (/autorizados/{id})
-                        if (userLevel === LEVEL_DIRETORA) {
-                            await updateConteudoAutorizado(item.id, { ...result.value, status: item.status });
-                        } else {
-                            await updateAutorizado(item.id, result.value);
-                        }
+                        await updateAutorizado(item.id, result.value);
                     } else {
                         await addAutorizado(result.value);
                     }
@@ -126,35 +136,35 @@ const AutorizadosPage = () => {
         });
     };
 
-    const handleApprove = (item) => {
+    const handleDecision = (item, status) => {
+        const isRefusal = status === 'recusado';
         Swal.fire({
-            title: 'Confirmar Autorização?',
-            text: `Deseja mudar o status de "${item.titulo}" para Confirmado?`,
+            title: isRefusal ? 'Recusar Autorização?' : 'Confirmar Autorização?',
+            text: `Deseja mudar o status de "${item.titulo}" para ${isRefusal ? 'Recusado' : 'Confirmado'}?`,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#27ae60',
-            confirmButtonText: 'Sim, Confirmar'
+            confirmButtonColor: isRefusal ? '#dc3545' : '#27ae60',
+            confirmButtonText: isRefusal ? 'Sim, Recusar' : 'Sim, Confirmar'
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    await updateConteudoAutorizado(item.id, { 
-                        titulo: item.titulo, 
-                        conteudo: item.conteudo, 
-                        status: 'confirmado' 
-                    });
-                    Swal.fire({ icon: 'success', title: 'Autorizado!', timer: 1500, showConfirmButton: false });
+                    await updateConteudoAutorizado(item.id, { status });
+                    Swal.fire({ icon: 'success', title: isRefusal ? 'Recusado!' : 'Autorizado!', timer: 1500, showConfirmButton: false });
                     fetchData();
                 } catch (error) {
-                    Swal.fire('Erro', 'Falha ao aprovar.', 'error');
+                    Swal.fire('Erro', isRefusal ? 'Falha ao recusar.' : 'Falha ao aprovar.', 'error');
                 }
             }
         });
     };
 
+    const handleApprove = (item) => handleDecision(item, 'confirmado');
+    const handleRefuse = (item) => handleDecision(item, 'recusado');
+
     // --- CONFIGURAÇÃO DE PERMISSÕES ---
     const canCreate = userLevel === LEVEL_NUTRI;
     const canApprove = userLevel === LEVEL_DIRETORA;
-    const canEdit = userLevel === LEVEL_NUTRI || userLevel === LEVEL_DIRETORA; 
+    const canEdit = userLevel === LEVEL_NUTRI;
     const canDelete = userLevel === LEVEL_NUTRI; 
 
     return (
@@ -202,14 +212,19 @@ const AutorizadosPage = () => {
                                 
                                 <div className="auth-card-footer">
                                     <span className={`status-pill ${item.status}`}>
-                                        {item.status === 'confirmado' ? <><i className="bi bi-check-circle"></i> Confirmado</> : <><i className="bi bi-clock"></i> Pendente</>}
+                                        {item.status === 'confirmado' ? <><i className="bi bi-check-circle"></i> Confirmado</> : item.status === 'recusado' ? <><i className="bi bi-x-circle"></i> Recusado</> : <><i className="bi bi-clock"></i> Pendente</>}
                                     </span>
 
                                     <div className="auth-actions">
                                         {canApprove && item.status === 'pendente' && (
+                                            <>
                                             <button className="btn-icon-auth btn-approve-auth" onClick={() => handleApprove(item)} title="Aprovar">
                                                 <i className="bi bi-check-lg"></i> Aprovar
                                             </button>
+                                            <button className="btn-icon-auth btn-delete-auth" onClick={() => handleRefuse(item)} title="Recusar">
+                                                <i className="bi bi-x-lg"></i> Recusar
+                                            </button>
+                                            </>
                                         )}
 
                                         {canEdit && (item.status === 'pendente' || userLevel === LEVEL_DIRETORA) && (

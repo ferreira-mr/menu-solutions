@@ -199,7 +199,6 @@
     padding: 24px;
 
     overflow-y: auto;
-    overflow-y: hidden;
     background-color: var(--fundo-mensagens);
 
     /* Fundo sutil */
@@ -212,6 +211,27 @@
     width: 60vw;
     min-height: 50vh;
     
+}
+
+.chat-history-button {
+    align-self: center;
+    border: 1px solid var(--borda);
+    border-radius: 999px;
+    padding: 8px 16px;
+    background: var(--fundo-card);
+    color: var(--verde-escuro);
+    cursor: pointer;
+}
+
+.chat-history-button:disabled {
+    cursor: wait;
+    opacity: 0.7;
+}
+
+.chat-error {
+    align-self: center;
+    color: #b91c1c;
+    font-size: 0.9rem;
 }
 
 /* ----------------------------------------------------- */
@@ -528,7 +548,6 @@
     padding: 24px;
 
     overflow-y: auto;
-    overflow-y: hidden;
     background-color: var(--fundo-mensagens);
 
     /* Fundo sutil */

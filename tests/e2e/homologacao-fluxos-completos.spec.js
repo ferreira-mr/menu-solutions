@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { authState } from './auth-paths.js';
 
 test.describe('E2E Homologação SESI - Fluxos Operacionais e Gerenciais', () => {
   test.describe('Perfil Inspetora (Aferição Matinal e Segurança Alimentar)', () => {
-    test.use({ storageState: 'tests/e2e/.auth/inspetora.json' });
+    test.use({ storageState: authState('inspetora') });
 
     test('inspetora acessa a tela de contagem, visualiza turmas e métricas diárias', async ({ page }) => {
       await page.goto('/nova-contagem');
@@ -21,7 +22,7 @@ test.describe('E2E Homologação SESI - Fluxos Operacionais e Gerenciais', () =>
   });
 
   test.describe('Perfil Nutricionista (Gestão Técnica e Controle de Produção)', () => {
-    test.use({ storageState: 'tests/e2e/.auth/nutri.json' });
+    test.use({ storageState: authState('nutri') });
 
     test('nutricionista acessa o módulo de gerenciamento de usuários', async ({ page }) => {
       await page.goto('/nutri/gerenciar/usuarios');
@@ -45,7 +46,7 @@ test.describe('E2E Homologação SESI - Fluxos Operacionais e Gerenciais', () =>
   });
 
   test.describe('Perfil Diretoria (Aprovação de Refeições e Auditoria)', () => {
-    test.use({ storageState: 'tests/e2e/.auth/diretora.json' });
+    test.use({ storageState: authState('diretora') });
 
     test('diretora acessa a lista de solicitações autorizadas', async ({ page }) => {
       await page.goto('/diretora/autorizados');

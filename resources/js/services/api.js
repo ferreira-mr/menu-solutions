@@ -14,5 +14,6 @@ export * from './modules/producao.api';
 export * from './modules/cronograma.api';
 export * from './modules/escolar.api';
 export * from './modules/contagens.api';
+export * from './modules/contextoEscolar.api';
 export * from './modules/chat.api';
 export * from './modules/files.api';

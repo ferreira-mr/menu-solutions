@@ -7,6 +7,7 @@ use App\Http\Requests\AutorizadoRequest;
 use App\Http\Requests\AutorizarUpdateRequest;
 use App\Http\Resources\AutorizadoResource;
 use App\Models\Autorizado;
+use App\Models\User;
 use App\Services\AutorizadoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -23,7 +24,12 @@ class AutorizadoController extends Controller
      */
     public function index(Request $request)
     {
-        $autorizados = $this->autorizadoService->list();
+        $validated = $request->validate([
+            'page' => ['nullable', 'integer', 'min:1'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:1000'],
+        ]);
+
+        $autorizados = $this->autorizadoService->list($validated['limit'] ?? 20);
 
         return AutorizadoResource::collection($autorizados);
     }
@@ -69,7 +75,9 @@ class AutorizadoController extends Controller
 
     public function atualizar(AutorizarUpdateRequest $request, Autorizado $autorizado)
     {
-        $autorizado = $this->autorizadoService->approve($autorizado, $request->validated());
+        /** @var User $decisor */
+        $decisor = $request->user();
+        $autorizado = $this->autorizadoService->approve($autorizado, $request->validated(), $decisor);
 
         return new AutorizadoResource($autorizado);
     }

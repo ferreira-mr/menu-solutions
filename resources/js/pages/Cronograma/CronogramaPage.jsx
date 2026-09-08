@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2/dist/sweetalert2.all.min.js';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { getNecessidades, getNecessidadeComAlunos, getCronograma, agendarRelacaoNosDias, removerAgendamentoDoDia } from '../../services/api';
+import { getTodasNecessidades, getNecessidadeComAlunos, getTodosCronograma, agendarRelacaoNosDias, removerAgendamentoDoDia } from '../../services/api';
 import './CronogramaPage.css';
 
 const CronogramaPage = () => {
@@ -20,12 +20,12 @@ const CronogramaPage = () => {
             !boardState && setIsLoading(true);
             
             const [necessidadesResponse, cronogramaData] = await Promise.all([
-                getNecessidades(1, 100),
-                getCronograma(),
+                getTodasNecessidades(),
+                getTodosCronograma(),
             ]);
 
             // --- FILTRO: REMOVER NECESSIDADE 'NAI' DA LISTA GERAL ---
-            const rawNecessidades = necessidadesResponse.data || [];
+            const rawNecessidades = necessidadesResponse || [];
             const listaNecessidades = rawNecessidades.filter(n => 
                 n.necessidade && n.necessidade.toUpperCase() !== 'NAI'
             );
@@ -42,39 +42,35 @@ const CronogramaPage = () => {
             
             necessidadesComAlunos.forEach(nec => {
                 (nec.alunos || []).forEach(aluno => {
-                    const relacaoId = aluno.pivot?.id;
+                    const relacaoId = aluno.alunos_has_necessidades_id;
                     if (!relacaoId) return;
-                    
+
                     const relacaoKey = `rel-${relacaoId}`;
-                    const lookupKey = `aluno${aluno.id}-nec${nec.id}`;
 
                     relationsMap[relacaoKey] = {
                         id: relacaoKey,
                         content: `${aluno.nome} - ${nec.necessidade}`,
-                        relacaoId: relacaoId,
-                        necessidadeId: nec.id,
+                        relacaoId: Number(relacaoId),
+                        alunoId: Number(aluno.id),
+                        necessidadeId: Number(nec.id),
                     };
-                    relationLookupMap.set(lookupKey, relacaoKey);
+                    relationLookupMap.set(String(relacaoId), relacaoKey);
                 });
             });
             setAllRelations(relationsMap);
 
             const columns = {};
-            const diasDaSemana = (cronogramaData.data || []);
+            const diasDaSemana = cronogramaData || [];
             diasDaSemana.forEach(dia => {
                 columns[dia.id] = { id: String(dia.id), title: dia.dia, itemIds: [] };
                 
                 (dia.alunos || []).forEach(alunoAgendado => {
-                    if (!alunoAgendado || !alunoAgendado.necessidade_relacionada) return;
+                    if (!alunoAgendado?.relacao_id) return;
 
-                    const alunoId = alunoAgendado.id;
-                    const necessidadeId = alunoAgendado.necessidade_relacionada.id;
-
-                    const lookupKey = `aluno${alunoId}-nec${necessidadeId}`;
-                    const relacaoKey = relationLookupMap.get(lookupKey);
+                    const relacaoKey = relationLookupMap.get(String(alunoAgendado.relacao_id));
 
                     if (relacaoKey) {
-                        const occurrenceId = `${relacaoKey}-occurrence-${dia.id}-${Math.random()}`;
+                        const occurrenceId = `${relacaoKey}-occurrence-${dia.id}-${alunoAgendado.agendamento_id}`;
                         columns[dia.id].itemIds.push({ id: occurrenceId, originalId: relacaoKey });
                     }
                 });

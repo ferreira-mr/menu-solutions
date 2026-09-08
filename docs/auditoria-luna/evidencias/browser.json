@@ -1,0 +1,19 @@
+{
+  "contagem": {
+    "data_recebida": "2026-09-07T00:00:00.000000Z",
+    "total_visualizado": "0",
+    "valor_ao_reabrir": "32",
+    "linhas_antes_abrir": 1,
+    "linhas_apos_fechar_sem_salvar": 2
+  },
+  "chat": {
+    "tamanho_pagina": 20,
+    "nova_mensagem_na_resposta": true,
+    "nova_mensagem_visivel": false
+  },
+  "xss": {
+    "origem": "nome do próprio usuário Staff",
+    "destino": "modal de edição aberto pela Nutricionista",
+    "javascript_executado": true
+  }
+}

@@ -12,6 +12,7 @@ export const usePermissions = () => {
     canApproveAutorizado: level === USER_ROLES.DIRETORA,
     canDeleteAutorizado: level === USER_ROLES.NUTRI,
     canManageCatalog: level === USER_ROLES.NUTRI,
+    canManageUsers: level === USER_ROLES.NUTRI || level === USER_ROLES.DIRETORA,
     canCount: level === USER_ROLES.STAFF || level === USER_ROLES.NUTRI,
   };
 };

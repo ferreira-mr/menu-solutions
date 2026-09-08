@@ -1,13 +1,78 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-    getUserData, 
-    getChatMembers, // Nova função da API
-    getChatMessages, 
-    sendMessage 
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+    getUserData,
+    getChatMembers,
+    getChatMessages,
+    sendMessage,
 } from '../../services/api';
 import placeholderAvatar from '../../assets/img/avatar.png';
-import { PUBLIC_STORAGE_URL2 } from '../../config/apiConfig';
 import './ChatPage.css';
+
+const CHAT_PAGE_SIZE = 20;
+
+const messageChronologyValue = (message) => message?.data || message?.created_at || message?.updated_at;
+
+const messageVersionValue = (message) => message?.updated_at || message?.created_at || message?.data;
+
+const timestampOf = (value) => {
+    const timestamp = Date.parse(value || '');
+    return Number.isNaN(timestamp) ? 0 : timestamp;
+};
+
+const compareMessageIds = (left, right) => {
+    if (left === undefined || left === null) return 1;
+    if (right === undefined || right === null) return -1;
+
+    const leftNumber = Number(left);
+    const rightNumber = Number(right);
+    if (Number.isFinite(leftNumber) && Number.isFinite(rightNumber)) return leftNumber - rightNumber;
+    return String(left).localeCompare(String(right));
+};
+
+const compareMessages = (left, right) => (
+    timestampOf(messageChronologyValue(left)) - timestampOf(messageChronologyValue(right))
+    || compareMessageIds(left?.id, right?.id)
+);
+
+const incomingMessageIsNewer = (current, incoming) => {
+    const currentVersion = timestampOf(messageVersionValue(current));
+    const incomingVersion = timestampOf(messageVersionValue(incoming));
+
+    if (incomingVersion !== currentVersion) return incomingVersion > currentVersion;
+    return true;
+};
+
+const mergeMessages = (currentMessages, incomingMessages) => {
+    const messagesById = new Map();
+    const messagesWithoutId = [];
+
+    [...currentMessages, ...incomingMessages].forEach((message) => {
+        if (message?.id === undefined || message?.id === null) {
+            messagesWithoutId.push(message);
+            return;
+        }
+
+        const key = String(message.id);
+        const current = messagesById.get(key);
+        if (!current || incomingMessageIsNewer(current, message)) messagesById.set(key, message);
+    });
+
+    return [...messagesById.values(), ...messagesWithoutId].sort(compareMessages);
+};
+
+const normaliseMessagesResponse = (response) => {
+    const data = response?.data;
+    const messages = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : [];
+    const meta = response?.meta || (Array.isArray(data) ? {} : data?.meta) || {};
+
+    return {
+        messages,
+        currentPage: Number(meta.current_page) > 0 ? Number(meta.current_page) : 1,
+        lastPage: Number(meta.last_page) > 0 ? Number(meta.last_page) : 1,
+    };
+};
+
+const isAbortError = (error) => error?.name === 'AbortError';
 
 const ChatPage = () => {
     const [currentUser, setCurrentUser] = useState(null);
@@ -15,73 +80,88 @@ const ChatPage = () => {
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [loadingMessages, setLoadingMessages] = useState(true);
-    
+    const [loadingOlderMessages, setLoadingOlderMessages] = useState(false);
+    const [messagePagination, setMessagePagination] = useState({ currentPage: 1, lastPage: 1 });
+    const [messageError, setMessageError] = useState('');
+
     const messagesEndRef = useRef(null);
     const messagesContainerRef = useRef(null);
     const pollingInterval = useRef(null);
+    const mountedRef = useRef(false);
+    const activeRequestsRef = useRef(new Set());
+    const recentRequestSequenceRef = useRef(0);
+    const lastAppliedRecentSequenceRef = useRef(0);
 
-    // 1. Inicialização: Carrega Usuário e Lista de Membros (Rota /getMembers)
+    const fetchMessages = useCallback(async ({ page = 1, initial = false } = {}) => {
+        const controller = new AbortController();
+        activeRequestsRef.current.add(controller);
+        const requestSequence = page === 1 ? ++recentRequestSequenceRef.current : null;
+
+        if (initial) setLoadingMessages(true);
+        if (page > 1) setLoadingOlderMessages(true);
+
+        try {
+            const response = await getChatMessages(page, CHAT_PAGE_SIZE, { signal: controller.signal });
+            if (!mountedRef.current) return;
+            if (page === 1 && requestSequence < lastAppliedRecentSequenceRef.current) return;
+            if (page === 1) lastAppliedRecentSequenceRef.current = requestSequence;
+
+            const { messages: incomingMessages, currentPage, lastPage } = normaliseMessagesResponse(response);
+            setMessages((currentMessages) => mergeMessages(currentMessages, incomingMessages));
+            setMessagePagination((currentPagination) => ({
+                currentPage: Math.max(currentPagination.currentPage, currentPage),
+                lastPage: Math.max(currentPagination.lastPage, lastPage),
+            }));
+            setMessageError('');
+        } catch (error) {
+            if (!isAbortError(error) && mountedRef.current) {
+                setMessageError('Não foi possível carregar as mensagens. Tente novamente.');
+            }
+        } finally {
+            activeRequestsRef.current.delete(controller);
+            if (mountedRef.current) {
+                if (initial) setLoadingMessages(false);
+                if (page > 1) setLoadingOlderMessages(false);
+            }
+        }
+    }, []);
+
     useEffect(() => {
+        mountedRef.current = true;
+        const activeRequests = activeRequestsRef.current;
+
         const initChat = async () => {
             try {
-                // Busca dados do usuário logado
                 const userRes = await getUserData();
                 const user = userRes.data || userRes;
                 setCurrentUser(user);
 
-                // Busca membros da equipe usando a nova rota especificada
                 const membersRes = await getChatMembers();
                 const membersData = membersRes.data || membersRes || [];
                 setParticipants(membersData);
 
-                // Carrega mensagens iniciais
-                await fetchMessages(true);
-
+                await fetchMessages({ page: 1, initial: true });
             } catch (error) {
-                console.error("Erro ao iniciar chat:", error);
+                if (mountedRef.current && !isAbortError(error)) {
+                    setMessageError('Não foi possível iniciar o chat. Tente novamente.');
+                }
             }
         };
 
-        initChat();
+        void initChat();
 
-        // Polling: Atualiza mensagens a cada 3 segundos
         pollingInterval.current = setInterval(() => {
-            fetchMessages(false);
+            if (mountedRef.current) void fetchMessages({ page: 1 });
         }, 3000);
 
         return () => {
+            mountedRef.current = false;
             if (pollingInterval.current) clearInterval(pollingInterval.current);
+            activeRequests.forEach((controller) => controller.abort());
+            activeRequests.clear();
         };
-    }, []);
+    }, [fetchMessages]);
 
-    // 2. Busca de mensagens
-    const fetchMessages = async (showLoading = false) => {
-        if (showLoading) setLoadingMessages(true);
-        try {
-            const res = await getChatMessages();
-            const msgs = res.data?.data || res.data || [];
-            
-            // Ordenação Cronológica
-            const sortedMsgs = msgs.sort((a, b) => {
-                const dateA = new Date(a.data || a.created_at);
-                const dateB = new Date(b.data || b.created_at);
-                return dateA - dateB;
-            });
-            
-            // Atualiza apenas se houver novas mensagens
-            setMessages(prev => {
-                if (prev.length !== sortedMsgs.length) return sortedMsgs;
-                return prev; 
-            });
-
-        } catch (error) {
-            console.error("Erro ao buscar mensagens:", error);
-        } finally {
-            if (showLoading) setLoadingMessages(false);
-        }
-    };
-
-    // 3. Controle de Scroll
     useEffect(() => {
         const container = messagesContainerRef.current;
         if (!container) return;
@@ -90,82 +170,77 @@ const ChatPage = () => {
 
         if (isNearBottom || loadingMessages) {
             setTimeout(() => {
-                messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+                messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
             }, 100);
         }
     }, [messages, loadingMessages]);
 
-    // 4. Envio de Mensagem
-    const handleSendMessage = async (e) => {
-        e.preventDefault();
+    const loadOlderMessages = () => {
+        if (loadingOlderMessages || messagePagination.currentPage >= messagePagination.lastPage) return;
+        void fetchMessages({ page: messagePagination.currentPage + 1 });
+    };
+
+    const handleSendMessage = async (event) => {
+        event.preventDefault();
         if (!newMessage.trim() || !currentUser) return;
 
         const now = new Date();
         const formattedDate = now.toISOString().slice(0, 19).replace('T', ' ');
-
         const payload = {
             mensagem_chat: newMessage,
             visto: 'n',
             data: formattedDate,
-            users_id: currentUser.id
+            users_id: currentUser.id,
         };
-
-        const msgText = newMessage;
+        const messageText = newMessage;
         setNewMessage('');
 
         try {
             await sendMessage(payload);
-            fetchMessages(false);
-            
+            await fetchMessages({ page: 1 });
             setTimeout(() => {
-                messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+                messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
             }, 100);
         } catch (error) {
-            console.error("Erro ao enviar:", error);
-            setNewMessage(msgText); // Retorna o texto se falhar
+            setNewMessage(messageText);
         }
     };
 
-    // Helpers de Formatação
     const formatTime = (dateString) => {
         if (!dateString) return '';
         const date = new Date(dateString);
-        return isNaN(date.getTime()) ? '' : date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        return Number.isNaN(date.getTime()) ? '' : date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     };
 
     const renderMessages = () => {
         let lastDate = null;
-        
-        return messages.map((msg, index) => {
-            const rawDate = msg.data || msg.created_at;
-            const msgDateObj = new Date(rawDate);
-            const msgDate = msgDateObj.toLocaleDateString();
-            const showDateDivider = msgDate !== lastDate;
-            lastDate = msgDate;
 
-            const isMe = String(msg.users_id) === String(currentUser?.id);
-            
-            // Lógica para encontrar o nome do remetente na lista de participantes
-            let senderName = "Usuário";
+        return messages.map((message, index) => {
+            const rawDate = messageChronologyValue(message);
+            const messageDateObject = new Date(rawDate);
+            const messageDate = messageDateObject.toLocaleDateString();
+            const showDateDivider = messageDate !== lastDate;
+            lastDate = messageDate;
+
+            const isMe = String(message.users_id) === String(currentUser?.id);
+            let senderName = 'Usuário';
             if (isMe) {
                 senderName = currentUser.name;
             } else {
-                const sender = participants.find(p => String(p.id) === String(msg.users_id));
+                const sender = participants.find((participant) => String(participant.id) === String(message.users_id));
                 if (sender) senderName = sender.name;
             }
 
             return (
-                <React.Fragment key={msg.id || index}>
-                    {showDateDivider && (
-                        <div className="message-date-divider">{msgDate}</div>
-                    )}
+                <React.Fragment key={message.id || index}>
+                    {showDateDivider && <div className="message-date-divider">{messageDate}</div>}
                     <div className={`message-bubble ${isMe ? 'sent' : 'received'}`}>
                         {!isMe && <div className="message-author">{senderName}</div>}
-                        <div className="message-text">{msg.mensagem_chat}</div>
+                        <div className="message-text">{message.mensagem_chat}</div>
                         <div className="message-footer">
                             <span className="message-time">{formatTime(rawDate)}</span>
                             {isMe && (
-                                <i className={`bi ${msg.visto === 's' ? 'bi-check2-all text-primary' : 'bi-check2'}`}></i>
+                                <i className={`bi ${message.visto === 's' ? 'bi-check2-all text-primary' : 'bi-check2'}`}></i>
                             )}
                         </div>
                     </div>
@@ -176,18 +251,17 @@ const ChatPage = () => {
 
     return (
         <div className="chat-container">
-            {/* SIDEBAR: Membros da Equipe */}
             <aside className="chat-sidebar">
                 <div className="sidebar-header">
                     <h3>Membros</h3>
                 </div>
                 <div className="contacts-list">
-                    {participants.map(contact => (
+                    {participants.map((contact) => (
                         <div key={contact.id} className="contact-item">
                             <div className="contact-avatar">
-                                <img 
-                                    src={contact.foto ? `${PUBLIC_STORAGE_URL2}/${contact.foto}` : placeholderAvatar} 
-                                    alt={contact.name} 
+                                <img
+                                    src={placeholderAvatar}
+                                    alt={contact.name}
                                 />
                                 <span className={`status-dot ${contact.id === currentUser?.id ? 'online' : ''}`}></span>
                             </div>
@@ -204,7 +278,6 @@ const ChatPage = () => {
                 </div>
             </aside>
 
-            {/* JANELA PRINCIPAL */}
             <main className="chat-window">
                 <div className="chat-header">
                     <div className="chat-user-profile">
@@ -219,6 +292,19 @@ const ChatPage = () => {
                 </div>
 
                 <div className="messages-area" ref={messagesContainerRef}>
+                    {messagePagination.currentPage < messagePagination.lastPage && (
+                        <button
+                            type="button"
+                            className="chat-history-button"
+                            onClick={loadOlderMessages}
+                            disabled={loadingOlderMessages}
+                        >
+                            {loadingOlderMessages ? 'Carregando...' : 'Carregar mensagens anteriores'}
+                        </button>
+                    )}
+
+                    {messageError && <div className="chat-error" role="alert">{messageError}</div>}
+
                     {loadingMessages && messages.length === 0 ? (
                         <div className="chat-loading">
                             <div className="spinner-border spinner-border-sm" role="status"></div>
@@ -236,12 +322,12 @@ const ChatPage = () => {
                 </div>
 
                 <form className="chat-input-area" onSubmit={handleSendMessage}>
-                    <input 
-                        type="text" 
-                        className="chat-input" 
-                        placeholder="Escreva uma mensagem..." 
+                    <input
+                        type="text"
+                        className="chat-input"
+                        placeholder="Escreva uma mensagem..."
                         value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
+                        onChange={(event) => setNewMessage(event.target.value)}
                     />
                     <button type="submit" className="btn-send" disabled={!newMessage.trim()}>
                         <i className="bi bi-send-fill"></i>

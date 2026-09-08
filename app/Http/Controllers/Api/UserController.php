@@ -7,25 +7,32 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\UserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Services\UserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
-use Laravel\Sanctum\PersonalAccessToken;
 
 class UserController extends Controller
 {
+    public function __construct(private UserService $userService) {}
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        if (! auth()->user()->isNutri()) {
+        if (! auth()->user()->canManageUsers()) {
             return response()->json(['message' => 'Permissão negada'], 403);
         }
 
-        $users = User::paginate();
+        $validated = $request->validate([
+            'page' => ['nullable', 'integer', 'min:1'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:1000'],
+        ]);
+
+        $users = User::orderBy('id')->paginate($validated['limit'] ?? 15)->withQueryString();
 
         return UserResource::collection($users);
     }
@@ -45,7 +52,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        if ($user->id != auth()->user()->id && ! auth()->user()->isNutri()) {
+        if (! $user->is(auth()->user()) && ! auth()->user()->canManageUsers()) {
             return response()->json(['message' => 'Permissão negada'], 403);
         }
 
@@ -58,7 +65,10 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        if ($user->id != auth()->user()->id && ! auth()->user()->isNutri()) {
+        $actor = auth()->user();
+        $isSelf = $user->is($actor);
+
+        if (! $isSelf && ! $actor->canManageUsers()) {
             return response()->json(['message' => 'Permissão negada'], 403);
         }
 
@@ -74,9 +84,12 @@ class UserController extends Controller
             ],
         ];
 
-        if (auth()->user()->isNutri()) {
-            $rules['nivel_user'] = 'sometimes|integer|in:1,2,3';
+        if (! $isSelf && $actor->canManageUsers()) {
+            $rules['nivel_user'] = ['sometimes', 'integer', Rule::enum(UserRole::class)];
             $rules['password'] = 'sometimes|string|min:8|max:72|confirmed';
+        } else {
+            $rules['nivel_user'] = 'prohibited';
+            $rules['password'] = 'prohibited';
         }
 
         $validated = $request->validate($rules);
@@ -85,7 +98,7 @@ class UserController extends Controller
             $validated['password'] = Hash::make($validated['password']);
         }
 
-        $user->update($validated);
+        $user = $this->userService->update($user, $validated, $actor);
 
         return new UserResource($user);
     }
@@ -95,11 +108,17 @@ class UserController extends Controller
      */
     public function destroy(User $user): Response|JsonResponse
     {
-        if ($user->is(auth()->user())) {
+        $actor = auth()->user();
+
+        if ($user->is($actor)) {
             return response()->json(['message' => 'Não é permitido remover o próprio usuário'], 422);
         }
 
-        $user->delete();
+        if (! $actor->canManageUsers()) {
+            return response()->json(['message' => 'Permissão negada'], 403);
+        }
+
+        $this->userService->delete($user, $actor);
 
         return response()->noContent();
     }
@@ -120,14 +139,7 @@ class UserController extends Controller
             return response()->json(['message' => 'Senha atual nao compativel'], 400);
         }
 
-        $user->update([
-            'password' => Hash::make($newPassword),
-        ]);
-        // Uma alteração de senha invalida sessões e tokens emitidos anteriormente.
-        $user->tokens()->delete();
-        if ($request->bearerToken()) {
-            PersonalAccessToken::findToken($request->bearerToken())?->delete();
-        }
+        $this->userService->changePassword($user, Hash::make($newPassword));
 
         return response()->json(['message' => 'Senha alterada com sucesso!']);
     }

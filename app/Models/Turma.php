@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Validation\Rule;
 
 /**
  * Class Turma
@@ -41,11 +42,42 @@ class Turma extends Model
      */
     protected $fillable = ['nome_turma', 'categorias_id'];
 
-    public static function updateRule()
+    public static function updateRule(?self $turma = null, array $attributes = [])
     {
+        $finalName = $attributes['nome_turma'] ?? $turma?->nome_turma;
+        $finalCategoryId = $attributes['categorias_id'] ?? $turma?->categorias_id;
+
         return [
-            'nome_turma' => 'sometimes|string',
-            'categorias_id' => 'sometimes|integer|exists:categorias,id',
+            'nome_turma' => array_values(array_filter([
+                'sometimes',
+                'string',
+                'max:45',
+                $turma
+                    ? Rule::unique('turmas', 'nome_turma')
+                        ->where(fn ($query) => $query->where('categorias_id', $finalCategoryId))
+                        ->ignore($turma->id)
+                    : null,
+            ])),
+            'categorias_id' => [
+                'sometimes',
+                'integer',
+                Rule::exists('categorias', 'id')->whereNull('deleted_at'),
+                function (string $attribute, mixed $value, \Closure $fail) use ($turma, $finalName): void {
+                    if (! $turma || ! is_scalar($finalName)) {
+                        return;
+                    }
+
+                    $conflict = self::query()
+                        ->where('categorias_id', $value)
+                        ->where('nome_turma', $finalName)
+                        ->whereKeyNot($turma->id)
+                        ->exists();
+
+                    if ($conflict) {
+                        $fail('A turma já existe nesta categoria.');
+                    }
+                },
+            ],
         ];
     }
 
@@ -64,7 +96,8 @@ class Turma extends Model
     {
         return $this->hasMany(Contagen::class, 'turmas_id')
             ->orderByDesc('data_contagem')
-            ->orderByDesc('hora_contagem');
+            ->orderByDesc('hora_contagem')
+            ->orderByDesc('id');
     }
 
     public function alunos()

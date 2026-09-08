@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Validation\Rule;
 
 /**
  * Class Aluno
@@ -16,7 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property $nome
  * @property $genero
  * @property $dia
- * @property $foto
+ * @property string|null $foto
  * @property $turmas_id
  * @property $data_nascimento
  * @property $rm
@@ -46,16 +47,25 @@ class Aluno extends Model
      */
     protected $fillable = ['nome', 'genero', 'descricao', 'foto', 'turmas_id', 'data_nascimento', 'rm'];
 
-    public static function updateRule()
+    public static function updateRule(?self $aluno = null)
     {
         return [
             'nome' => 'sometimes|string|max:45',
             'descricao' => 'sometimes|nullable|string|max:10000',
             'genero' => 'sometimes|string|max:200',
-            'foto' => 'sometimes|nullable|string|max:255',
-            'turmas_id' => 'sometimes|integer|exists:turmas,id',
+            'foto' => 'prohibited',
+            'turmas_id' => [
+                'sometimes',
+                'integer',
+                Rule::exists('turmas', 'id')->whereNull('deleted_at'),
+            ],
             'data_nascimento' => 'sometimes|date_format:Y-m-d',
-            'rm' => 'sometimes|string|max:200',
+            'rm' => array_values(array_filter([
+                'sometimes',
+                'string',
+                'max:200',
+                $aluno ? Rule::unique('alunos', 'rm')->ignore($aluno->id) : null,
+            ])),
         ];
     }
 

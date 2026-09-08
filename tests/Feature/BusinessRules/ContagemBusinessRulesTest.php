@@ -6,6 +6,8 @@ use App\Models\Categoria;
 use App\Models\Contagen;
 use App\Models\Turma;
 use App\Models\User;
+use App\Services\SchoolCalendarService;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -21,6 +23,7 @@ class ContagemBusinessRulesTest extends TestCase
     public function test_inspetora_and_nutri_can_create_counts_for_today(): void
     {
         $turma = Turma::factory()->create();
+        $schoolDay = app(SchoolCalendarService::class)->currentDate();
 
         // Inspetora (nível 1)
         $inspetora = $this->user(1);
@@ -30,7 +33,7 @@ class ContagemBusinessRulesTest extends TestCase
         ]);
         $resInspetora->assertCreated()
             ->assertJsonPath('data.qtd_contagem', 28);
-        $this->assertStringStartsWith(today()->toDateString(), (string) $resInspetora->json('data.data_contagem'));
+        $this->assertSame($schoolDay, $resInspetora->json('data.data_contagem'));
 
         // Nutricionista (nível 2)
         $nutri = $this->user(2);
@@ -46,13 +49,14 @@ class ContagemBusinessRulesTest extends TestCase
     {
         $inspetora = $this->user(1);
         $turma = Turma::factory()->create();
+        $schoolDay = app(SchoolCalendarService::class)->currentDate();
 
         // Contagem de ontem
         $pastCount = Contagen::factory()->create([
             'turmas_id' => $turma->id,
             'users_id' => $inspetora->id,
             'qtd_contagem' => 25,
-            'data_contagem' => today()->subDay()->toDateString(),
+            'data_contagem' => CarbonImmutable::createFromFormat('Y-m-d', $schoolDay)->subDay()->toDateString(),
         ]);
 
         $response = $this->actingAs($inspetora, 'sanctum')->putJson("/api/contagens/{$pastCount->id}", [
@@ -72,12 +76,13 @@ class ContagemBusinessRulesTest extends TestCase
     {
         $inspetora = $this->user(1);
         $turma = Turma::factory()->create();
+        $schoolDay = app(SchoolCalendarService::class)->currentDate();
 
         $todayCount = Contagen::factory()->create([
             'turmas_id' => $turma->id,
             'users_id' => $inspetora->id,
             'qtd_contagem' => 25,
-            'data_contagem' => today()->toDateString(),
+            'data_contagem' => $schoolDay,
         ]);
 
         $response = $this->actingAs($inspetora, 'sanctum')->putJson("/api/contagens/{$todayCount->id}", [

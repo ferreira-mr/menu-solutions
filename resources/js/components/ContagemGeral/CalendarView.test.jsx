@@ -4,23 +4,25 @@ import CalendarView from './CalendarView';
 import * as api from '../../services/api';
 
 vi.mock('../../services/api', () => ({
-  getContagensPorRange: vi.fn(),
+  getTodosContagensPorRange: vi.fn(),
   getDashboardPorData: vi.fn(),
-  getAlunosNesPorData: vi.fn(),
-  getNecessidades: vi.fn(),
+  getTodosAlunosNesPorData: vi.fn(),
+  getTodasNecessidades: vi.fn(),
   getNecessidadeComAlunos: vi.fn(),
   getTurmas: vi.fn(),
+  getContextoEscolar: vi.fn(),
 }));
 
 describe('CalendarView', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    api.getNecessidades.mockResolvedValue({ data: [] });
-    api.getContagensPorRange.mockResolvedValue({
-      data: [
-        { id: 1, data_contagem: '2026-09-01', qtd_contagem: 40 },
-      ],
+    api.getContextoEscolar.mockResolvedValue({
+      data: { data_atual: '2026-09-07', timezone: 'America/Sao_Paulo', agora: '2026-09-08T01:00:00.000000Z' },
     });
+    api.getTodasNecessidades.mockResolvedValue([]);
+    api.getTodosContagensPorRange.mockResolvedValue([
+        { id: 1, data_contagem: '2026-09-01', qtd_contagem: 40 },
+    ]);
   });
 
   it('renderiza o calendário com o mês atual e navegação de meses', async () => {

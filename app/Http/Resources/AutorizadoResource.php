@@ -19,6 +19,8 @@ class AutorizadoResource extends JsonResource
             'titulo' => $this->titulo,
             'conteudo' => $this->conteudo,
             'status' => $this->status,
+            'decidido_por' => $this->decidido_por,
+            'decidido_em' => $this->decidido_em,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

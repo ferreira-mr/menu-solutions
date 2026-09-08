@@ -6,8 +6,8 @@ import * as api from '../../services/api';
 import Swal from 'sweetalert2/dist/sweetalert2.all.min.js';
 
 vi.mock('../../services/api', () => ({
-  getCronograma: vi.fn(),
-  getNecessidades: vi.fn(),
+  getTodosCronograma: vi.fn(),
+  getTodasNecessidades: vi.fn(),
   getNecessidadeComAlunos: vi.fn(),
   agendarRelacaoNosDias: vi.fn(),
   removerAgendamentoDoDia: vi.fn(),
@@ -26,37 +26,41 @@ describe('CronogramaPage', () => {
     vi.clearAllMocks();
     Swal.fire.mockResolvedValue({ isConfirmed: true });
 
-    api.getNecessidades.mockResolvedValue({
-      data: [
+    api.getTodasNecessidades.mockResolvedValue([
         { id: 1, necessidade: 'Cadeirante' },
         { id: 2, necessidade: 'Autismo' },
-      ],
-    });
+    ]);
     api.getNecessidadeComAlunos.mockImplementation((id) => {
       if (id === 1) {
         return Promise.resolve({
           id: 1,
           necessidade: 'Cadeirante',
-          alunos: [{ id: 10, nome: 'Pedro Aluno', pivot: { id: 99 } }],
+          alunos: [{ id: 10, nome: 'Pedro Aluno', alunos_has_necessidades_id: 99 }],
         });
       }
       return Promise.resolve({
-        id: 2,
-        necessidade: 'Autismo',
-        alunos: [{ id: 20, nome: 'Lucas Aluno', pivot: { id: 100 } }],
+          id: 2,
+          necessidade: 'Autismo',
+          alunos: [{ id: 20, nome: 'Lucas Aluno', alunos_has_necessidades_id: 100 }],
       });
     });
-    api.getCronograma.mockResolvedValue({
-      data: [
+    api.getTodosCronograma.mockResolvedValue([
         {
           id: 1,
           dia: 'Segunda',
           alunos: [
-            { id: 10, necessidade_relacionada: { id: 1 } },
+            {
+              agendamento_id: 901,
+              relacao_id: 99,
+              cronograma_id: 1,
+              aluno_id: 10,
+              necessidade_id: 1,
+              aluno: { id: 10, nome: 'Pedro Aluno' },
+              necessidade: { id: 1, necessidade: 'Cadeirante' },
+            },
           ],
         },
-      ],
-    });
+    ]);
     api.removerAgendamentoDoDia.mockResolvedValue({});
   });
 

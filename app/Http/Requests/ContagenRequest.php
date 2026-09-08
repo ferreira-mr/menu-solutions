@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ContagenRequest extends FormRequest
 {
@@ -22,8 +23,8 @@ class ContagenRequest extends FormRequest
     public function rules(): array
     {
         return [
-			'qtd_contagem' => 'required|int|min:0',
-			'turmas_id' => 'required|int|exists:turmas,id',
+			'qtd_contagem' => ['required', 'integer', 'min:0', 'max:2147483647'],
+			'turmas_id' => ['required', 'integer', Rule::exists('turmas', 'id')->whereNull('deleted_at')],
         ];
     }
 }

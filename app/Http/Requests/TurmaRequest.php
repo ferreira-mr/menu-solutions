@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class TurmaRequest extends FormRequest
 {
@@ -23,8 +24,18 @@ class TurmaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nome_turma' => 'required|string|max:45',
-            'categorias_id' => 'required|integer|exists:categorias,id',
+            'nome_turma' => [
+                'required',
+                'string',
+                'max:45',
+                Rule::unique('turmas', 'nome_turma')
+                    ->where(fn ($query) => $query->where('categorias_id', $this->input('categorias_id'))),
+            ],
+            'categorias_id' => [
+                'required',
+                'integer',
+                Rule::exists('categorias', 'id')->whereNull('deleted_at'),
+            ],
         ];
     }
 }

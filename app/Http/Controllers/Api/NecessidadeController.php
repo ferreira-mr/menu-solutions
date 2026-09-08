@@ -3,25 +3,34 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\DisableAlunoRequest;
 use App\Http\Requests\NecessidadeRequest;
 use App\Http\Resources\NecessidadeResource;
 use App\Models\AlunosHasNecessidade;
-use App\Models\ContagemNe;
 use App\Models\Necessidade;
-use App\Models\NecessidadesHasCronograma;
+use App\Services\VinculoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class NecessidadeController extends Controller
 {
+    public function __construct(
+        protected VinculoService $vinculoService,
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $necessidades = Necessidade::paginate();
+        $validated = $request->validate([
+            'page' => ['nullable', 'integer', 'min:1'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:1000'],
+        ]);
+
+        $necessidades = Necessidade::orderBy('id')->paginate($validated['limit'] ?? 15)->withQueryString();
 
         return NecessidadeResource::collection($necessidades);
     }
@@ -72,44 +81,20 @@ class NecessidadeController extends Controller
     {
         $validate = $request->validate([
             'dias' => 'required|array|min:1',
-            'dias.*' => 'integer|exists:cronogramas,id',
+            'dias.*' => [
+                'integer',
+                Rule::exists('cronogramas', 'id')->whereNull('deleted_at'),
+            ],
         ]);
 
-        $necessidade->necessidadesHasCronogramas()->syncWithoutDetaching($validate['dias']);
+        $necessidade = $this->vinculoService->attachCronogramas($necessidade, $validate['dias']);
 
         return response()->json(['message' => 'success', 'data' => $necessidade->load('necessidadesHasCronogramas')]);
     }
 
-    public function disableAluno(Request $request, Necessidade $necessidade)
+    public function disableAluno(DisableAlunoRequest $request, Necessidade $necessidade)
     {
-        $validate = $request->validate([
-            'alunos' => 'required',
-        ]);
-
-        $alunoId = is_array($validate['alunos'])
-            ? ($validate['alunos'][0] ?? null)
-            : $validate['alunos'];
-
-        if (! is_numeric($alunoId) || (int) $alunoId < 1) {
-            return response()->json(['message' => 'Aluno inválido'], 422);
-        }
-
-        $id = AlunosHasNecessidade::where('alunos_id', (int) $alunoId)
-            ->where('necessidades_id', $necessidade->id)
-            ->first() ?? null;
-
-        if (! $id) {
-            return response()->json(['message' => 'Relação de necessidade e aluno não encontrada'], 404);
-        }
-
-        if (ContagemNe::where('alunos_has_necessidades_id', $id->id)->exists()) {
-            return response()->json(['message' => 'Não é possível remover uma relação que já possui contagens registradas'], 409);
-        }
-
-        DB::transaction(function () use ($id) {
-            NecessidadesHasCronograma::where('alunos_has_necessidades_id', $id->id)->delete();
-            $id->delete();
-        });
+        $this->vinculoService->removeStudentFromNeed($necessidade, $request->alunoId());
 
         return response()->noContent();
     }
@@ -118,10 +103,13 @@ class NecessidadeController extends Controller
     {
         $validate = $request->validate([
             'dias' => 'required|array|min:1',
-            'dias.*' => 'integer|exists:cronogramas,id',
+            'dias.*' => [
+                'integer',
+                Rule::exists('cronogramas', 'id')->whereNull('deleted_at'),
+            ],
         ]);
 
-        $necessidade->necessidadesHasCronogramas()->detach($validate['dias']);
+        $necessidade = $this->vinculoService->detachCronogramas($necessidade, $validate['dias']);
 
         return response()->json(['message' => 'success', 'data' => $necessidade->load('necessidadesHasCronogramas')]);
     }

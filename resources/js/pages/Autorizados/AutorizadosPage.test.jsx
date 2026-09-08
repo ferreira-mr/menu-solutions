@@ -6,7 +6,7 @@ import * as api from '../../services/api';
 import Swal from 'sweetalert2/dist/sweetalert2.all.min.js';
 
 vi.mock('../../services/api', () => ({
-  getAutorizados: vi.fn(),
+  getTodosAutorizados: vi.fn(),
   addAutorizado: vi.fn(),
   updateAutorizado: vi.fn(),
   updateConteudoAutorizado: vi.fn(),
@@ -23,8 +23,7 @@ describe('AutorizadosPage (Refeições Avulsas)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
-    api.getAutorizados.mockResolvedValue({
-      data: [
+    api.getTodosAutorizados.mockResolvedValue([
         {
           id: 1,
           titulo: 'Avaliador FIESP',
@@ -39,8 +38,7 @@ describe('AutorizadosPage (Refeições Avulsas)', () => {
           status: 'confirmado',
           created_at: '2026-09-03T08:00:00Z',
         },
-      ],
-    });
+    ]);
   });
 
   it('renderiza os cartões de autorizados ordenados por status pendente primeiro', async () => {
@@ -165,6 +163,28 @@ describe('AutorizadosPage (Refeições Avulsas)', () => {
         1,
         expect.objectContaining({ status: 'confirmado' })
       );
+    });
+  });
+
+  it('permite à Diretora recusar uma solicitação pendente sem enviar conteúdo', async () => {
+    localStorage.setItem('userLevel', '3');
+    Swal.fire.mockResolvedValueOnce({ isConfirmed: true });
+    api.updateConteudoAutorizado.mockResolvedValue({});
+
+    render(
+      <MemoryRouter>
+        <AutorizadosPage />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Avaliador FIESP')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /recusar/i }));
+
+    await waitFor(() => {
+      expect(api.updateConteudoAutorizado).toHaveBeenCalledWith(1, { status: 'recusado' });
     });
   });
 });

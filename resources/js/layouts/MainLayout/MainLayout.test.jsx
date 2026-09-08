@@ -16,6 +16,9 @@ vi.mock('react-router-dom', async () => {
 vi.mock('../../services/api', () => ({
   getUserData: vi.fn().mockResolvedValue({ data: { name: 'Jaqueline Nutricionista' } }),
   logoutUser: vi.fn().mockResolvedValue({ success: true }),
+  getContextoEscolar: vi.fn().mockResolvedValue({
+    data: { data_atual: '2026-09-07', timezone: 'America/Sao_Paulo', agora: '2026-09-08T01:00:00.000000Z' },
+  }),
 }));
 
 describe('MainLayout', () => {

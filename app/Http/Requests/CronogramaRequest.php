@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Cronograma;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class CronogramaRequest extends FormRequest
 {
@@ -22,8 +24,16 @@ class CronogramaRequest extends FormRequest
      */
     public function rules(): array
     {
+        $cronograma = $this->route('cronograma');
+        $cronogramaId = $cronograma instanceof Cronograma ? $cronograma->id : null;
+
         return [
-            'dia' => 'required|string|max:255',
+            'dia' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('cronogramas', 'dia')->ignore($cronogramaId),
+            ],
         ];
     }
 }

@@ -12,6 +12,7 @@ class DashboardResource extends JsonResource
         return [
             'id' => $this->id,
             'nome_categoria' => $this->nome_categoria,
+            'inclui_total_regular' => (bool) $this->inclui_total_regular,
             'turmas' => $this->turmas->map(function ($turma) {
                 $contagem = $turma->contagen->first();
 
@@ -19,7 +20,7 @@ class DashboardResource extends JsonResource
                     'id' => $turma->id,
                     'nome_turma' => $turma->nome_turma,
                     'qtd_contagem' => $contagem?->qtd_contagem ?? 0,
-                    'data_contagem' => $contagem?->data_contagem,
+                    'data_contagem' => $contagem?->data_contagem?->toDateString(),
                 ];
             }),
         ];

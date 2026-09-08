@@ -10,9 +10,27 @@ class ProducaoConsumoService
     /**
      * Lista registros de produção paginados.
      */
-    public function list(int $perPage = 15): LengthAwarePaginator
+    public function list(array $filters = []): LengthAwarePaginator
     {
-        return ControleDeProducaoEConsumo::latest('data_alimento')->paginate($perPage);
+        $day = $filters['data'] ?? $filters['date'] ?? null;
+        $dataInicio = $filters['data_inicio'] ?? null;
+        $dataFim = $filters['data_fim'] ?? null;
+
+        $query = ControleDeProducaoEConsumo::query()
+            ->orderByDesc('data_alimento')
+            ->orderByDesc('id');
+
+        if ($day) {
+            $query->where('data_alimento', $day);
+        } elseif ($dataInicio && $dataFim) {
+            $query->whereBetween('data_alimento', [$dataInicio, $dataFim]);
+        } elseif ($dataInicio) {
+            $query->where('data_alimento', '>=', $dataInicio);
+        } elseif ($dataFim) {
+            $query->where('data_alimento', '<=', $dataFim);
+        }
+
+        return $query->paginate($filters['limit'] ?? 15)->withQueryString();
     }
 
     /**

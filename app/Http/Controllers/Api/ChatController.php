@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ChatRequest;
 use App\Http\Resources\ChatResource;
-use App\Http\Resources\UserResource;
+use App\Http\Resources\ChatParticipantResource;
 use App\Models\Chat;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -18,7 +18,16 @@ class ChatController extends Controller
      */
     public function index(Request $request)
     {
-        $chats = Chat::with('user')->orderBy('created_at', 'DESC')->paginate();
+        $validated = $request->validate([
+            'page' => ['nullable', 'integer', 'min:1'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:1000'],
+        ]);
+
+        $chats = Chat::with('user')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->paginate($validated['limit'] ?? 20)
+            ->withQueryString();
 
         return ChatResource::collection($chats);
     }
@@ -77,6 +86,6 @@ class ChatController extends Controller
     {
         $data = User::whereHas('chat')->orderBy('name')->get();
 
-        return UserResource::collection($data);
+        return ChatParticipantResource::collection($data);
     }
 }

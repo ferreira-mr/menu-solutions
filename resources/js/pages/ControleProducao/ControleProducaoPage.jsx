@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import Swal from 'sweetalert2/dist/sweetalert2.all.min.js';
-import { getProducao, addProducao } from '../../services/api'; // Adicionei addProducao
+import { getTodosProducao, addProducao } from '../../services/api';
 
 // Importa o componente que gerencia a tabela e visualização (RESTAURADO)
 import ProducaoManagementView from '../../components/ControleProducao/ProducaoManagementView';
@@ -11,6 +11,7 @@ import ProducaoFilterPanel from '../../components/ControleProducao/ProducaoFilte
 
 // Importa funções de data
 import { toISODateString, parseISODateAsUTC, formatFriendlyDate } from '../../components/ContagemGeral/utils';
+import { createDomElement } from '../../utils/safeDom';
 
 import './ControleProducaoPage.css'; // O CSS V2 "Bonito"
 import logo from '../../assets/img/logo.png'; // Logo para o PDF
@@ -52,10 +53,8 @@ const ControleProducaoPage = () => {
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
-            const data = await getProducao();
-            // Garante que pegamos o array de dados corretamente
-            const lista = data.data || data || []; 
-            setAllProducaoData(lista);
+            const lista = await getTodosProducao();
+            setAllProducaoData(lista || []);
         } catch (error) {
             console.error("Erro ao buscar produção:", error);
             Swal.fire('Erro!', 'Não foi possível carregar os dados de produção.', 'error');
@@ -80,18 +79,30 @@ const ControleProducaoPage = () => {
 
     // --- AÇÃO DE ADICIONAR ITEM (NOVA) ---
     const handleAddItem = () => {
+        const form = createDomElement('div', { className: 'swal-form-container' });
+        [
+            ['swal-nome', 'text', 'Nome do Alimento'],
+            ['swal-data', 'date', '', new Date().toISOString().split('T')[0]],
+            ['swal-quantidade', 'number', 'Quantidade (ex: 10.50)', '', '0.01'],
+            ['swal-medida', 'text', 'Medida (kg, g, L)'],
+            ['swal-pessoas', 'number', 'Pessoas'],
+            ['swal-sobra', 'number', 'Sobra Limpa (ex: 1.25)', '', '0.01'],
+            ['swal-desperdicio', 'number', 'Desperdício (ex: 0.50)', '', '0.01'],
+        ].forEach(([id, type, placeholder, value = '', step]) => {
+            form.append(createDomElement('input', {
+                id,
+                type,
+                placeholder,
+                value,
+                ...(step ? { step } : {}),
+                className: 'swal2-input',
+            }));
+        });
+
         Swal.fire({
             title: 'Adicionar Novo Item',
             width: '700px',
-            html: `
-                <input id="swal-nome" class="swal2-input" placeholder="Nome do Alimento">
-                <input id="swal-data" type="date" class="swal2-input" value="${new Date().toISOString().split('T')[0]}">
-                <input id="swal-quantidade" type="number" step="0.01" class="swal2-input" placeholder="Quantidade (ex: 10.50)">
-                <input id="swal-medida" class="swal2-input" placeholder="Medida (kg, g, L)">
-                <input id="swal-pessoas" type="number" class="swal2-input" placeholder="Pessoas">
-                <input id="swal-sobra" type="number" step="0.01" class="swal2-input" placeholder="Sobra Limpa (ex: 1.25)">
-                <input id="swal-desperdicio" type="number" step="0.01" class="swal2-input" placeholder="Desperdício (ex: 0.50)">
-            `,
+            html: form,
             focusConfirm: false,
             showCancelButton: true,
             confirmButtonText: 'Salvar',

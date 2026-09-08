@@ -2,6 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import Swal from 'sweetalert2/dist/sweetalert2.all.min.js';
 import { addProducao, updateProducao, deleteProducao } from '../../services/api';
+import { createDomElement } from '../../utils/safeDom';
 import './ProducaoManagementView.css'; 
 
 const ProducaoManagementView = ({ initialData, isLoading, onDataChange }) => {
@@ -16,18 +17,31 @@ const ProducaoManagementView = ({ initialData, isLoading, onDataChange }) => {
     }, [initialData, searchTerm]);
 
     const handleOpenModal = (item = null) => {
+        const form = createDomElement('div', { className: 'swal-form-container' });
+        const fields = [
+            ['swal-nome', 'text', 'Nome do Alimento', item?.nome_alimento || ''],
+            ['swal-data', 'date', '', item?.data_alimento || new Date().toISOString().split('T')[0]],
+            ['swal-quantidade', 'number', 'Quantidade (ex: 10.50)', item?.quantidade_alimento || '', '0.01'],
+            ['swal-medida', 'text', 'Medida (kg, g, L)', item?.medida_alimento || ''],
+            ['swal-pessoas', 'number', 'Pessoas', item?.pessoas_alimento || ''],
+            ['swal-sobra', 'number', 'Sobra Limpa (ex: 1.25)', item?.sobra_limpa_alimento || '', '0.01'],
+            ['swal-desperdicio', 'number', 'Desperdício (ex: 0.50)', item?.desperdicio_alimento || '', '0.01'],
+        ];
+        fields.forEach(([id, type, placeholder, value, step]) => {
+            form.append(createDomElement('input', {
+                id,
+                type,
+                placeholder,
+                value,
+                ...(step ? { step } : {}),
+                className: 'swal2-input',
+            }));
+        });
+
         Swal.fire({
             title: item ? 'Editar Item' : 'Adicionar Novo Item',
             width: '700px',
-            html: `
-                <input id="swal-nome" class="swal2-input" placeholder="Nome do Alimento" value="${item ? item.nome_alimento : ''}">
-                <input id="swal-data" type="date" class="swal2-input" value="${item ? item.data_alimento : new Date().toISOString().split('T')[0]}">
-                <input id="swal-quantidade" type="number" step="0.01" class="swal2-input" placeholder="Quantidade (ex: 10.50)" value="${item ? item.quantidade_alimento : ''}">
-                <input id="swal-medida" class="swal2-input" placeholder="Medida (kg, g, L)" value="${item ? item.medida_alimento : ''}">
-                <input id="swal-pessoas" type="number" class="swal2-input" placeholder="Pessoas" value="${item ? item.pessoas_alimento : ''}">
-                <input id="swal-sobra" type="number" step="0.01" class="swal2-input" placeholder="Sobra Limpa (ex: 1.25)" value="${item ? item.sobra_limpa_alimento : ''}">
-                <input id="swal-desperdicio" type="number" step="0.01" class="swal2-input" placeholder="Desperdício (ex: 0.50)" value="${item ? item.desperdicio_alimento : ''}">
-            `,
+            html: form,
             focusConfirm: false,
             showCancelButton: true,
             confirmButtonText: 'Salvar',

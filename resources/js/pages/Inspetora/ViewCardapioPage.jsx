@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2/dist/sweetalert2.all.min.js';
 import { getLatestCardapio } from '../../services/api';
 import { API_BASE_URL } from '../../config/apiConfig';
+import { safeHttpUrl } from '../../utils/safeDom';
 
 import './ViewCardapioPage.css';
 
@@ -22,7 +23,7 @@ const ViewCardapioPage = () => {
                     const cleanBaseUrl = API_BASE_URL.replace('/api', '');
                     url = `${cleanBaseUrl}/uploads/${latestCardapio.path}`;
                 }
-                setPdfUrl(url);
+                setPdfUrl(safeHttpUrl(url, null));
                 setCardapioDate(latestCardapio.created_at);
             } else {
                 setPdfUrl(null);

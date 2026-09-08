@@ -11,6 +11,7 @@ use App\Models\Cronograma;
 use App\Models\Necessidade;
 use App\Models\Turma;
 use App\Models\User;
+use App\Services\SchoolCalendarService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
@@ -36,23 +37,13 @@ class ApiCoverageTest extends TestCase
         return $this->actingAs($user, 'sanctum');
     }
 
-    public function test_registration_login_current_user_and_logout(): void
+    public function test_login_current_user_and_logout(): void
     {
-        $payload = [
-            'name' => 'Usuário novo',
-            'email' => 'novo@example.test',
-            'nif' => '12345678901',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
-        ];
-
-        $this->postJson('/api/register', $payload)->assertCreated();
-        $user = User::where('nif', $payload['nif'])->firstOrFail();
-        $this->assertSame(1, $user->nivel_user);
+        $user = User::factory()->create(['password' => Hash::make('password123')]);
 
         $login = $this->postJson('/api/login', [
-            'nif' => $payload['nif'],
-            'password' => $payload['password'],
+            'nif' => $user->nif,
+            'password' => 'password123',
         ])->assertOk()->json('token');
 
         $this->withHeader('Authorization', 'Bearer '.$login)
@@ -68,14 +59,14 @@ class ApiCoverageTest extends TestCase
         ]);
     }
 
-    public function test_registration_requires_password_confirmation(): void
+    public function test_public_registration_is_disabled(): void
     {
         $this->postJson('/api/register', [
             'name' => 'Usuário',
             'email' => 'sem-confirmacao@example.test',
             'nif' => '12345678902',
-            'password' => 'password123',
-        ])->assertUnprocessable();
+            'nivel_user' => 2,
+        ])->assertForbidden();
     }
 
     public function test_nutritionist_is_the_administrator_and_can_create_director(): void
@@ -97,7 +88,7 @@ class ApiCoverageTest extends TestCase
             ->assertForbidden();
         $this->api($admin)->postJson('/api/categorias', ['nome_categoria' => 'Permitido'])
             ->assertCreated();
-        $this->api($director)->getJson('/api/users')->assertForbidden();
+        $this->api($director)->getJson('/api/users')->assertOk();
     }
 
     public function test_staff_can_read_but_cannot_use_administrator_routes(): void
@@ -147,6 +138,7 @@ class ApiCoverageTest extends TestCase
     {
         $admin = $this->user(2);
         $turma = Turma::factory()->create();
+        $schoolDay = app(SchoolCalendarService::class)->currentDate();
         $response = $this->api($admin)->postJson('/api/contagens', [
             'turmas_id' => $turma->id,
             'qtd_contagem' => 12,
@@ -158,7 +150,7 @@ class ApiCoverageTest extends TestCase
         $this->assertDatabaseHas('contagens', [
             'turmas_id' => $turma->id,
             'users_id' => $admin->id,
-            'data_contagem' => now()->toDateString(),
+            'data_contagem' => $schoolDay,
         ]);
         $this->api($admin)->getJson('/api/contagens/dashboard?data=not-a-date')
             ->assertUnprocessable();
@@ -227,7 +219,8 @@ class ApiCoverageTest extends TestCase
         $this->api($director)->putJson("/api/autorizados/$id", ['status' => 'pendente'])
             ->assertForbidden();
         $this->api($admin)->putJson("/api/autorizados/$id", ['status' => 'pendente'])
-            ->assertOk();
+            ->assertUnprocessable();
+        $this->assertDatabaseHas('autorizados', ['id' => $id, 'status' => 'confirmado']);
         $this->api($director)->deleteJson("/api/autorizados/$id")->assertForbidden();
     }
 

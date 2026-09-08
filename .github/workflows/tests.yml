@@ -56,5 +56,4 @@ jobs:
       - run: mkdir -p database && touch database/database.sqlite
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e:prepare
       - run: npm run test:e2e

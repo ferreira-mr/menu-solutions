@@ -46,6 +46,7 @@ describe('Custom Hooks (usePermissions & useAuth)', () => {
       expect(result.current.isDiretora).toBe(true);
       expect(result.current.canApproveAutorizado).toBe(true);
       expect(result.current.canCreateAutorizado).toBe(false);
+      expect(result.current.canManageUsers).toBe(true);
     });
   });
 

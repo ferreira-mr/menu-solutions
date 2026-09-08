@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2/dist/sweetalert2.all.min.js';
-import { getTurmas, addTurma, updateTurma, deleteTurma, getCategorias, addCategoria, updateCategoria, deleteCategoria } from '../../services/api';
+import { getTodasTurmas, addTurma, updateTurma, deleteTurma, getTodasCategorias, addCategoria, updateCategoria, deleteCategoria } from '../../services/api';
 import BackButton from '../../components/common/BackButton/BackButton';
+import { createDomElement, createSelect } from '../../utils/safeDom';
 import './CategoriasPage.css';
 
 // Função para escolher a cor do badge de forma consistente
@@ -24,11 +25,11 @@ const CategoriasPage = () => {
         try {
             setIsLoading(true);
             const [turmasData, categoriasData] = await Promise.all([
-                getTurmas(1, 1000), // Pega todas as turmas
-                getCategorias(1, 100) // Pega todas as categorias
+                getTodasTurmas(),
+                getTodasCategorias()
             ]);
-            setTurmas(turmasData.data || []);
-            setCategorias(categoriasData.data || []);
+            setTurmas(turmasData || []);
+            setCategorias(categoriasData || []);
         } catch (error) {
             if (error && !error.message.includes('Sessão expirada')) {
                 Swal.fire('Erro!', 'Não foi possível carregar os dados.', 'error');
@@ -120,7 +121,7 @@ const CategoriasPage = () => {
     const handleDeleteCategoria = async (cat) => {
         const result = await Swal.fire({
             title: 'Tem certeza?',
-            html: `Isso removerá a categoria "<strong>${cat.nome_categoria}</strong>" e pode afetar turmas associadas!`,
+            text: `Isso removerá a categoria "${cat.nome_categoria}" e pode afetar turmas associadas!`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#a72828ff',
@@ -151,20 +152,26 @@ const CategoriasPage = () => {
 
     // ======================== TURMAS ========================
 
-    const handleAddTurma = async () => {
-        const optionsHtml = categorias
-            .map(cat => `<option value="${cat.id}">${cat.nome_categoria}</option>`)
-            .join('');
+    const createTurmaForm = (turma = null) => {
+        const form = createDomElement('div', { className: 'swal-form-container' });
+        const nomeInput = createDomElement('input', {
+            id: 'swal-nome',
+            className: 'swal2-input',
+            placeholder: 'Nome da Turma',
+            value: turma?.nome_turma || '',
+        });
+        const categoriaSelect = createSelect('swal-categoria', [
+            { value: '', label: 'Selecione uma Categoria' },
+            ...categorias.map(cat => ({ value: cat.id, label: cat.nome_categoria })),
+        ], turma?.categorias_id || '');
+        form.append(nomeInput, categoriaSelect);
+        return form;
+    };
 
+    const handleAddTurma = async () => {
         const { value: formValues } = await Swal.fire({
             title: 'Adicionar Nova Turma',
-            html: `
-                <input id="swal-nome" class="swal2-input" placeholder="Nome da Turma">
-                <select id="swal-categoria" class="swal2-select">
-                    <option value="">Selecione uma Categoria</option>
-                    ${optionsHtml}
-                </select>
-            `,
+            html: createTurmaForm(),
             focusConfirm: false,
             showCancelButton: true,
             confirmButtonText: 'Salvar',
@@ -204,19 +211,9 @@ const CategoriasPage = () => {
     };
 
     const handleEditTurma = async (turma) => {
-        const optionsHtml = categorias
-            .map(cat => `<option value="${cat.id}" ${turma.categorias_id == cat.id ? 'selected' : ''}>${cat.nome_categoria}</option>`)
-            .join('');
-
         const { value: formValues } = await Swal.fire({
             title: 'Editar Turma',
-            html: `
-                <input id="swal-nome" class="swal2-input" value="${turma.nome_turma}">
-                <select id="swal-categoria" class="swal2-select">
-                    <option value="">Selecione uma Categoria</option>
-                    ${optionsHtml}
-                </select>
-            `,
+            html: createTurmaForm(turma),
             focusConfirm: false,
             showCancelButton: true,
             confirmButtonText: 'Salvar',

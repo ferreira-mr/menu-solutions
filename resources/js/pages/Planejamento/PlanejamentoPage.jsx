@@ -1,16 +1,17 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2/dist/sweetalert2.all.min.js';
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { 
-    getNecessidades, addNecessidade, updateNecessidade, deleteNecessidade, 
-    getAlunos, addAluno, updateAluno, deleteAluno, getTurmas, 
-    associarNecessidadesAoAluno, desassociarAlunoDaNecessidade, uploadFile,
-    getNecessidadeComAlunos, agendarRelacaoNosDias, getCronograma, removerAgendamentoDoDia
+    getTodasNecessidades, addNecessidade, updateNecessidade, deleteNecessidade,
+    getTodosAlunos, addAluno, updateAluno, deleteAluno, getTodasTurmas,
+    associarNecessidadesAoAluno, desassociarAlunoDaNecessidade, uploadAlunoFoto,
+    getNecessidadeComAlunos, agendarRelacaoNosDias, getTodosCronograma, removerAgendamentoDoDia
 } from '../../services/api';
-import { PUBLIC_STORAGE_URL2 } from '../../config/apiConfig';
 import placeholderAvatar from '../../assets/img/avatar.png';
+import { createDomElement, createSelect } from '../../utils/safeDom';
+import ProtectedStudentPhoto from '../../components/common/ProtectedStudentPhoto';
 import './PlanejamentoPage.css';
 
 // --- COMPONENTES AUXILIARES ---
@@ -38,7 +39,7 @@ const SearchBar = ({ searchTerm, setSearchTerm, placeholder }) => {
 const AlunoCard = ({ aluno, type, turmasMap, onAdd, onEdit, onDelete, onSchedule, onRemove, disabledAdd }) => (
     <div className="aluno-card">
         <div className="card-header">
-            <img src={aluno.foto ? `${PUBLIC_STORAGE_URL2}/${aluno.foto}` : placeholderAvatar} alt={aluno.nome} className="card-photo" />
+            <ProtectedStudentPhoto aluno={aluno} fallback={placeholderAvatar} alt={aluno.nome} className="card-photo" />
             <div className="card-info">
                 <h5 className="card-name">{aluno.nome}</h5>
                 {/* RM removido da visualização conforme solicitado */}
@@ -67,6 +68,29 @@ const AlunoCard = ({ aluno, type, turmasMap, onAdd, onEdit, onDelete, onSchedule
     </div>
 );
 
+export const buildPlanningPdf = ({ completeData, scheduleDays, classNames }) => {
+    const doc = new jsPDF();
+    doc.setFontSize(18); doc.text("Relatório de Contagens - Menu Solutions", 14, 20);
+    doc.setFontSize(10); doc.text(`Gerado em: ${new Date().toLocaleDateString()}`, 14, 28);
+
+    const rows = [];
+    completeData.forEach(nec => {
+        nec.alunos.forEach(al => {
+            const relacaoId = al.alunos_has_necessidades_id;
+            const dias = scheduleDays.filter(d => d.alunos.some(a => String(a.relacao_id) === String(relacaoId))).map(d => d.dia).join(', ');
+            rows.push([al.nome, classNames[al.turmas_id] || 'N/A', nec.necessidade, dias || 'Sempre']);
+        });
+    });
+
+    autoTable(doc, {
+        startY: 35,
+        head: [['Aluno', 'Turma', 'Categoria', 'Dias Agendados']],
+        body: rows,
+        theme: 'striped'
+    });
+    return doc;
+};
+
 // --- COMPONENTE PRINCIPAL ---
 
 const PlanejamentoPage = () => {
@@ -89,16 +113,16 @@ const PlanejamentoPage = () => {
         try {
             setIsLoading(true);
             const [necessidadesData, alunosData, turmasData, cronogramaData] = await Promise.all([
-                getNecessidades(1, 100), getAlunos(1, 1000), getTurmas(1, 100), getCronograma()
+                getTodasNecessidades(), getTodosAlunos(), getTodasTurmas(), getTodosCronograma()
             ]);
             
-            setNecessidades(necessidadesData.data || []);
-            setTodosAlunos(alunosData.data || []);
-            setTurmas(turmasData.data || []);
-            setDiasDaSemana(cronogramaData.data || []);
+            setNecessidades(necessidadesData || []);
+            setTodosAlunos(alunosData || []);
+            setTurmas(turmasData || []);
+            setDiasDaSemana(cronogramaData || []);
 
-            if (necessidadesData.data?.length > 0) {
-                const resultados = await Promise.all(necessidadesData.data.map(nec => getNecessidadeComAlunos(nec.id)));
+            if (necessidadesData?.length > 0) {
+                const resultados = await Promise.all(necessidadesData.map(nec => getNecessidadeComAlunos(nec.id)));
                 setDadosCompletos(resultados.filter(Boolean));
             }
         } catch (error) {
@@ -116,7 +140,12 @@ const PlanejamentoPage = () => {
     const displayedAlunosCentral = useMemo(() => {
         if (!selectedNecessidadeId) return [];
         const necSel = dadosCompletos.find(nec => nec.id === selectedNecessidadeId);
-        let alunosToShow = (necSel?.alunos || []).map(aluno => todosAlunos.find(a => a.id === aluno.id)).filter(Boolean);
+        const alunosToShow = (necSel?.alunos || []).map(alunoRelacionado => {
+            const alunoBase = todosAlunos.find(aluno => aluno.id === alunoRelacionado.id);
+            return alunoBase
+                ? { ...alunoBase, ...alunoRelacionado }
+                : alunoRelacionado;
+        }).filter(aluno => aluno?.alunos_has_necessidades_id);
         
         if (searchTermCentral) {
             return alunosToShow.filter(aluno => aluno.nome.toLowerCase().includes(searchTermCentral.toLowerCase()));
@@ -161,7 +190,7 @@ const PlanejamentoPage = () => {
 
     const handleDeleteNecessidade = async (nec) => {
         const result = await Swal.fire({
-            title: `Excluir "${nec.necessidade}"?`,
+            titleText: `Excluir "${nec.necessidade}"?`,
             text: 'Isso só será permitido se não houver alunos vinculados.',
             icon: 'warning',
             showCancelButton: true,
@@ -182,34 +211,53 @@ const PlanejamentoPage = () => {
 
     const handleOpenAlunoModal = (aluno = null) => {
         const isEditing = !!aluno;
-        const turmasOptionsHtml = turmas.map(t => `<option value="${t.id}" ${isEditing && aluno.turmas_id == t.id ? 'selected' : ''}>${t.nome_turma}</option>`).join('');
+        const form = createDomElement('div', { className: 'swal-form-container' });
+        const generoSelect = createSelect('swal-genero', [
+            { value: '', label: 'Selecione o Gênero' },
+            { value: 'Masculino', label: 'Masculino' },
+            { value: 'Feminino', label: 'Feminino' },
+        ], aluno?.genero || '');
+        const turmaSelect = createSelect('swal-turma', [
+            { value: '', label: 'Selecione a Turma' },
+            ...turmas.map(t => ({ value: t.id, label: t.nome_turma })),
+        ], aluno?.turmas_id || '');
+        const fotoContainer = createDomElement('div', {
+            style: { marginTop: '15px', textAlign: 'left', padding: '0 20px' },
+        }, [
+            createDomElement('label', {
+                textContent: 'Foto do Aluno (Opcional)',
+                style: { fontWeight: '600', color: '#555', fontSize: '14px' },
+            }),
+            createDomElement('input', {
+                id: 'swal-foto',
+                type: 'file',
+                className: 'swal2-file',
+                style: { marginTop: '5px' },
+                accept: 'image/*',
+            }),
+        ]);
+        form.append(
+            createDomElement('input', {
+                id: 'swal-nome',
+                className: 'swal2-input',
+                placeholder: 'Nome do Aluno',
+                value: aluno?.nome || '',
+            }),
+            generoSelect,
+            turmaSelect,
+            fotoContainer,
+            createDomElement('textarea', {
+                id: 'swal-descricao',
+                className: 'swal2-textarea',
+                placeholder: 'Observações/Restrições...',
+                value: aluno?.descricao || '',
+            }),
+        );
 
         Swal.fire({
             title: isEditing ? 'Editar Aluno' : 'Adicionar Aluno',
             width: '550px',
-            html: `
-                <div class="swal-form-container">
-                    <input id="swal-nome" class="swal2-input" placeholder="Nome do Aluno" value="${isEditing ? aluno.nome : ''}">
-                    
-                    <select id="swal-genero" class="swal2-select">
-                        <option value="">Selecione o Gênero</option>
-                        <option value="Masculino" ${isEditing && aluno.genero === 'Masculino' ? 'selected' : ''}>Masculino</option>
-                        <option value="Feminino" ${isEditing && aluno.genero === 'Feminino' ? 'selected' : ''}>Feminino</option>
-                    </select>
-
-                    <select id="swal-turma" class="swal2-select">
-                        <option value="">Selecione a Turma</option>
-                        ${turmasOptionsHtml}
-                    </select>
-
-                    <div style="margin-top:15px; text-align:left; padding:0 20px;">
-                        <label style="font-weight:600; color:#555; font-size:14px;">Foto do Aluno (Opcional)</label>
-                        <input id="swal-foto" type="file" class="swal2-file" style="margin-top:5px;" accept="image/*">
-                    </div>
-
-                    <textarea id="swal-descricao" class="swal2-textarea" placeholder="Observações/Restrições...">${isEditing ? aluno.descricao || '' : ''}</textarea>
-                </div>
-            `,
+            html: form,
             focusConfirm: false, 
             showCancelButton: true, 
             confirmButtonText: 'Salvar',
@@ -232,18 +280,16 @@ const PlanejamentoPage = () => {
                 };
 
                 const fotoFile = document.getElementById('swal-foto').files[0];
-                if (fotoFile) {
-                    try {
-                        const uploadResponse = await uploadFile(fotoFile);
-                        data.foto = uploadResponse.path;
-                    } catch (e) { return Swal.showValidationMessage('Erro no upload da foto.'); }
-                }
+                data.fotoFile = fotoFile || null;
                 return data;
             }
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    isEditing ? await updateAluno(aluno.id, result.value) : await addAluno(result.value);
+                    const { fotoFile, ...alunoData } = result.value || {};
+                    const saved = isEditing ? await updateAluno(aluno.id, alunoData) : await addAluno(alunoData);
+                    const savedAluno = saved?.data || saved;
+                    if (fotoFile && savedAluno?.id) await uploadAlunoFoto(savedAluno.id, fotoFile);
                     Swal.fire({ icon: 'success', title: 'Salvo!', timer: 1500, showConfirmButton: false });
                     fetchData();
                 } catch (e) { Swal.fire('Erro', 'Não foi possível salvar.', 'error'); }
@@ -283,22 +329,30 @@ const PlanejamentoPage = () => {
 
     const handleOpenScheduleModal = async (aluno) => {
         const relacao = dadosCompletos.find(n => n.id === selectedNecessidadeId)?.alunos?.find(a => a.id === aluno.id);
-        if(!relacao?.pivot?.id) return;
+        const relacaoId = relacao?.alunos_has_necessidades_id;
+        if(!relacaoId) {
+            console.error('Não foi possível agendar: relação aluno+necessidade ausente.', aluno);
+            return;
+        }
         
-        const relacaoId = relacao.pivot.id;
         const diasAgendados = [];
         diasDaSemana.forEach(d => {
-            if(d.alunos.some(ag => String(ag.id) === String(aluno.id) && String(ag.necessidade_relacionada?.id) === String(selectedNecessidadeId))) {
+            if(d.alunos.some(ag => String(ag.relacao_id) === String(relacaoId))) {
                 diasAgendados.push(String(d.id));
             }
         });
 
         const { value: selectedIds } = await Swal.fire({
-            title: `Dias para ${aluno.nome}`,
-            html: `<div class="swal-checkbox-container">${diasDaSemana.map(d => `
-                <label class="swal-checkbox-label">
-                    <input type="checkbox" class="swal-dia-checkbox" value="${d.id}" ${diasAgendados.includes(String(d.id)) ? 'checked' : ''}> ${d.dia}
-                </label>`).join('')}</div>`,
+            titleText: `Dias para ${aluno.nome}`,
+            html: createDomElement('div', { className: 'swal-checkbox-container' }, diasDaSemana.map(d => createDomElement('label', { className: 'swal-checkbox-label' }, [
+                createDomElement('input', {
+                    type: 'checkbox',
+                    className: 'swal-dia-checkbox',
+                    value: d.id,
+                    checked: diasAgendados.includes(String(d.id)),
+                }),
+                document.createTextNode(` ${d.dia}`),
+            ]))),
             showCancelButton: true,
             preConfirm: () => Array.from(document.querySelectorAll('.swal-dia-checkbox:checked')).map(cb => cb.value)
         });
@@ -315,23 +369,10 @@ const PlanejamentoPage = () => {
     };
 
     const handleDownloadPdf = () => {
-        const doc = new jsPDF();
-        doc.setFontSize(18); doc.text("Relatório de Contagens - Menu Solutions", 14, 20);
-        doc.setFontSize(10); doc.text(`Gerado em: ${new Date().toLocaleDateString()}`, 14, 28);
-
-        const rows = [];
-        dadosCompletos.forEach(nec => {
-            nec.alunos.forEach(al => {
-                const dias = diasDaSemana.filter(d => d.alunos.some(a => a.id === al.id && a.necessidade_relacionada?.id === nec.id)).map(d => d.dia).join(', ');
-                rows.push([al.nome, turmasMap[al.turmas_id] || 'N/A', nec.necessidade, dias || 'Sempre']);
-            });
-        });
-
-        autoTable(doc, {
-            startY: 35,
-            head: [['Aluno', 'Turma', 'Categoria', 'Dias Agendados']],
-            body: rows,
-            theme: 'striped'
+        const doc = buildPlanningPdf({
+            completeData: dadosCompletos,
+            scheduleDays: diasDaSemana,
+            classNames: turmasMap,
         });
         doc.save('relatorio_planejamento.pdf');
     };

@@ -17,7 +17,15 @@ class CronogramaController extends Controller
      */
     public function index(Request $request)
     {
-        $cronogramas = Cronograma::with(['necessidadesHasCronogramas.aluno_has_necessidade.aluno', 'necessidadesHasCronogramas.aluno_has_necessidade.necessidade'])->paginate();
+        $validated = $request->validate([
+            'page' => ['nullable', 'integer', 'min:1'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:1000'],
+        ]);
+
+        $cronogramas = Cronograma::with(['necessidadesHasCronogramas.aluno_has_necessidade.aluno', 'necessidadesHasCronogramas.aluno_has_necessidade.necessidade'])
+            ->orderBy('id')
+            ->paginate($validated['limit'] ?? 15)
+            ->withQueryString();
 
         return CronogramaResource::collection($cronogramas);
     }

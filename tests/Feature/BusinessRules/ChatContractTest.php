@@ -4,6 +4,7 @@ namespace Tests\Feature\BusinessRules;
 
 use App\Models\Chat;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -110,5 +111,63 @@ class ChatContractTest extends TestCase
         $this->assertContains('Ana Inspetora', $memberNames);
         $this->assertContains('Beatriz Nutri', $memberNames);
         $this->assertNotContains('Carlos Silencioso', $memberNames);
+    }
+
+    public function test_chat_and_member_resources_expose_only_minimal_participant_fields(): void
+    {
+        $author = User::factory()->create(['name' => 'Autora', 'nivel_user' => 1]);
+        $reader = User::factory()->create(['name' => 'Leitora', 'nivel_user' => 2]);
+        Chat::create([
+            'mensagem_chat' => 'Mensagem mínima',
+            'visto' => 'n',
+            'data' => now(),
+            'users_id' => $author->id,
+        ]);
+
+        $members = $this->actingAs($reader, 'sanctum')->getJson('/api/getMembers')->assertOk();
+        $member = collect($members->json('data'))->firstWhere('id', $author->id);
+        $this->assertSame(['id', 'name', 'nivel_user'], array_keys($member));
+        $this->assertArrayNotHasKey('email', $member);
+        $this->assertArrayNotHasKey('nif', $member);
+
+        $messages = $this->actingAs($reader, 'sanctum')->getJson('/api/chats')->assertOk();
+        $participant = $messages->json('data.0.user');
+        $this->assertSame(['id', 'name', 'nivel_user'], array_keys($participant));
+        $this->assertArrayNotHasKey('email', $participant);
+        $this->assertArrayNotHasKey('nif', $participant);
+    }
+
+    public function test_chat_index_keeps_paginated_envelope_and_deterministic_order(): void
+    {
+        $user = User::factory()->create(['nivel_user' => 1]);
+        $createdAt = CarbonImmutable::parse('2026-09-04 07:15:00');
+
+        foreach (['Primeira', 'Segunda', 'Terceira'] as $message) {
+            $chat = new Chat([
+                'mensagem_chat' => $message,
+                'visto' => 'n',
+                'data' => $createdAt,
+                'users_id' => $user->id,
+            ]);
+            $chat->created_at = $createdAt;
+            $chat->updated_at = $createdAt;
+            $chat->save();
+        }
+
+        $pageOne = $this->actingAs($user, 'sanctum')->getJson('/api/chats?page=1&limit=2');
+        $pageOne->assertOk()->assertJsonStructure([
+            'data' => [['id', 'updated_at']],
+            'links' => ['first', 'last', 'prev', 'next'],
+            'meta' => ['current_page', 'last_page', 'per_page', 'total'],
+        ]);
+        $this->assertSame(1, $pageOne->json('meta.current_page'));
+        $this->assertSame(2, $pageOne->json('meta.last_page'));
+        $this->assertSame(2, $pageOne->json('meta.per_page'));
+        $this->assertSame(3, $pageOne->json('meta.total'));
+        $this->assertSame([3, 2], collect($pageOne->json('data'))->pluck('id')->all());
+
+        $pageTwo = $this->actingAs($user, 'sanctum')->getJson('/api/chats?page=2&limit=2');
+        $pageTwo->assertOk();
+        $this->assertSame([1], collect($pageTwo->json('data'))->pluck('id')->all());
     }
 }

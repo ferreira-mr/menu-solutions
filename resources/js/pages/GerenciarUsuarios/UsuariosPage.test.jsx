@@ -169,4 +169,38 @@ describe('UsuariosPage', () => {
       expect(Swal.fire).toHaveBeenCalledWith('Erro', 'Não foi possível carregar os usuários', 'error');
     });
   });
+
+  it('mantém nome adversarial literal ao abrir edição, sem montar HTML executável', async () => {
+    const nomeAdversarial = '"><img src=x onerror="window.__xssMarker = true"> <Equipe> & "Ação"';
+    const modalCalls = [];
+    api.getUsers.mockResolvedValueOnce({
+      data: [
+        { id: 1, name: nomeAdversarial, nif: '11111111111', nivel_user: 1, email: 'lais@example.test' },
+      ],
+      meta: { current_page: 1, last_page: 1 },
+    });
+    Swal.fire.mockImplementation((options) => {
+      modalCalls.push(options);
+      return Promise.resolve({ isConfirmed: false });
+    });
+
+    render(
+      <MemoryRouter>
+        <UsuariosPage />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => expect(screen.getByText(nomeAdversarial)).toBeInTheDocument());
+    fireEvent.click(screen.getByTitle('Editar'));
+
+    await waitFor(() => expect(modalCalls).toHaveLength(1));
+    const modal = modalCalls[0];
+    expect(modal.titleText).toBe('Editar Usuário');
+    expect(modal.html).toBeInstanceOf(HTMLElement);
+
+    const nameInput = modal.html.querySelector('#swal-name');
+    expect(nameInput).toHaveValue(nomeAdversarial);
+    expect(modal.html.querySelector('[onerror], [onfocus], script')).not.toBeInTheDocument();
+    expect(window.__xssMarker).toBeUndefined();
+  });
 });

@@ -43,4 +43,31 @@ describe('DetailsPanel', () => {
     expect(screen.getByText('Diabético')).toBeInTheDocument();
     expect(screen.getByText('Pedro Silva')).toBeInTheDocument();
   });
+
+  it('exibe a descrição da necessidade como texto literal, sem interpretar HTML', () => {
+    const descricaoAdversarial = '<img src="x" onerror="window.__xssMarker = true">Descrição <strong>literal</strong>';
+    const necessidadesMap = new Map([
+      ['Diabético', [
+        { nome: 'Pedro Silva', rm: '11223', descricao: descricaoAdversarial },
+      ]],
+    ]);
+
+    render(
+      <DetailsPanel
+        details={{
+          date: new Date(2026, 8, 4),
+          totalGeralContagens: 1,
+          contagens: [],
+          necessidades: necessidadesMap,
+        }}
+        loading={false}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Necessidades' }));
+
+    expect(screen.getByText(descricaoAdversarial)).toBeInTheDocument();
+    expect(document.querySelector('.modal-accordion-content img')).not.toBeInTheDocument();
+    expect(window.__xssMarker).toBeUndefined();
+  });
 });

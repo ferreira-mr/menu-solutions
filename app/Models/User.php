@@ -65,4 +65,9 @@ class User extends Authenticatable
     {
         return (int) $this->nivel_user === \App\Enums\UserRole::Diretor->value;
     }
+
+    public function canManageUsers(): bool
+    {
+        return $this->isNutri() || $this->isDiretor();
+    }
 }

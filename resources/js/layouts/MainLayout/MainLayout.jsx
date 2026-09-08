@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import Swal from '../../utils/sweetAlert';
 import { logoutUser, getUserData } from '../../services/api';
+import { useSchoolCalendar } from '../../features/contagem/useSchoolCalendar';
 
 import Header from '../../components/common/Header/Header';
 import Footer from '../../components/common/Footer/Footer';
@@ -18,6 +19,7 @@ const MainLayout = ({ userRole, children }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [usuario, setUsuario] = useState('Carregando...');
     const [dataAtual, setDataAtual] = useState('');
+    const { schoolDay } = useSchoolCalendar();
 
     const location = useLocation();   
     const isChatPage = location.pathname.includes('chat'); 
@@ -52,14 +54,13 @@ const MainLayout = ({ userRole, children }) => {
                 handleFinalLogout(false); 
             }
 
-            const hoje = new Date();
-            const dataFormatada = hoje.toLocaleDateString('pt-BR');
+            const dataFormatada = schoolDay.split('-').reverse().join('/');
             setDataAtual(dataFormatada);
         };
 
         fetchInitialData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [location.pathname]); 
+    }, [location.pathname, schoolDay]);
 
     // Efeito para fechar o menu ao clicar fora
     useEffect(() => {

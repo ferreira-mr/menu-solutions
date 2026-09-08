@@ -15,17 +15,21 @@ class ContagemNeResource extends JsonResource
     public function toArray(Request $request): array
     {
         $relacao = $this->alunosHasNecessidade;
+        $aluno = $relacao?->aluno;
 
         return [
-            'id'=>$this->id,
+            'id' => $this->id,
+            'relacao_id' => $relacao?->id,
+            'aluno_id' => $aluno?->id,
+            'necessidade_id' => $relacao?->necessidades_id,
             'data_hora_contagem'=>$this->created_at,
             'aluno'=>[
-                'id'=>$relacao?->id,
-                'nome'=>$relacao?->aluno?->nome,
-                'descricao'=>$relacao?->aluno?->descricao,
-                'rm'=>$relacao?->aluno?->rm,
+                'id'=>$aluno?->id,
+                'nome'=>$aluno?->nome,
+                'descricao'=>$aluno?->descricao,
+                'rm'=>$aluno?->rm,
+                'turmas_id'=>$aluno?->turmas_id,
                 'necessidade'=>$relacao?->necessidade?->necessidade,
-                
             ]
         ];
     }

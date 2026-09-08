@@ -6,11 +6,13 @@ import * as api from '../../services/api';
 import Swal from 'sweetalert2/dist/sweetalert2.all.min.js';
 
 vi.mock('../../services/api', () => ({
-  getTurmas: vi.fn(),
-  getContagensDeHoje: vi.fn(),
-  getNecessidades: vi.fn(),
-  getCronograma: vi.fn(),
-  getAlunosContagemNes: vi.fn(),
+  getTodasTurmas: vi.fn(),
+  getTodasContagensDeHoje: vi.fn(),
+  getTodasNecessidades: vi.fn(),
+  getTodosCronograma: vi.fn(),
+  getTodosAlunosContagemNes: vi.fn(),
+  getContextoEscolar: vi.fn(),
+  saveContagemOperation: vi.fn(),
   addContagem: vi.fn(),
   updateContagem: vi.fn(),
   getNecessidadeComAlunos: vi.fn(),
@@ -22,37 +24,52 @@ vi.mock('sweetalert2/dist/sweetalert2.all.min.js', () => ({
   default: {
     fire: vi.fn(),
     showLoading: vi.fn(),
+    hideLoading: vi.fn(),
+    showValidationMessage: vi.fn(),
+    close: vi.fn(),
+    isLoading: vi.fn(() => false),
   },
 }));
 
+function openModalAndConfirm(options) {
+  const modal = document.createElement('div');
+  if (options.html instanceof HTMLElement) modal.append(options.html);
+  document.body.appendChild(modal);
+  options.didOpen?.();
+
+  return Promise.resolve(options.preConfirm?.()).finally(() => modal.remove());
+}
+
 describe('ContagemPage (Inspetora)', () => {
-  const hoje = new Date().toISOString().slice(0, 10);
+  const hoje = '2026-09-07';
 
   beforeEach(() => {
     vi.clearAllMocks();
-    Swal.fire.mockResolvedValue({ isConfirmed: true, value: { quantidadeFinal: 30 } });
-    api.getTurmas.mockResolvedValue({
-      data: [
+    api.getContextoEscolar.mockResolvedValue({
+      data: { data_atual: hoje, timezone: 'America/Sao_Paulo', agora: '2026-09-07T12:00:00.000000Z' },
+    });
+    api.saveContagemOperation.mockResolvedValue({
+      data: { contagem: { id: 99, qtd_contagem: 0 }, presencas: [] },
+    });
+    Swal.fire.mockImplementation(async options => {
+      if (!options?.preConfirm) return { isDismissed: true };
+      const value = await openModalAndConfirm(options);
+      return value === false ? { isDismissed: true } : { isConfirmed: true, value };
+    });
+    api.getTodasTurmas.mockResolvedValue([
         { id: 1, nome_turma: '1º Ano A', categorias_id: 1 },
         { id: 2, nome_turma: '2º Ano B', categorias_id: 1 },
-      ],
-    });
-    api.getContagensDeHoje.mockResolvedValue({
-      data: [
+    ]);
+    api.getTodasContagensDeHoje.mockResolvedValue([
         { id: 10, turmas_id: 1, qtd_contagem: 25, data_contagem: hoje },
-      ],
-    });
-    api.getNecessidades.mockResolvedValue({ data: [] });
-    api.getCronograma.mockResolvedValue({ data: [] });
-    api.getAlunosContagemNes.mockResolvedValue({ data: [] });
+    ]);
+    api.getTodasNecessidades.mockResolvedValue([]);
+    api.getTodosCronograma.mockResolvedValue([]);
+    api.getTodosAlunosContagemNes.mockResolvedValue([]);
   });
 
   it('carrega turmas e exibe o totalizador geral de alunos', async () => {
-    render(
-      <MemoryRouter>
-        <ContagemPage />
-      </MemoryRouter>
-    );
+    render(<MemoryRouter><ContagemPage /></MemoryRouter>);
 
     expect(screen.getByText(/carregando/i)).toBeInTheDocument();
 
@@ -61,121 +78,162 @@ describe('ContagemPage (Inspetora)', () => {
       expect(screen.getByText('2º Ano B')).toBeInTheDocument();
     });
 
-    // Totalizador soma 25 alunos contados hoje
-    expect(screen.getByText('25')).toBeInTheDocument();
+    expect(screen.getAllByText('25')).toHaveLength(2);
   });
 
   it('identifica turmas com contagem realizada e pendente', async () => {
-    render(
-      <MemoryRouter>
-        <ContagemPage />
-      </MemoryRouter>
-    );
+    render(<MemoryRouter><ContagemPage /></MemoryRouter>);
 
     await waitFor(() => {
-      // 1º Ano A já tem contagem (25 alunos)
       expect(screen.getByText('25 alunos')).toBeInTheDocument();
-      // 2º Ano B está pendente ("Fazer Contagem")
       expect(screen.getByText('Fazer Contagem')).toBeInTheDocument();
     });
   });
 
-  it('inicia contagem ao clicar no card e salva a contagem', async () => {
-    api.addContagem.mockResolvedValue({ id: 99, qtd_contagem: 32 });
-    api.updateContagem.mockResolvedValue({ id: 10, qtd_contagem: 30 });
+  it('soma somente a revisão efetiva de cada turma', async () => {
+    api.getTodasContagensDeHoje.mockResolvedValue([
+        { id: 10, turmas_id: 1, qtd_contagem: 10, data_contagem: hoje, hora_contagem: '08:00:00' },
+        { id: 11, turmas_id: 1, qtd_contagem: 20, data_contagem: hoje, hora_contagem: '08:00:00' },
+        { id: 12, turmas_id: 2, qtd_contagem: 5, data_contagem: hoje, hora_contagem: '07:00:00' },
+    ]);
 
-    render(
-      <MemoryRouter>
-        <ContagemPage />
-      </MemoryRouter>
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText('1º Ano A')).toBeInTheDocument();
-    });
-
-    const card = screen.getByText('1º Ano A').closest('.turma-card');
-    card.click();
+    render(<MemoryRouter><ContagemPage /></MemoryRouter>);
 
     await waitFor(() => {
-      expect(api.updateContagem).toHaveBeenCalledWith(10, { quantidade: 30 });
+      expect(screen.getAllByText('25')).toHaveLength(2);
+      expect(screen.getByText('20 alunos')).toBeInTheDocument();
+      expect(screen.getByText('5 alunos')).toBeInTheDocument();
     });
   });
 
-  it('inicia contagem para turma pendente chamando addContagem', async () => {
-    api.addContagem.mockResolvedValue({ id: 99, qtd_contagem: 32 });
-    api.updateContagem.mockResolvedValue({ id: 99, qtd_contagem: 30 });
+  it('edita uma contagem existente somente após confirmar a operação', async () => {
+    render(<MemoryRouter><ContagemPage /></MemoryRouter>);
 
-    render(
-      <MemoryRouter>
-        <ContagemPage />
-      </MemoryRouter>
+    await waitFor(() => expect(screen.getByText('1º Ano A')).toBeInTheDocument());
+    screen.getByText('1º Ano A').closest('.turma-card').click();
+
+    await waitFor(() => expect(api.saveContagemOperation).toHaveBeenCalled());
+    expect(api.saveContagemOperation).toHaveBeenCalledWith(
+      {
+        contagem_id: 10,
+        turmas_id: 1,
+        qtd_contagem: 25,
+        presencas: [],
+      },
+      expect.stringMatching(/^[0-9a-f-]{36}$/i),
     );
-
-    await waitFor(() => {
-      expect(screen.getByText('2º Ano B')).toBeInTheDocument();
-    });
-
-    const card = screen.getByText('2º Ano B').closest('.turma-card');
-    card.click();
-
-    await waitFor(() => {
-      expect(api.addContagem).toHaveBeenCalledWith({ quantidade: 32, turmaId: 2 });
-    });
+    expect(api.addContagem).not.toHaveBeenCalled();
+    expect(api.updateContagem).not.toHaveBeenCalled();
   });
 
-  it('exibe alunos com dieta especial no modal e permite alternar presença', async () => {
-    api.getNecessidades.mockResolvedValue({
-      data: [{ id: 5, necessidade: 'NAE' }],
+  it('abre uma turma pendente sem lançar valor fictício e salva zero se confirmado', async () => {
+    render(<MemoryRouter><ContagemPage /></MemoryRouter>);
+
+    await waitFor(() => expect(screen.getByText('2º Ano B')).toBeInTheDocument());
+    screen.getByText('2º Ano B').closest('.turma-card').click();
+
+    await waitFor(() => expect(api.saveContagemOperation).toHaveBeenCalled());
+    expect(api.saveContagemOperation.mock.calls[0][0]).toEqual({
+      contagem_id: null,
+      turmas_id: 2,
+      qtd_contagem: 0,
+      presencas: [],
     });
+    expect(api.addContagem).not.toHaveBeenCalled();
+  });
+
+  it('descarta o rascunho ao cancelar sem chamar qualquer mutação', async () => {
+    api.getTodasNecessidades.mockResolvedValue([{ id: 5, necessidade: 'NAE' }]);
     api.getNecessidadeComAlunos.mockResolvedValue({
       id: 5,
       necessidade: 'NAE',
-      alunos: [
-        { id: 20, nome: 'Pedro Alergico', turmas_id: 1, pivot: { id: 77 } },
-      ],
+      alunos: [{ id: 20, nome: 'Pedro', turmas_id: 2, alunos_has_necessidades_id: 77 }],
     });
-    api.addContagem.mockResolvedValue({ id: 10, qtd_contagem: 25 });
-    api.updateContagem.mockResolvedValue({ id: 10, qtd_contagem: 26 });
-    api.addAlunoNaContagemNes.mockResolvedValue({ data: { id: 101 } });
-
-    // Simula didOpen disparando o clique no switch
-    Swal.fire.mockImplementation(async (options) => {
-      if (options?.didOpen) {
-        // Cria elementos virtuais para simular o DOM do modal
-        const container = document.createElement('div');
-        container.innerHTML = options.html || '';
-        document.body.appendChild(container);
-
-        try {
-          options.didOpen();
-          const chk = document.querySelector('.check-nes');
-          if (chk) {
-            chk.checked = true;
-            chk.onchange?.({ target: chk });
-          }
-        } finally {
-          container.remove();
-        }
-      }
-      return { isConfirmed: true, value: { quantidadeFinal: 26 } };
+    Swal.fire.mockImplementation(async options => {
+      if (!options?.preConfirm) return { isDismissed: true };
+      const modal = document.createElement('div');
+      modal.append(options.html);
+      document.body.appendChild(modal);
+      options.didOpen?.();
+      const input = modal.querySelector('#contadorValor');
+      input.value = '28';
+      const checkbox = modal.querySelector('.check-nes');
+      checkbox.checked = true;
+      checkbox.onchange?.({ target: checkbox });
+      modal.remove();
+      return { isDismissed: true };
     });
 
-    render(
-      <MemoryRouter>
-        <ContagemPage />
-      </MemoryRouter>
-    );
+    render(<MemoryRouter><ContagemPage /></MemoryRouter>);
+    await waitFor(() => expect(screen.getByText('2º Ano B')).toBeInTheDocument());
+    screen.getByText('2º Ano B').closest('.turma-card').click();
 
-    await waitFor(() => {
-      expect(screen.getByText('1º Ano A')).toBeInTheDocument();
+    await waitFor(() => expect(api.getNecessidadeComAlunos).toHaveBeenCalled());
+    expect(api.saveContagemOperation).not.toHaveBeenCalled();
+    expect(api.addContagem).not.toHaveBeenCalled();
+    expect(api.updateContagem).not.toHaveBeenCalled();
+    expect(api.addAlunoNaContagemNes).not.toHaveBeenCalled();
+    expect(api.removeAlunoDaContagemNes).not.toHaveBeenCalled();
+  });
+
+  it('envia presenças NES alteradas junto da confirmação única', async () => {
+    api.getTodasNecessidades.mockResolvedValue([{ id: 5, necessidade: 'NAE' }]);
+    api.getNecessidadeComAlunos.mockResolvedValue({
+      id: 5,
+      necessidade: 'NAE',
+      alunos: [{ id: 20, nome: 'Pedro', turmas_id: 1, alunos_has_necessidades_id: 77 }],
+    });
+    Swal.fire.mockImplementation(async options => {
+      if (!options?.preConfirm) return { isDismissed: true };
+      const modal = document.createElement('div');
+      modal.append(options.html);
+      document.body.appendChild(modal);
+      options.didOpen?.();
+      const checkbox = modal.querySelector('.check-nes');
+      checkbox.checked = true;
+      checkbox.onchange?.({ target: checkbox });
+      const value = await options.preConfirm();
+      modal.remove();
+      return { isConfirmed: true, value };
     });
 
-    const card = screen.getByText('1º Ano A').closest('.turma-card');
-    card.click();
+    render(<MemoryRouter><ContagemPage /></MemoryRouter>);
+    await waitFor(() => expect(screen.getByText('1º Ano A')).toBeInTheDocument());
+    screen.getByText('1º Ano A').closest('.turma-card').click();
 
-    await waitFor(() => {
-      expect(api.updateContagem).toHaveBeenCalled();
+    await waitFor(() => expect(api.saveContagemOperation).toHaveBeenCalled());
+    expect(api.saveContagemOperation.mock.calls[0][0].presencas).toEqual([
+      { relacao_id: 77, presenca_id: null, presente: true },
+    ]);
+  });
+
+  it('mantém o rascunho e a mesma chave ao falhar, permitindo retry seguro', async () => {
+    api.saveContagemOperation
+      .mockRejectedValueOnce(new Error('Falha de rede'))
+      .mockResolvedValueOnce({ data: { contagem: { id: 10, qtd_contagem: 30 }, presencas: [] } });
+    let attempts = 0;
+    Swal.fire.mockImplementation(async options => {
+      if (!options?.preConfirm) return { isDismissed: true };
+      const modal = document.createElement('div');
+      modal.append(options.html);
+      document.body.appendChild(modal);
+      options.didOpen?.();
+      attempts += 1;
+      const firstResult = await options.preConfirm();
+      expect(firstResult).toBe(false);
+      const secondResult = await options.preConfirm();
+      modal.remove();
+      return { isConfirmed: true, value: secondResult };
     });
+
+    render(<MemoryRouter><ContagemPage /></MemoryRouter>);
+    await waitFor(() => expect(screen.getByText('1º Ano A')).toBeInTheDocument());
+    screen.getByText('1º Ano A').closest('.turma-card').click();
+
+    await waitFor(() => expect(api.saveContagemOperation).toHaveBeenCalledTimes(2));
+    expect(attempts).toBe(1);
+    expect(api.saveContagemOperation.mock.calls[0][0]).toEqual(api.saveContagemOperation.mock.calls[1][0]);
+    expect(api.saveContagemOperation.mock.calls[0][1]).toBe(api.saveContagemOperation.mock.calls[1][1]);
+    expect(Swal.showValidationMessage).toHaveBeenCalledWith('Falha de rede');
   });
 });

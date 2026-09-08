@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class NecessidadesHasCronogramaRequest extends FormRequest
 {
@@ -23,7 +24,7 @@ class NecessidadesHasCronogramaRequest extends FormRequest
     {
         return [
 			'alunos_has_necessidades_id' => 'required|integer|exists:alunos_has_necessidades,id',
-			'cronograma_id' => 'required|integer|exists:cronogramas,id',
+			'cronograma_id' => ['required', 'integer', Rule::exists('cronogramas', 'id')->whereNull('deleted_at')],
         ];
     }
 }

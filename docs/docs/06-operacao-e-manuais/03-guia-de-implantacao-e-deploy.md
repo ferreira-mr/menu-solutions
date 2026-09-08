@@ -73,11 +73,28 @@ Este documento fornece as instruções técnicas detalhadas para instalação, c
    ```bash
    php artisan key:generate
    ```
-6. Crie o link simbólico para o armazenamento público de imagens (fotos de alunos e cardápios):
+6. Crie o link simbólico somente para o armazenamento público legado de cardápios:
    ```bash
    php artisan storage:link
    ```
-7. Ajuste as permissões de escrita para o usuário do servidor web (`www-data` no Linux):
+7. Em uma instalação existente, inventarie e migre as fotos de alunos antes de
+   remover as cópias públicas. O primeiro comando não grava; o segundo só remove
+   cada origem após a cópia privada e o hash serem conferidos:
+   ```bash
+   php artisan photos:migrate-to-private --dry-run
+   php artisan photos:migrate-to-private --remove-public
+   ```
+   O procedimento é idempotente, preserva a referência em `alunos.foto`, não
+   apaga `public/uploads/pdf` e não aceita caminhos arbitrários. Faça backup e
+   execute em janela autorizada; este guia não autoriza migração de produção.
+8. Se uma limpeza de PDF falhar após uma exclusão ou substituição, consulte e
+   retente os registros identificados pelo serviço:
+   ```bash
+   php artisan files:retry-cleanup
+   # ou uma falha específica
+   php artisan files:retry-cleanup ID
+   ```
+9. Ajuste as permissões de escrita para o usuário do servidor web (`www-data` no Linux):
    ```bash
    chown -R www-data:www-data /var/www/cont_api_v2/storage /var/www/cont_api_v2/bootstrap/cache
    chmod -R 775 /var/www/cont_api_v2/storage /var/www/cont_api_v2/bootstrap/cache

@@ -6,10 +6,10 @@ import * as api from '../../services/api';
 import Swal from 'sweetalert2/dist/sweetalert2.all.min.js';
 
 vi.mock('../../services/api', () => ({
-  getNecessidades: vi.fn(),
-  getAlunos: vi.fn(),
-  getTurmas: vi.fn(),
-  getCronograma: vi.fn(),
+  getTodasNecessidades: vi.fn(),
+  getTodosAlunos: vi.fn(),
+  getTodasTurmas: vi.fn(),
+  getTodosCronograma: vi.fn(),
   getNecessidadeComAlunos: vi.fn(),
   addNecessidade: vi.fn(),
   updateNecessidade: vi.fn(),
@@ -21,7 +21,7 @@ vi.mock('../../services/api', () => ({
   desassociarAlunoDaNecessidade: vi.fn(),
   agendarRelacaoNosDias: vi.fn(),
   removerAgendamentoDoDia: vi.fn(),
-  uploadFile: vi.fn(),
+  uploadAlunoFoto: vi.fn(),
 }));
 
 vi.mock('sweetalert2/dist/sweetalert2.all.min.js', () => ({
@@ -36,23 +36,15 @@ describe('PlanejamentoPage', () => {
     vi.clearAllMocks();
     Swal.fire.mockResolvedValue({ isConfirmed: true, value: 'Nova Categoria' });
 
-    api.getNecessidades.mockResolvedValue({
-      data: [{ id: 1, necessidade: 'Celiaquismo' }],
-    });
-    api.getAlunos.mockResolvedValue({
-      data: [{ id: 10, nome: 'Matheus', rm: 'RM123', turmas_id: 1 }],
-    });
-    api.getTurmas.mockResolvedValue({
-      data: [{ id: 1, nome_turma: '8º Ano' }],
-    });
-    api.getCronograma.mockResolvedValue({
-      data: [{ id: 1, dia: 'Segunda', alunos: [] }],
-    });
+    api.getTodasNecessidades.mockResolvedValue([{ id: 1, necessidade: 'Celiaquismo' }]);
+    api.getTodosAlunos.mockResolvedValue([{ id: 10, nome: 'Matheus', rm: 'RM123', turmas_id: 1 }]);
+    api.getTodasTurmas.mockResolvedValue([{ id: 1, nome_turma: '8º Ano' }]);
+    api.getTodosCronograma.mockResolvedValue([{ id: 1, dia: 'Segunda', alunos: [] }]);
     api.getNecessidadeComAlunos.mockResolvedValue({
       id: 1,
       necessidade: 'Celiaquismo',
       alunos: [
-        { id: 10, nome: 'Matheus', rm: 'RM123', turmas_id: 1, pivot: { id: 99 } },
+        { id: 10, nome: 'Matheus', rm: 'RM123', turmas_id: 1, alunos_has_necessidades_id: 99 },
       ],
     });
     api.addNecessidade.mockResolvedValue({});
@@ -148,6 +140,27 @@ describe('PlanejamentoPage', () => {
 
     await waitFor(() => {
       expect(api.desassociarAlunoDaNecessidade).toHaveBeenCalledWith(1, 10);
+    });
+  });
+
+  it('agenda o vínculo explícito do aluno no dia selecionado', async () => {
+    Swal.fire.mockResolvedValueOnce({ value: ['1'] });
+
+    render(
+      <MemoryRouter>
+        <PlanejamentoPage />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Celiaquismo')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('Celiaquismo'));
+    fireEvent.click(screen.getByTitle('Agendar Dia'));
+
+    await waitFor(() => {
+      expect(api.agendarRelacaoNosDias).toHaveBeenCalledWith(99, ['1']);
     });
   });
 

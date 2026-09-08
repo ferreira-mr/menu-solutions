@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AutorizadoStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,7 +13,9 @@ use Illuminate\Database\Eloquent\Model;
  * @property $id
  * @property $titulo
  * @property $conteudo
- * @property $status
+ * @property AutorizadoStatus $status
+ * @property int|null $decidido_por
+ * @property \Illuminate\Support\Carbon|null $decidido_em
  * @property $created_at
  * @property $updated_at
  *
@@ -33,14 +36,22 @@ class Autorizado extends Model
      *
      * @var array<int, string>
      */
-    protected $fillable = ['titulo', 'conteudo', 'status'];
+    protected $fillable = ['titulo', 'conteudo'];
+
+    protected function casts(): array
+    {
+        return [
+            'status' => AutorizadoStatus::class,
+            'decidido_em' => 'datetime',
+        ];
+    }
 
     public static function updateRule()
     {
         return [
             'titulo' => 'sometimes|string|max:255',
             'conteudo' => 'sometimes|string|max:10000',
-            'status' => 'sometimes|in:pendente,confirmado',
+            'status' => 'prohibited',
         ];
     }
 }

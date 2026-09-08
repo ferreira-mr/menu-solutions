@@ -5,9 +5,10 @@ import ReportTypeSidebar from './ReportTypeSidebar';
 import ReportFilterPanel from './ReportFilterPanel';
 import ReportPreview from './ReportPreview';
 import { 
-    getContagensPorRange, 
-    getAlunosNesPorData 
+    getTodosContagensPorRange,
+    getTodosAlunosNesPorData,
 } from '../../services/api';
+import { selectEffectiveContagens } from '../../features/contagem/schoolCalendar';
 // Importa as novas funções UTC
 import { toISODateString, parseISODateAsUTC, MONTHS, formatFriendlyDate } from './utils'; // <-- CORREÇÃO AQUI
 import './ReportView.css';
@@ -104,23 +105,18 @@ const ReportView = () => {
 
             // --- 1. Busca CONTAGENS (Geral) ---
             if (dataType === 'contagens' || dataType === 'tudo') {
-                // Busca TODOS os dados (já que o filtro da API está quebrado)
-                const unfilteredContagensRes = await getContagensPorRange('2000-01-01', '2100-01-01');
-                
-                // FILTRO MANUAL (WORKAROUND):
-                contagensResData = (unfilteredContagensRes.data || []).filter(contagem => 
+                const contagens = await getTodosContagensPorRange(startDate, endDate);
+                const contagensDoPeriodo = (contagens || []).filter(contagem =>
                     validDaysSet.has(contagem.data_contagem)
                 );
+                contagensResData = selectEffectiveContagens(contagensDoPeriodo);
             }
             
             // --- 2. Busca NECESSIDADES (NES) ---
             if (dataType === 'necessidades' || dataType === 'tudo') {
-                // Busca TODOS os dados NES (passando uma data qualquer, já que a API ignora)
-                const unfilteredNesRes = await getAlunosNesPorData(initialState.date);
-                
-                // FILTRO MANUAL (WORKAROUND):
-                necResData = (unfilteredNesRes.data || []).filter(nes => {
-                    const nesDate = nes.data_hora_contagem.split('T')[0];
+                const nesPages = await Promise.all(validDays.map(day => getTodosAlunosNesPorData(day)));
+                necResData = nesPages.flat().filter(nes => {
+                    const nesDate = nes.data_hora_contagem?.split('T')[0];
                     return validDaysSet.has(nesDate);
                 });
             }
@@ -136,7 +132,7 @@ const ReportView = () => {
         } finally {
             setLoading(false);
         }
-    }, [filters, reportType, dataType, initialState.date]); // Adiciona initialState.date
+    }, [filters, reportType, dataType]);
 
     const handleDownloadReport = () => {
         Swal.fire('Em breve!', 'A funcionalidade de download (PDF) será implementada aqui.', 'info');

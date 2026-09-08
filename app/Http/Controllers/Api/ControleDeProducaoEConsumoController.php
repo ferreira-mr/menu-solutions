@@ -10,6 +10,7 @@ use App\Services\ProducaoConsumoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Validation\ValidationException;
 
 class ControleDeProducaoEConsumoController extends Controller
 {
@@ -22,7 +23,24 @@ class ControleDeProducaoEConsumoController extends Controller
      */
     public function index(Request $request)
     {
-        $controleDeProducaoEConsumos = $this->producaoService->list();
+        $validated = $request->validate([
+            'data' => ['nullable', 'date_format:Y-m-d'],
+            'date' => ['nullable', 'date_format:Y-m-d'],
+            'data_inicio' => ['nullable', 'date_format:Y-m-d'],
+            'data_fim' => ['nullable', 'date_format:Y-m-d'],
+            'page' => ['nullable', 'integer', 'min:1'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:1000'],
+        ]);
+
+        if (($validated['data_inicio'] ?? null) !== null
+            && ($validated['data_fim'] ?? null) !== null
+            && $validated['data_fim'] < $validated['data_inicio']) {
+            throw ValidationException::withMessages([
+                'data_fim' => ['A data final deve ser igual ou posterior à data inicial.'],
+            ]);
+        }
+
+        $controleDeProducaoEConsumos = $this->producaoService->list($validated);
 
         return ControleDeProducaoEConsumoResource::collection($controleDeProducaoEConsumos);
     }

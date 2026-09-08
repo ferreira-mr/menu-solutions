@@ -88,16 +88,11 @@ function App() {
         {/* ================== ROTAS DA DIRETORA ================== */}
         <Route element={<RoleShell role="diretora" />}>
           <Route path="/diretora/inicio" element={<InicioPage userRole="diretora" />} />
-          <Route path="/diretora/dashboard" element={<DashboardNutri />} />
-          <Route path="/diretora/controle-producao" element={<ControleProducaoPage />} />
           <Route path="/diretora/relatorio-geral" element={<ContagemGeralPage />} />
-          <Route path="/diretora/gerenciar/categorias" element={<CategoriasPage />} />
           <Route path="/diretora/gerenciar/usuarios" element={<UsuariosPage />} />
-          <Route path="/diretora/cardapios" element={<CardapiosPage />} />
+          <Route path="/diretora/cardapio" element={<ViewCardapioPage />} />
           <Route path="/diretora/chat" element={<ChatPage />} />
-          <Route path="/diretora/cronograma" element={<CronogramaPage />} />
           <Route path="/diretora/autorizados" element={<AutorizadosPage />} />
-          <Route path="/diretora/planejamento" element={<PlanejamentoPage />} />
           <Route path="/diretora/perfil" element={<ProfilePage />} />
         </Route>
 

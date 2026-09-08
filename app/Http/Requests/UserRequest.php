@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\UserRole;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UserRequest extends FormRequest
 {
@@ -25,7 +27,7 @@ class UserRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email',
-            'nivel_user' => 'required|integer|in:1,2,3',
+            'nivel_user' => ['required', 'integer', Rule::enum(UserRole::class)],
             'nif' => 'required|string|max:255|unique:users,nif',
             'password' => 'required|string|min:8|max:72|confirmed',
         ];

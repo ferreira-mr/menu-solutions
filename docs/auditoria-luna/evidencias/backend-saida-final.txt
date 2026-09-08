@@ -1,0 +1,51 @@
+Trecho final da saída original; as linhas anteriores foram recebidas em outra chamada.
+
+   PASS  Tests\Feature\BusinessRules\AutorizadosBusinessRulesTest
+  ✓ nutricionista creates autorizado with default pending status                                                 0.05s  
+  ✓ inspetora and diretora cannot create autorizados                                                             0.05s  
+  ✓ diretora approves autorizado via update route                                                                0.04s  
+  ✓ nutri edits autorizado and inspetora cannot edit                                                             0.04s  
+  ✓ only nutri can delete autorizado                                                                             0.04s  
+
+   PASS  Tests\Feature\BusinessRules\BackendHomologationBusinessRulesTest
+  ✓ nutritionist can update user role and password                                                               0.07s  
+  ✓ non administrator cannot update other users                                                                  0.05s  
+  ✓ user creation enforces unique nif and unique email                                                           0.06s  
+  ✓ turma deletion is blocked when having students or counts                                                     0.05s  
+  ✓ contagem nes deletion allows today and blocks past                                                           0.07s  
+  ✓ rn15 dashboard aggregates categories correctly including segregated outros                                   0.05s  
+
+   PASS  Tests\Feature\BusinessRules\CardapioAndStorageTest
+  ✓ nutricionista can upload pdf cardapio                                                                        0.05s  
+  ✓ inspetora and diretora cannot upload cardapio                                                                0.08s  
+  ✓ cardapio upload rejects non pdf files                                                                        0.08s  
+  ✓ deleting cardapio removes record and file                                                                    0.16s  
+
+   PASS  Tests\Feature\BusinessRules\ChatContractTest
+  ✓ authenticated user can send chat message                                                                     0.10s  
+  ✓ message validation rejects empty or too long content                                                         0.07s  
+  ✓ only message author can update or delete message                                                             0.06s  
+  ✓ get chat members returns all participants with messages                                                      0.07s  
+
+   PASS  Tests\Feature\BusinessRules\ContagemBusinessRulesTest
+  ✓ inspetora and nutri can create counts for today                                                              0.08s  
+  ✓ rn14 cannot edit past counts                                                                                 0.09s  
+  ✓ can edit today counts                                                                                        0.05s  
+  ✓ filtering counts by date and range                                                                           0.07s  
+
+   PASS  Tests\Feature\BusinessRules\ContagemNesBusinessRulesTest
+  ✓ inspetora and nutri can register special needs attendance                                                    0.07s  
+  ✓ can delete today attendance but cannot delete past attendance                                                0.06s  
+  ✓ filtering special needs attendance by date                                                                   0.06s  
+
+   PASS  Tests\Feature\BusinessRules\ProducaoConsumoBusinessRulesTest
+  ✓ nutricionista creates daily production and waste record                                                      0.04s  
+  ✓ non nutri users cannot create production record                                                              0.05s  
+  ✓ production validations reject negative values                                                                0.04s  
+  ✓ soft delete and restoration audit                                                                            0.04s  
+
+   PASS  Tests\Feature\ExampleTest
+  ✓ the application returns a successful response                                                                0.42s  
+
+  Tests:    59 passed (266 assertions)
+  Duration: 8.03s

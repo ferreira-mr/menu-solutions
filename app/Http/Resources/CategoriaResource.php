@@ -17,6 +17,7 @@ class CategoriaResource extends JsonResource
         return [
             'id' => $this->id,
             'nome_categoria' => $this->nome_categoria,
+            'inclui_total_regular' => (bool) $this->inclui_total_regular,
             'turmas' => TurmaResource::collection($this->whenLoaded('turmas')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
