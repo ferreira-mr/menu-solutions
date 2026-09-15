@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Services\SchoolCalendarService;
 use App\Services\VinculoService;
+use Illuminate\Validation\ValidationException;
 
 class ContagemNeController extends Controller
 {
@@ -26,11 +27,23 @@ class ContagemNeController extends Controller
         $validated = $request->validate([
             'data' => ['nullable', 'date_format:Y-m-d'],
             'date' => ['nullable', 'date_format:Y-m-d'],
+            'data_inicio' => ['nullable', 'date_format:Y-m-d'],
+            'data_fim' => ['nullable', 'date_format:Y-m-d'],
             'page' => ['nullable', 'integer', 'min:1'],
             'limit' => ['nullable', 'integer', 'min:1', 'max:1000'],
         ]);
 
+        if (($validated['data_inicio'] ?? null) !== null
+            && ($validated['data_fim'] ?? null) !== null
+            && $validated['data_fim'] < $validated['data_inicio']) {
+            throw ValidationException::withMessages([
+                'data_fim' => ['A data final deve ser igual ou posterior à data inicial.'],
+            ]);
+        }
+
         $day = $validated['data'] ?? $validated['date'] ?? null;
+        $dataInicio = $validated['data_inicio'] ?? null;
+        $dataFim = $validated['data_fim'] ?? null;
 
         $query = ContagemNe::with(['alunosHasNecessidade.aluno', 'alunosHasNecessidade.necessidade']);
 
@@ -38,6 +51,17 @@ class ContagemNeController extends Controller
             [$startUtc, $endUtc] = $this->schoolCalendar->utcWindowForDate($day);
             $query->where('created_at', '>=', $startUtc->toDateTimeString())
                 ->where('created_at', '<', $endUtc->toDateTimeString());
+        } elseif ($dataInicio && $dataFim) {
+            [$startUtc] = $this->schoolCalendar->utcWindowForDate($dataInicio);
+            [, $endUtc] = $this->schoolCalendar->utcWindowForDate($dataFim);
+            $query->where('created_at', '>=', $startUtc->toDateTimeString())
+                ->where('created_at', '<', $endUtc->toDateTimeString());
+        } elseif ($dataInicio) {
+            [$startUtc] = $this->schoolCalendar->utcWindowForDate($dataInicio);
+            $query->where('created_at', '>=', $startUtc->toDateTimeString());
+        } elseif ($dataFim) {
+            [, $endUtc] = $this->schoolCalendar->utcWindowForDate($dataFim);
+            $query->where('created_at', '<', $endUtc->toDateTimeString());
         }
 
         $perPage = $validated['limit'] ?? 100;

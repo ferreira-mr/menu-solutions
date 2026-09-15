@@ -38,9 +38,11 @@ class ContagemNeRequest extends FormRequest
         $validator->after(function (Validator $validator): void {
             $relationId = $this->input('alunos_has_necessidades_id');
 
-            if (! is_int($relationId)) {
+            if (! is_numeric($relationId)) {
                 return;
             }
+
+            $relationId = (int) $relationId;
 
             $relation = AlunosHasNecessidade::query()
                 ->with(['aluno', 'necessidade'])

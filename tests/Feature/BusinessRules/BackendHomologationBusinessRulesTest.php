@@ -123,6 +123,31 @@ class BackendHomologationBusinessRulesTest extends TestCase
         $this->api($nutri)->deleteJson("/api/turmas/{$turma->id}")->assertStatus(409);
     }
 
+    public function test_turma_can_be_recreated_after_soft_delete(): void
+    {
+        $nutri = $this->user(UserRole::Nutri, '20000000008');
+        $categoria = Categoria::create(['nome_categoria' => 'Fundamental 2']);
+        
+        // Criar turma
+        $response1 = $this->api($nutri)->postJson('/api/turmas', [
+            'nome_turma' => '8º Ano X',
+            'categorias_id' => $categoria->id,
+        ]);
+        $response1->assertCreated();
+        $turmaId = $response1->json('data.id');
+
+        // Excluir turma (sem alunos nem contagens)
+        $this->api($nutri)->deleteJson("/api/turmas/{$turmaId}")->assertNoContent();
+        $this->assertSoftDeleted('turmas', ['id' => $turmaId]);
+
+        // Tentativa de recriar com o mesmo nome deve retornar 422 da validação, prevenindo erro 500 de integridade do banco
+        $response2 = $this->api($nutri)->postJson('/api/turmas', [
+            'nome_turma' => '8º Ano X',
+            'categorias_id' => $categoria->id,
+        ]);
+        $response2->assertUnprocessable();
+    }
+
     public function test_contagem_nes_deletion_allows_today_and_blocks_past(): void
     {
         $nutri = $this->user(UserRole::Nutri, '20000000004');

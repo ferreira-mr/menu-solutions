@@ -108,4 +108,60 @@ class ContagemNesBusinessRulesTest extends TestCase
         $this->assertTrue($ids->contains($today->id));
         $this->assertFalse($ids->contains($past->id));
     }
+
+    public function test_filtering_special_needs_attendance_by_date_range(): void
+    {
+        $user = $this->user(1);
+        $pivot = $this->createPivot();
+
+        $c1 = ContagemNe::create(['alunos_has_necessidades_id' => $pivot->id]);
+        $c1->created_at = '2026-05-10 12:00:00';
+        $c1->saveQuietly();
+
+        $c2 = ContagemNe::create(['alunos_has_necessidades_id' => $pivot->id]);
+        $c2->created_at = '2026-05-15 12:00:00';
+        $c2->saveQuietly();
+
+        $c3 = ContagemNe::create(['alunos_has_necessidades_id' => $pivot->id]);
+        $c3->created_at = '2026-05-25 12:00:00';
+        $c3->saveQuietly();
+
+        // Range entre 2026-05-10 e 2026-05-20 deve retornar c1 e c2, mas não c3
+        $response = $this->actingAs($user, 'sanctum')
+            ->getJson('/api/contagem-nes?data_inicio=2026-05-10&data_fim=2026-05-20');
+        $response->assertOk();
+
+        $ids = collect($response->json('data'))->pluck('id');
+        $this->assertTrue($ids->contains($c1->id));
+        $this->assertTrue($ids->contains($c2->id));
+        $this->assertFalse($ids->contains($c3->id));
+
+        // Data fim anterior a data início deve retornar 422
+        $invalidRange = $this->actingAs($user, 'sanctum')
+            ->getJson('/api/contagem-nes?data_inicio=2026-05-20&data_fim=2026-05-10');
+        $invalidRange->assertUnprocessable();
+    }
+
+    public function test_string_numeric_id_validates_active_student_and_need(): void
+    {
+        $user = $this->user(1);
+        $aluno = Aluno::factory()->create();
+        $necessidade = Necessidade::factory()->create();
+
+        $pivot = AlunosHasNecessidade::create([
+            'alunos_id' => $aluno->id,
+            'necessidades_id' => $necessidade->id,
+        ]);
+
+        // Aluno é desativado via soft delete
+        $aluno->delete();
+
+        // Envio com ID em formato string numérica deve disparar erro 422
+        $response = $this->actingAs($user, 'sanctum')->postJson('/api/contagem-nes', [
+            'alunos_has_necessidades_id' => (string) $pivot->id,
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['alunos_has_necessidades_id']);
+    }
 }
