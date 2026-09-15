@@ -125,7 +125,7 @@ const DashboardNutri = () => {
 
     const naiData = useMemo(() => {
         return nesHojeFiltrado
-            .filter(item => item.aluno?.necessidade?.toUpperCase() === 'NAE') // Ajustado para NAE como no seu sistema
+            .filter(item => ['NAI', 'NAE'].includes(item.aluno?.necessidade?.toUpperCase()))
             .map(item => item.aluno);
     }, [nesHojeFiltrado]);
 

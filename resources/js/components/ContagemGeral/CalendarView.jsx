@@ -7,7 +7,6 @@ import {
     getTodosAlunosNesPorData,
     getTodasNecessidades,
     getNecessidadeComAlunos,
-    getTurmas
 } from '../../services/api';
 import { useSchoolCalendar } from '../../features/contagem/useSchoolCalendar';
 import { getSchoolDate, getSchoolDateFromInstant, selectEffectiveContagens } from '../../features/contagem/schoolCalendar';
@@ -87,18 +86,6 @@ const CalendarView = () => {
 
     const carregarDetalhesDoDia = useCallback(async (date) => {
         const dateStr = toISODateString(date);
-        
-        // Se o calendário diz que não tem nada nesse dia, nem chama a API
-        if (!countsData.has(dateStr)) {
-            setSelectedDayDetails({
-                date,
-                totalGeralContagens: 0,
-                totals: { total_regular: 0, total_outros: 0, total_combinado: 0 },
-                contagens: [],
-                necessidades: new Map(),
-            });
-            return;
-        }
 
         setLoadingDetails(true);
         try {
@@ -152,7 +139,7 @@ const CalendarView = () => {
         } finally {
             setLoadingDetails(false);
         }
-    }, [countsData, relacaoToDescricaoMap, timezone]);
+    }, [relacaoToDescricaoMap, timezone]);
 
     useEffect(() => { carregarMapasDeApoio(); }, [carregarMapasDeApoio]);
     useEffect(() => { carregarTotaisDoMes(currentYear, currentMonth); }, [currentYear, currentMonth, carregarTotaisDoMes]);

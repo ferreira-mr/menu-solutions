@@ -104,3 +104,19 @@ export const getTodosAlunosNesPorData = (data, options = {}) => {
         limit, signal, maxPages, maxItems,
     });
 };
+
+export const getAlunosNesPorRange = (dataInicio, dataFim) => {
+    return apiFetch(`/contagem-nes?data_inicio=${dataInicio}&data_fim=${dataFim}`);
+};
+
+export const getPaginaAlunosNesPorRange = (dataInicio, dataFim, page = 1, limit = 100, options = {}) => apiFetch(
+    `/contagem-nes?${paginationQuery(page, limit, { data_inicio: dataInicio, data_fim: dataFim })}`,
+    options,
+);
+
+export const getTodosAlunosNesPorRange = (dataInicio, dataFim, options = {}) => {
+    const { limit = 100, signal, maxPages, maxItems } = options;
+    return collectPaginated((page, pageLimit, requestOptions) => getPaginaAlunosNesPorRange(dataInicio, dataFim, page, pageLimit, requestOptions), {
+        limit, signal, maxPages, maxItems,
+    });
+};

@@ -6,9 +6,10 @@ import ReportFilterPanel from './ReportFilterPanel';
 import ReportPreview from './ReportPreview';
 import { 
     getTodosContagensPorRange,
-    getTodosAlunosNesPorData,
+    getTodosAlunosNesPorRange,
 } from '../../services/api';
-import { selectEffectiveContagens } from '../../features/contagem/schoolCalendar';
+import { selectEffectiveContagens, getSchoolDateFromInstant } from '../../features/contagem/schoolCalendar';
+import { useSchoolCalendar } from '../../features/contagem/useSchoolCalendar';
 // Importa as novas funções UTC
 import { toISODateString, parseISODateAsUTC, MONTHS, formatFriendlyDate } from './utils'; // <-- CORREÇÃO AQUI
 import './ReportView.css';
@@ -35,6 +36,7 @@ const getDaysInRange = (startDate, endDate) => {
 
 
 const ReportView = () => {
+    const { timezone } = useSchoolCalendar();
     const [reportType, setReportType] = useState('diario');
     const [dataType, setDataType] = useState('tudo'); 
     
@@ -114,9 +116,10 @@ const ReportView = () => {
             
             // --- 2. Busca NECESSIDADES (NES) ---
             if (dataType === 'necessidades' || dataType === 'tudo') {
-                const nesPages = await Promise.all(validDays.map(day => getTodosAlunosNesPorData(day)));
-                necResData = nesPages.flat().filter(nes => {
-                    const nesDate = nes.data_hora_contagem?.split('T')[0];
+                const nesData = await getTodosAlunosNesPorRange(startDate, endDate);
+                necResData = (nesData || []).filter(nes => {
+                    const dataRegistro = nes.data_hora_contagem || (nes.contagem && nes.contagem.data_contagem);
+                    const nesDate = getSchoolDateFromInstant(dataRegistro, timezone);
                     return validDaysSet.has(nesDate);
                 });
             }
@@ -132,7 +135,7 @@ const ReportView = () => {
         } finally {
             setLoading(false);
         }
-    }, [filters, reportType, dataType]);
+    }, [filters, reportType, dataType, timezone]);
 
     const handleDownloadReport = () => {
         Swal.fire('Em breve!', 'A funcionalidade de download (PDF) será implementada aqui.', 'info');

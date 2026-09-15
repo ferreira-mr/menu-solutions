@@ -19,9 +19,10 @@ const ViewCardapioPage = () => {
             if (latestCardapio && latestCardapio.path) {
                 // Monta a URL completa do PDF
                 let url = latestCardapio.path;
-                if (!url.startsWith('http')) {
-                    const cleanBaseUrl = API_BASE_URL.replace('/api', '');
-                    url = `${cleanBaseUrl}/uploads/${latestCardapio.path}`;
+                if (!/^https?:\/\//i.test(url)) {
+                    const cleanBaseUrl = API_BASE_URL.replace(/\/api\/?$/, '');
+                    const cleanPath = latestCardapio.path.replace(/^\/?(uploads\/pdf\/|uploads\/)/, '');
+                    url = `${cleanBaseUrl}/uploads/pdf/${cleanPath}`;
                 }
                 setPdfUrl(safeHttpUrl(url, null));
                 setCardapioDate(latestCardapio.created_at);
@@ -64,7 +65,7 @@ const ViewCardapioPage = () => {
                 {/* Header */}
                 <header className="view-cardapio-header">
                     <h2>
-                        <i className="bi bi-journal-richtext" style={{color: '#e67e22'}}></i> 
+                        <i className="bi bi-journal-richtext cardapio-header-icon" aria-hidden="true"></i> 
                         Cardápio Semanal
                     </h2>
                     
@@ -80,8 +81,8 @@ const ViewCardapioPage = () => {
                 <div className="pdf-viewer-container">
                     {loading ? (
                         <div className="loading-state">
-                            <div className="spinner-border text-primary" style={{width: '3rem', height: '3rem'}} role="status"></div>
-                            <p style={{marginTop: '1rem', fontSize: '1.1rem'}}>Buscando cardápio mais recente...</p>
+                            <div className="spinner-border text-primary cardapio-loading-spinner" role="status"></div>
+                            <p className="cardapio-loading-text">Buscando cardápio mais recente...</p>
                         </div>
                     ) : pdfUrl ? (
                         <iframe 

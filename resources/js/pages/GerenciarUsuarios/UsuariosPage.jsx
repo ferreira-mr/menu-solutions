@@ -271,7 +271,7 @@ const UsuariosPage = () => {
                             className={`page-btn ${link.active ? 'active' : ''}`}
                             disabled={!link.url}
                             onClick={() => {
-                                const page = new URL(link.url).searchParams.get('page');
+                                const page = new URL(link.url, window.location.origin).searchParams.get('page');
                                 fetchUsers(page);
                             }}
                         >

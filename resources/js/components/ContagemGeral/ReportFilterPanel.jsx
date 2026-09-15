@@ -1,6 +1,7 @@
 // /src/components/ContagemGeral/ReportFilterPanel.jsx
 import React from 'react';
 import html2pdf from 'html2pdf.js'; // <--- 1. IMPORTAÇÃO DO HTML2PDF
+import Swal from 'sweetalert2/dist/sweetalert2.all.min.js';
 import { MONTHS } from './utils'; 
 import './ReportFilterPanel.css'; 
 
@@ -26,7 +27,7 @@ const ReportFilterPanel = ({
         const element = document.getElementById('report-page');
 
         if (!element) {
-            alert('Erro: O relatório não foi encontrado na tela.');
+            Swal.fire('Erro!', 'O relatório não foi encontrado na tela.', 'error');
             return;
         }
 

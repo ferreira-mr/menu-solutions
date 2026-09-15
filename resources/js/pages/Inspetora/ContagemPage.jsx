@@ -100,7 +100,7 @@ const ContagemPage = () => {
       necessidadesComAlunos.forEach(nec => {
         (nec?.alunos || []).forEach(aluno => {
           if (aluno?.turmas_id === turma.id) {
-            const isNAE = String(nec?.necessidade || '').toUpperCase() === 'NAE';
+            const isNAE = ['NAI', 'NAE'].includes(String(nec?.necessidade || '').trim().toUpperCase());
             const isInCronograma = idsAlunosNoCronograma.has(aluno.id);
             const relacaoId = aluno.alunos_has_necessidades_id;
             if (!relacaoId) {

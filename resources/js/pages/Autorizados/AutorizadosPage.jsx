@@ -172,7 +172,7 @@ const AutorizadosPage = () => {
             <div className="autorizados-content">
                 <div className="autorizados-header">
                     <h2>
-                        <i className="bi bi-file-earmark-check-fill" style={{color: '#27ae60'}}></i> 
+                        <i className="bi bi-file-earmark-check-fill autorizados-header-icon" aria-hidden="true"></i> 
                         Autorizados Pela Direção
                     </h2>
                     <div className="header-tools">
@@ -196,7 +196,7 @@ const AutorizadosPage = () => {
 
                 <div className="autorizados-grid-scroll">
                     {loading ? (
-                        <div style={{textAlign:'center', padding:'2rem', width:'100%'}}>
+                        <div className="autorizados-loading-container">
                             <div className="spinner-border text-secondary" role="status"></div>
                         </div>
                     ) : filteredData.length > 0 ? (
@@ -227,7 +227,7 @@ const AutorizadosPage = () => {
                                             </>
                                         )}
 
-                                        {canEdit && (item.status === 'pendente' || userLevel === LEVEL_DIRETORA) && (
+                                        {canEdit && item.status === 'pendente' && (
                                             <button className="btn-icon-auth btn-edit-auth" onClick={() => handleOpenModal(item)} title="Editar">
                                                 <i className="bi bi-pencil-fill"></i>
                                             </button>
