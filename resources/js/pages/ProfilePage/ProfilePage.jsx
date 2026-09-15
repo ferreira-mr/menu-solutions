@@ -164,7 +164,7 @@ const ProfilePage = () => {
                                 />
                                 <small className="helper-text">O NIF é utilizado para login e não pode ser alterado por aqui.</small>
                             </div>
-                            <div style={{textAlign: 'right', marginTop: '1rem'}}>
+                            <div className="form-action-container">
                                 <button type="submit" className="btn-save">
                                     <i className="bi bi-check-lg"></i> Salvar Dados
                                 </button>
@@ -214,7 +214,7 @@ const ProfilePage = () => {
                                 </div>
                             </div>
 
-                            <div style={{textAlign: 'right', marginTop: '1rem'}}>
+                            <div className="form-action-container">
                                 <button type="submit" className="btn-save btn-password">
                                     <i className="bi bi-key-fill"></i> Atualizar Senha
                                 </button>

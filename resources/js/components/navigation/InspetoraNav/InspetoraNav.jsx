@@ -17,7 +17,7 @@ const InspetoraNav = ({ isOpen, usuario, dataSelecionada, onLogout, onCloseMenu 
   ];
 
   return (
-    <div className={menuClasses}>
+    <nav className={menuClasses} aria-label="Menu principal da inspetora">
       <div className="nome-usuario-container">
         <span>{usuario}</span>
       </div>
@@ -31,9 +31,8 @@ const InspetoraNav = ({ isOpen, usuario, dataSelecionada, onLogout, onCloseMenu 
       <ul className="opcoes">
         {menuItems.map((item, index) => (
           <li key={index} onClick={onCloseMenu}>
-            {/* O Link evita que a página pisque (white screen) ao navegar */}
             <Link to={item.rota}>
-              <i className={item.icone}></i>
+              <i className={item.icone} aria-hidden="true"></i>
               &nbsp;&nbsp;{item.texto}
             </Link>
           </li>
@@ -41,10 +40,10 @@ const InspetoraNav = ({ isOpen, usuario, dataSelecionada, onLogout, onCloseMenu 
       </ul>
       
       {/* Botão de Sair */}
-      <div className="sair" onClick={onLogout}>
-        <i className="bi bi-box-arrow-right"></i>&nbsp;&nbsp;Sair
-      </div>
-    </div>
+      <button type="button" className="sair" onClick={onLogout} aria-label="Sair do sistema">
+        <i className="bi bi-box-arrow-right" aria-hidden="true"></i>&nbsp;&nbsp;Sair
+      </button>
+    </nav>
   );
 };
 

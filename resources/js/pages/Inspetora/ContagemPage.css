@@ -6,8 +6,8 @@
    VARIÁVEIS DE TEMA
    ------------------------------ */
    :root {
-    --cor-primaria: #8B0000; /* Preto principal para botões e cards */
-    --cor-primaria-hover: #990000; /* Preto mais claro para efeito hover */
+    --cor-primaria: var(--color-brand-red); /* Preto principal para botões e cards */
+    --cor-primaria-hover: var(--color-brand-red-hover); /* Preto mais claro para efeito hover */
     --cor-completo: #1a1a1a; /* Preto levemente acinzentado */
     --cor-completo-hover: #333333; /* Tom mais claro no hover */
     --cor-texto-claro: #ffffff; /* Branco puro para textos em fundo escuro */

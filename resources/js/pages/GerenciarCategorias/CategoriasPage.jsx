@@ -300,7 +300,7 @@ const CategoriasPage = () => {
                     </div>
 
                     {isLoading ? (
-                        <p style={{ padding: '10px' }}>Carregando...</p>
+                        <p className="cat-loading-text">Carregando...</p>
                     ) : (
                         categorias.map(cat => (
                             <div
@@ -348,7 +348,7 @@ const CategoriasPage = () => {
                         <tbody>
                             {isLoading ? (
                                 <tr>
-                                    <td colSpan="3" style={{ textAlign: 'center', padding: '40px' }}>
+                                    <td colSpan="3" className="table-loading-turmas">
                                         Carregando...
                                     </td>
                                 </tr>

@@ -1,17 +1,9 @@
-import React, { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './InicioPage.css';
 
 const InicioPage = ({ userRole }) => {
   const navigate = useNavigate();
-  const location = useLocation();
-
-  // Sempre que a URL mudar para /inicio --> RECARREGA a página.
-  useEffect(() => {
-    if (location.pathname === "/inicio") {
-      window.location.reload();
-    }
-  }, [location.pathname]);
 
   const botoesConfig = {
     inspetora: [
@@ -58,7 +50,7 @@ const InicioPage = ({ userRole }) => {
             onClick={() => navigate(botao.rota)}
             style={botao.color ? { backgroundColor: botao.color } : {}}
           >
-            <i className={botao.icone}></i> {botao.texto}
+            <i className={botao.icone} aria-hidden="true"></i> {botao.texto}
           </button>
         ))}
       </div>

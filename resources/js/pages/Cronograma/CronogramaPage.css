@@ -26,7 +26,7 @@
 
 .cronograma-header h1 {
     font-size: 1.5rem;
-    color: #222;
+    color: var(--color-nav-bg);
     margin: 0;
     font-weight: 600;
     display: flex;
@@ -50,7 +50,7 @@
     top: 0;
     bottom: 0;
     width: 60px; /* Largura fechada */
-    background-color: #222; /* Cor escura profissional */
+    background-color: var(--color-nav-bg); /* Cor escura profissional */
     z-index: 100;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 4px 0 15px rgba(0,0,0,0.1);
@@ -96,7 +96,7 @@
     align-items: center;
     padding-top: 2rem;
     color: rgba(255,255,255,0.7);
-    background-color: #222;
+    background-color: var(--color-nav-bg);
     cursor: pointer;
     transition: opacity 0.2s;
 }
@@ -125,7 +125,7 @@
     margin: 0 0 1rem 0;
     color: #333;
     font-size: 1.1rem;
-    border-bottom: 2px solid #8B0000;
+    border-bottom: 2px solid var(--color-brand-red);
     padding-bottom: 0.5rem;
 }
 
@@ -141,7 +141,7 @@
 .source-list {
     flex-grow: 1;
     overflow-y: auto;
-    background-color: #f8f9fa;
+    background-color: var(--color-bg-alt);
     border-radius: 8px;
     border: 1px solid #eee;
     padding: 0.5rem;
@@ -152,7 +152,7 @@
     padding: 0.8rem;
     margin-bottom: 0.5rem;
     border-radius: 6px;
-    border-left: 4px solid #8B0000; /* Detalhe vermelho */
+    border-left: 4px solid var(--color-brand-red); /* Detalhe vermelho */
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     cursor: grab;
     font-size: 0.9rem;
@@ -235,7 +235,7 @@
 
 .student-card:hover {
     background-color: #f4f5f7;
-    border-left-color: #28a745; /* Verde no hover */
+    border-left-color: var(--color-primary); /* Verde no hover */
 }
 
 .student-name {
@@ -266,7 +266,7 @@
 }
 
 .delete-schedule-button:hover {
-    color: #dc3545;
+    color: var(--color-danger);
     background-color: #ffeaea;
 }
 
@@ -282,4 +282,8 @@
 .schedule-panel::-webkit-scrollbar-thumb {
     background-color: #ccc;
     border-radius: 3px;
+}
+
+.student-card i.bi-person-fill {
+    margin-right: 8px;
 }

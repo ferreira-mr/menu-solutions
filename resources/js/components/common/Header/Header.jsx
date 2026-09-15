@@ -19,15 +19,15 @@ const Header = ({ onMenuClick, onLogoClick, userRole, isMenuOpen }) => {
             {/* Seção Esquerda (Vermelha) */}
             <div className="header-section header-left">
                 {showBackButton && (
-                    <button className="header-back-button" onClick={() => navigate(-1)} title="Voltar">
-                        <i className="bi bi-arrow-left"></i>
+                    <button className="header-back-button" onClick={() => navigate(-1)} title="Voltar" aria-label="Voltar à página anterior">
+                        <i className="bi bi-arrow-left" aria-hidden="true"></i>
                     </button>
                 )}
             </div>
 
             {/* Seção Central (Branca com Logos) */}
             <div className="header-section header-center">
-                <img src={setas} alt="Setas" className="setas-flanco" />
+                <img src={setas} alt="" className="setas-flanco" aria-hidden="true" />
                 <img 
                     src={logo} 
                     alt="Logo" 
@@ -35,7 +35,7 @@ const Header = ({ onMenuClick, onLogoClick, userRole, isMenuOpen }) => {
                     style={{ cursor: 'pointer' }} 
                     onClick={onLogoClick} 
                 />
-                <img src={setas2} alt="Setas 2" className="setas-flanco" />
+                <img src={setas2} alt="" className="setas-flanco" aria-hidden="true" />
             </div>
 
             {/* Seção Direita (Vermelha) */}
@@ -45,8 +45,12 @@ const Header = ({ onMenuClick, onLogoClick, userRole, isMenuOpen }) => {
                         <span id="notificacao-badge" style={{ display: 'none' }}></span>
                     </div>
                 )}
-                <button className="menu-hamburguer" onClick={onMenuClick}>
-                    <i id="iconeMenu" className={iconeClasses}></i>
+                <button 
+                    className="menu-hamburguer" 
+                    onClick={onMenuClick}
+                    aria-expanded={isMenuOpen}
+                >
+                    <i id="iconeMenu" className={iconeClasses} aria-hidden="true"></i>
                 </button>
             </div>
         </header>

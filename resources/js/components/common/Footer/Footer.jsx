@@ -80,8 +80,8 @@ const Footer = () => {
         </div>
 
         <div className="footer-row terms-final">
-          {/* 3. Links transformados em spans com onClick para chamar os modais */}
-          <span className="footer-link" onClick={showTermsModal}>Termos de Uso</span> | <span className="footer-link" onClick={showPrivacyModal}>Política de Privacidade</span>
+          {/* 3. Links transformados em buttons com onClick para chamar os modais */}
+          <button type="button" className="footer-link" onClick={showTermsModal}>Termos de Uso</button> | <button type="button" className="footer-link" onClick={showPrivacyModal}>Política de Privacidade</button>
         </div>
 
         <div className="copyright">

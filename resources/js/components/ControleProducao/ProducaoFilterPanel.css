@@ -2,7 +2,7 @@
 
 /* Coluna 3: Painel de Filtros (Direita) */
 .producao-filter-panel {
-    background-color: #f8f9fa; /* Cor clara */
+    background-color: var(--color-bg-alt); /* Cor clara */
     border-left: 1px solid #e0e0e0;
     padding: 1.5rem;
     display: flex;
@@ -91,11 +91,11 @@
 }
 
 .report-actions .btn-gerar {
-    background-color: #27ae60; /* Verde */
+    background-color: var(--color-primary); /* Verde */
     color: white;
 }
 .report-actions .btn-gerar:hover {
-    background-color: #229954;
+    background-color: var(--color-primary-hover);
 }
 .report-actions .btn-gerar:disabled {
     background-color: #95a5a6;
@@ -103,7 +103,7 @@
 }
 
 .report-actions .btn-baixar {
-    background-color: #2980b9; /* Azul */
+    background-color: var(--color-info); /* Azul */
     color: white;
 }
 .report-actions .btn-baixar:hover {

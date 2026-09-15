@@ -24,7 +24,7 @@ const NutriNav = ({ isOpen, usuario, dataSelecionada, onLogout, onCloseMenu }) =
   ];
 
   return (
-    <div className={menuClasses}>
+    <nav className={menuClasses} aria-label="Menu principal da nutricionista">
       <div className="nome-usuario-container">
         <span>{usuario}</span>
       </div>
@@ -39,7 +39,7 @@ const NutriNav = ({ isOpen, usuario, dataSelecionada, onLogout, onCloseMenu }) =
         {menuItems.map((item, index) => (
           <li key={index} onClick={onCloseMenu}>
             <Link to={item.rota}>
-              <i className={item.icone}></i>
+              <i className={item.icone} aria-hidden="true"></i>
               &nbsp;&nbsp;{item.texto}
             </Link>
           </li>
@@ -47,10 +47,10 @@ const NutriNav = ({ isOpen, usuario, dataSelecionada, onLogout, onCloseMenu }) =
       </ul>
 
       {/* Botão de Sair */}
-      <div className="sair" onClick={onLogout}>
-        <i className="bi bi-box-arrow-right"></i>&nbsp;&nbsp;Sair
-      </div>
-    </div>
+      <button type="button" className="sair" onClick={onLogout} aria-label="Sair do sistema">
+        <i className="bi bi-box-arrow-right" aria-hidden="true"></i>&nbsp;&nbsp;Sair
+      </button>
+    </nav>
   );
 };
 

@@ -468,6 +468,9 @@
     transition: border-color 0.2s;
 }
 .swal-form-container .swal2-input:focus {
-    border-color: #8B0000 !important;
+    border-color: var(--color-brand-red) !important;
     ring: 2px solid rgba(139, 0, 0, 0.1);
+}
+.panel-search-wrapper {
+    padding: 0 15px 10px;
 }

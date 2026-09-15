@@ -1,7 +1,6 @@
 .profile-container {
     padding: 2rem;
-    background-color: #f4f6f9;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--color-bg-main);
     /* Define a altura máxima do card branco geral */
     height: 85vh; 
     margin-top: 5vh;
@@ -110,7 +109,7 @@
 /* Cartão de Identidade (Esquerda) */
 .identity-card {
     text-align: center;
-    border-top: 4px solid #28a745; /* Verde Nutri */
+    border-top: 4px solid var(--color-primary); /* Verde Nutri */
 }
 
 .avatar-large {
@@ -155,7 +154,7 @@
 
 .stat-item i {
     margin-right: 10px;
-    color: #28a745;
+    color: var(--color-primary);
 }
 
 /* Formulários (Direita) */
@@ -188,7 +187,7 @@
 }
 
 .form-input:focus {
-    border-color: #28a745;
+    border-color: var(--color-primary);
     outline: none;
 }
 
@@ -198,7 +197,7 @@
 }
 
 .btn-save {
-    background-color: #28a745;
+    background-color: var(--color-primary);
     color: white;
     border: none;
     padding: 0.75rem 1.5rem;
@@ -212,7 +211,7 @@
 }
 
 .btn-save:hover {
-    background-color: #218838;
+    background-color: var(--color-primary-dark);
 }
 
 .quick-actions {
@@ -223,7 +222,7 @@
 }
 
 .action-card {
-    background: #f8f9fa;
+    background: var(--color-bg-alt);
     padding: 1rem;
     text-align: center;
     border-radius: 8px;
@@ -235,12 +234,19 @@
 .action-card:hover {
     transform: translateY(-3px);
     background: #e8f5e9;
-    border-color: #28a745;
+    border-color: var(--color-primary);
 }
 
 .action-card i {
     font-size: 1.5rem;
-    color: #28a745;
+    color: var(--color-primary);
     margin-bottom: 0.5rem;
     display: block;
+}
+
+.form-action-container {
+    text-align: right;
+    margin-top: 1rem;
+    display: flex;
+    justify-content: flex-end;
 }

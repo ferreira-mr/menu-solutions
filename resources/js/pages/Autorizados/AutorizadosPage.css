@@ -21,7 +21,7 @@
 
 /* Layout do Conteúdo */
 .autorizados-content {
-    background: #fff;
+    background: var(--color-bg-card);
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
     border: 1px solid #e0e0e0;
@@ -33,7 +33,7 @@
 
 /* Header */
 .autorizados-header {
-    background: #fff;
+    background: var(--color-bg-card);
     padding: 1.5rem 2rem;
     border-bottom: 1px solid #f0f0f0;
     display: flex;
@@ -52,12 +52,16 @@
     gap: 0.8rem;
 }
 
+.autorizados-header-icon {
+    color: var(--color-primary);
+}
+
 /* Grid de Cards */
 .autorizados-grid-scroll {
     flex-grow: 1;
     overflow-y: auto;
     padding: 2rem;
-    background-color: #f8f9fa;
+    background-color: var(--color-bg-alt);
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1.5rem;
@@ -66,7 +70,7 @@
 
 /* CARD DE AUTORIZAÇÃO */
 .auth-card {
-    background: #fff;
+    background: var(--color-bg-card);
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     display: flex;
@@ -84,8 +88,8 @@
 }
 
 /* Cores da Borda Lateral baseadas no Status */
-.auth-card.pendente { border-left-color: #f1c40f; } /* Amarelo */
-.auth-card.confirmado { border-left-color: #27ae60; } /* Verde */
+.auth-card.pendente { border-left-color: var(--color-brand-yellow); } /* Amarelo */
+.auth-card.confirmado { border-left-color: var(--color-primary); } /* Verde */
 
 .auth-card-body {
     padding: 1.2rem;
@@ -181,7 +185,7 @@
     padding: 0.6rem 1rem 0.6rem 2.5rem;
     border: 1px solid #ced4da;
     border-radius: 50px;
-    background-color: #f8f9fa;
+    background-color: var(--color-bg-alt);
     outline: none;
 }
 
@@ -194,7 +198,7 @@
 }
 
 .btn-create {
-    background-color: #28a745;
+    background-color: var(--color-primary);
     color: white;
     border: none;
     padding: 0.6rem 1.2rem;
@@ -207,7 +211,7 @@
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-.btn-create:hover { background-color: #218838; transform: translateY(-1px); }
+.btn-create:hover { background-color: var(--color-primary-dark); transform: translateY(-1px); }
 
 /* Empty State */
 .empty-state {
@@ -298,4 +302,9 @@
     .auth-card-body {
         padding: 1rem;
     }
+}
+.autorizados-loading-container {
+    text-align: center;
+    padding: 2rem;
+    width: 100%;
 }

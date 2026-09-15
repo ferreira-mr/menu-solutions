@@ -130,9 +130,9 @@ const CardapiosPage = () => {
                 {/* --- LISTA DE ARQUIVOS (Com scroll) --- */}
                 <main className="cardapio-list-scroll">
                     {loading ? (
-                        <div style={{textAlign:'center', padding:'5rem', color:'#7f8c8d'}}>
-                            <div className="spinner-border text-primary" style={{width: '3rem', height: '3rem'}} role="status"></div>
-                            <p style={{marginTop: '1rem', fontSize: '1.1rem'}}>Carregando cardápios...</p>
+                        <div className="cardapios-loading-container">
+                            <div className="spinner-border text-primary cardapios-loading-spinner" role="status"></div>
+                            <p className="cardapios-loading-text">Carregando cardápios...</p>
                         </div>
                     ) : cardapios.length > 0 ? (
                         <div className="files-grid">

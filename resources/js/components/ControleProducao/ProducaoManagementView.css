@@ -32,7 +32,7 @@
 }
 .search-input:focus {
   outline: none;
-  border-color: #8B0000;
+  border-color: var(--color-brand-red);
   box-shadow: 0 0 0 2px rgba(139, 0, 0, 0.1);
 }
 /* ======================================================= */
@@ -60,7 +60,7 @@
 }
 
 .producao-table thead {
-  background-color: #8B0000;
+  background-color: var(--color-brand-red);
   color: white;
   position: sticky;
   top: 0;
@@ -106,17 +106,17 @@
   padding: 10px 20px;
   gap: 8px;
   font-weight: 600;
-  background-color: #28a745;
+  background-color: var(--color-primary);
 }
 .action-button.add-button:hover {
-    background-color: #218838;
+    background-color: var(--color-primary-dark);
 }
 
-.edit-button { background-color: #ffc107; color: #333; }
+.edit-button { background-color: var(--color-warning); color: #333; }
 .edit-button:hover { background-color: #e0a800; }
 
-.delete-button { background-color: #dc3545; }
-.delete-button:hover { background-color: #c82333; }
+.delete-button { background-color: var(--color-danger); }
+.delete-button:hover { background-color: var(--color-danger-dark); }
 
 /* Estilos do Modal (mantidos) */
 .swal2-input {

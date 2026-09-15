@@ -44,4 +44,44 @@
   /* Transições */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Paleta Institucional SESI */
+  --color-brand-red: #8B0000;
+  --color-brand-red-hover: #a50000;
+  --color-brand-red-light: #cc0000;
+  --color-brand-yellow: #f1c40f;
+  --color-brand-yellow-hover: #d4ac0d;
+
+  /* Superfícies de Navegação */
+  --color-nav-bg: #222222;
+  --color-nav-text: #ffffff;
+  --color-nav-hover: #f1c40f;
+
+  /* Chat Palette */
+  --color-chat-green: #10b981;
+  --color-chat-green-dark: #059669;
+  --color-chat-bg: #f3f4f6;
+  --color-chat-bubble-sent: #dcfce7;
+  --color-chat-bubble-sent-border: #bbf7d0;
+  --color-chat-bubble-sent-text: #14532d;
+
+  /* Tipografia */
+  --font-family-base: 'Poppins', 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+
+  /* Espaçamento */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+
+  /* Z-index Scale */
+  --z-dropdown: 100;
+  --z-nav: 998;
+  --z-header: 999;
+  --z-modal: 100000;
+
+  /* Focus Ring */
+  --focus-ring: 0 0 0 3px rgba(39, 174, 96, 0.4);
 }

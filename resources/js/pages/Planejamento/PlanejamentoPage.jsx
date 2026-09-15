@@ -417,7 +417,7 @@ const PlanejamentoPage = () => {
                     <h3>Base de Alunos</h3>
                     <button className="add-button-small" onClick={() => handleOpenAlunoModal()}>+</button>
                 </div>
-                <div style={{padding: '0 15px 10px'}}><SearchBar searchTerm={searchTermAlunosPanel} setSearchTerm={setSearchTermAlunosPanel} placeholder="Filtrar base..." /></div>
+                <div className="panel-search-wrapper"><SearchBar searchTerm={searchTermAlunosPanel} setSearchTerm={setSearchTermAlunosPanel} placeholder="Filtrar base..." /></div>
                 <div className="list-container-cards">
                     {filteredAlunosPanel.map(aluno => (
                         <AlunoCard key={aluno.id} aluno={aluno} type="geral" turmasMap={turmasMap} onAdd={() => handleAddAlunoToNecessidade(aluno.id)} onEdit={() => handleOpenAlunoModal(aluno)} onDelete={() => handleDeleteAluno(aluno.id)} disabledAdd={!selectedNecessidadeId} />

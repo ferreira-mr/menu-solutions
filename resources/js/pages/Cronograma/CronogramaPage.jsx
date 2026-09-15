@@ -232,7 +232,7 @@ const CronogramaPage = () => {
                                                         {...provided.draggableProps} 
                                                         {...provided.dragHandleProps}
                                                     >
-                                                        <i className="bi bi-person-fill" style={{marginRight:'8px'}}></i>
+                                                        <i className="bi bi-person-fill" aria-hidden="true"></i>
                                                         {item.content}
                                                     </div>
                                                 )}

@@ -1,10 +1,11 @@
 .menu-lateral {
+    z-index: 998;
     position: absolute;
     top: 0;
     right: -250px;
     width: 250px;
     height: 100%;
-    background-color: #222;
+    background-color: var(--color-nav-bg);
     color: white;
     transition: right 0.3s ease;
     padding-top: 11vh;
@@ -23,10 +24,6 @@
     color: white;
 
 }
-.menu-lateral {
-    z-index: 998;
-  }
-  
 .nome-usuario-container i {
     margin-right: 8px;
     font-size: 20px;
@@ -38,7 +35,7 @@
 
 .nome-usuario-container hr {
     width: 60%;
-    border: 3px solid #f1c40f; /* Linha amarela */
+    border: 3px solid var(--color-brand-yellow); /* Linha amarela */
     margin-top: 8px;
 }
 
@@ -48,28 +45,13 @@
     margin-top: 0px;
 }
 
-.menu-lateral .opcoes li {
-    padding: 7px;
-    text-align: left; 
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.3s, color 0.3s;
-    margin-bottom: -10px;
-    
-}
-
-.menu-lateral .opcoes li:hover {
-    background-color: #f1c40f;
-    color: #000;
-}
-
 .menu-lateral .sair {
     position: absolute;
     bottom: 20px;
     width: 100%;
     text-align: center;
     padding: 10px;
-    background-color: #c00;
+    background-color: var(--color-brand-red-light);
     color: white;
     cursor: pointer;
     margin-top: 90%;
@@ -82,17 +64,9 @@
 .menu-lateral.aberto ~ .menu-hamburguer {
     right: 270px;
 }
-.menu-lateral .opcoes li a {
-    color: white;           /* Cor branca */
-    text-decoration: none;  /* Sem sublinhado */
-    display: block;         /* Link ocupa toda área do li */
-    width: 100%;
-  }
+
   
-  .menu-lateral .opcoes li a:hover {
-    color: #000;
-    background-color: #f1c40f;
-  }
+  
   
   .menu-lateral .opcoes li {
     padding: 0; /* Remove o padding do li, pq vamos usar no a */
@@ -111,7 +85,7 @@
 }
 
 .menu-lateral .opcoes li a:hover {
-    background-color: #f1c40f;
+    background-color: var(--color-brand-yellow);
     color: #000;
 }
 
@@ -133,7 +107,7 @@
     width: 100%;
     text-align: center;
     padding: 10px;
-    background-color: #c00;
+    background-color: var(--color-brand-red-light);
     color: white;
     cursor: pointer;
     margin-bottom: 40px;

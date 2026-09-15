@@ -210,68 +210,29 @@ const ControleProducaoPage = () => {
                     {viewMode === 'management' && (
                         <>
                             {/* Cabeçalho organizado: Título (Esq) - Busca (Meio) - Botão (Dir) */}
-                            <div className="content-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 2rem' }}>
-                                
-                                {/* Lado Esquerdo: Título */}
-                                <h2 style={{ margin: 0, minWidth: '250px' }}>
-                                    <i className="bi bi-basket2"></i> Tabela de Consumo
+                            <div className="content-header">
+                                <h2 className="content-header-title">
+                                    <i className="bi bi-basket2" aria-hidden="true"></i> Tabela de Consumo
                                 </h2>
                                 
-                                {/* Centro: Barra de Pesquisa (CORRIGIDO) */}
-                                <div className="search-bar-container" style={{ flex: 1, maxWidth: '500px', margin: '0 1rem', position: 'relative' }}>
-                                    {/* Ícone absoluto */}
-                                    <i className="bi bi-search search-icon" 
-                                       style={{ 
-                                           position: 'absolute', 
-                                           left: '15px', 
-                                           top: '50%', 
-                                           transform: 'translateY(-50%)', 
-                                           color: '#666',
-                                           zIndex: 1 
-                                       }}>
-                                    </i>
-                                    {/* Input com estilos forçados para garantir visibilidade */}
+                                <div className="search-bar-container search-bar-wide">
+                                    <i className="bi bi-search search-icon" aria-hidden="true"></i>
                                     <input 
                                         type="text" 
                                         className="search-input" 
                                         placeholder="Buscar por nome..." 
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        style={{ 
-                                            width: '100%', 
-                                            padding: '10px 15px 10px 45px', // Padding esquerdo maior para o ícone
-                                            borderRadius: '25px',
-                                            border: '1px solid #000000ff', // Borda visível
-                                            backgroundColor: '#f8f9fa', // Fundo levemente cinza para destacar do branco
-                                            color: '#333', // Texto escuro
-                                            fontSize: '0.95rem',
-                                            outline: 'none',
-                                            height: '45px'
-                                        }} 
+                                        aria-label="Buscar por nome"
                                     />
                                 </div>
 
-                                {/* Lado Direito: Botão Adicionar */}
                                 <button 
                                     className="btn-add-item"
                                     onClick={handleAddItem}
-                                    style={{
-                                        backgroundColor: '#28a745',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '6px',
-                                        padding: '0.7rem 1.5rem',
-                                        fontWeight: '600',
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '0.5rem',
-                                        whiteSpace: 'nowrap',
-                                        fontSize: '0.95rem',
-                                        boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
-                                    }}
+                                    type="button"
                                 >
-                                    <i className="bi bi-plus-lg"></i> Adicionar Item
+                                    <i className="bi bi-plus-lg" aria-hidden="true"></i> Adicionar Item
                                 </button>
                             </div>
 
@@ -285,7 +246,7 @@ const ControleProducaoPage = () => {
 
                     {/* MODO RELATÓRIO: PREVIEW DO PDF */}
                     {viewMode === 'report' && (
-                        <div className="producao-report-preview-area" style={{padding: '1.5rem', overflowY:'auto', height:'100%'}}>
+                        <div className="producao-report-preview-area">
                             <ProducaoReportPreview
                                 data={reportData}
                                 loading={loading && !reportData}

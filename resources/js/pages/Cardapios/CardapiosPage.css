@@ -23,7 +23,7 @@
 .cardapio-layout {
     display: flex;
     flex-direction: column;
-    background: #fff;
+    background: var(--color-bg-card);
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
     border: 1px solid #e9ecef;
@@ -34,7 +34,7 @@
 
 /* Header */
 .cardapio-header {
-    background: #fff;
+    background: var(--color-bg-card);
     padding: 1.5rem 2rem;
     border-bottom: 1px solid #f0f0f0;
     display: flex;
@@ -53,13 +53,29 @@
     gap: 0.8rem;
 }
 
+.cardapios-loading-container {
+    text-align: center;
+    padding: 5rem;
+    color: var(--color-text-secondary);
+}
+
+.cardapios-loading-spinner {
+    width: 3rem;
+    height: 3rem;
+}
+
+.cardapios-loading-text {
+    margin-top: 1rem;
+    font-size: 1.1rem;
+}
+
 /* Área de Lista com Scroll (MODIFICADO) */
 .cardapio-list-scroll {
     flex-grow: 1;
     overflow-y: auto;
     /* Aumentei o padding superior para 3rem para garantir o espaço que você quer */
     padding: 3rem 2rem 2rem 2rem; 
-    background-color: #f8f9fa;
+    background-color: var(--color-bg-alt);
     /* Removido o display: flex que forçava o comportamento de centralização estranho */
     display: block; 
 }
@@ -76,7 +92,7 @@
 
 /* Card Individual */
 .file-card {
-    background: #fff;
+    background: var(--color-bg-card);
     border: 1px solid #e9ecef;
     border-radius: 12px;
     padding: 1.5rem;
@@ -148,7 +164,7 @@
 
 .btn-delete-file {
     background-color: #fce8e6; /* Vermelho bem claro */
-    color: #dc3545;
+    color: var(--color-danger);
 }
 .btn-delete-file:hover { background-color: #f8d7da; }
 
@@ -160,9 +176,9 @@
 }
 
 .btn-upload {
-    border: 2px solid #28a745;
+    border: 2px solid var(--color-primary);
     color: white;
-    background-color: #28a745;
+    background-color: var(--color-primary);
     padding: 0.7rem 1.5rem;
     border-radius: 8px;
     font-size: 0.95rem;
@@ -175,8 +191,8 @@
 }
 
 .btn-upload:hover {
-    background-color: #218838;
-    border-color: #218838;
+    background-color: var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(40, 167, 69, 0.2);
 }

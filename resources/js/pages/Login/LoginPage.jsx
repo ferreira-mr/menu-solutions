@@ -106,9 +106,13 @@ const LoginPage = () => {
           <div className="inputBox">
             <input 
               type="text" 
+              id="nif"
               value={nif}
               onChange={(e) => setNif(e.target.value)}
-              required 
+              required
+              aria-label="NIF"
+              aria-describedby={error ? 'login-error-msg' : undefined}
+              autoComplete="username"
             />
             <span>NIF</span>
             <i></i>
@@ -116,10 +120,13 @@ const LoginPage = () => {
 
           <div className="inputBox">
             <input 
-              type="password" 
+              type="password"
+              id="password" 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required 
+              required
+              aria-label="Senha"
+              autoComplete="current-password"
             />
             <span>Senha</span>
             <i></i>
@@ -127,17 +134,18 @@ const LoginPage = () => {
 
           <input 
             type="submit" 
+            className="login-submit-btn"
             value={isLoading ? 'Entrando...' : 'Entrar'} 
             disabled={isLoading}
           />
 
-          {error && <p role="alert" className="login-error">{error}</p>}
+          {error && <p role="alert" id="login-error-msg" className="login-error">{error}</p>}
 
           <div className="terms-container">
             <p>
               Ao continuar, você concorda com nossos{' '}
-              <span className="link-style" onClick={showTermsModal}>Termos de Uso</span> e{' '}
-              <span className="link-style" onClick={showPrivacyModal}>Política de Privacidade</span>.
+              <button type="button" className="link-style" onClick={showTermsModal}>Termos de Uso</button> e{' '}
+              <button type="button" className="link-style" onClick={showPrivacyModal}>Política de Privacidade</button>.
             </p>
           </div>
         </form>

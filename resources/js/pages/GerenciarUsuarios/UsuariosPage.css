@@ -1,6 +1,6 @@
 .usuarios-container {
     padding: 2rem;
-    background-color: #f8f9fa;
+    background-color: var(--color-bg-alt);
     font-family: 'Segoe UI', sans-serif;
     animation: fadeIn 0.5s ease-in-out;
     margin-top: 10vh;
@@ -38,7 +38,7 @@
 }
 
 .btn-add {
-    background-color: #28a745;
+    background-color: var(--color-primary);
     color: white;
     border: none;
     padding: 0.7rem 1.5rem;
@@ -52,7 +52,7 @@
 }
 
 .btn-add:hover {
-    background-color: #218838;
+    background-color: var(--color-primary-dark);
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(40, 167, 69, 0.2);
 }
@@ -75,8 +75,8 @@
 }
 
 .custom-table th {
-    background-color: #f8f9fa;
-    color: #6c757d;
+    background-color: var(--color-bg-alt);
+    color: var(--color-text-secondary);
     font-weight: 600;
     text-transform: uppercase;
     font-size: 1rem;
@@ -150,11 +150,11 @@
 .btn-edit { background-color: #02869b; }
 .btn-edit:hover { background-color: #138496; }
 
-.btn-password { background-color: #ffc107;color: #000000; }
+.btn-password { background-color: var(--color-warning);color: #000000; }
 .btn-password:hover { background-color: #e3d40a; }
 
-.btn-delete { background-color: #dc3545; }
-.btn-delete:hover { background-color: #c82333; }
+.btn-delete { background-color: var(--color-danger); }
+.btn-delete:hover { background-color: var(--color-danger-dark); }
 
 /* Paginação */
 .pagination {
@@ -174,9 +174,9 @@
 }
 
 .page-btn.active {
-    background-color: #28a745;
+    background-color: var(--color-primary);
     color: white;
-    border-color: #28a745;
+    border-color: var(--color-primary);
 }
 
 .page-btn:disabled {
@@ -265,7 +265,7 @@
 
 .usuarios-container {
     padding: 2rem;
-    background-color: #f8f9fa;
+    background-color: var(--color-bg-alt);
     font-family: 'Segoe UI', sans-serif;
     animation: fadeIn 0.5s ease-in-out;
     margin: 2rem auto; /* Centraliza melhor */
@@ -293,8 +293,8 @@
 }
 
 .custom-table th {
-    background-color: #f8f9fa;
-    color: #6c757d;
+    background-color: var(--color-bg-alt);
+    color: var(--color-text-secondary);
     font-weight: 600;
     text-transform: uppercase;
     font-size: 0.85rem;
@@ -345,4 +345,23 @@
         gap: 1rem;
         text-align: center;
     }
+}
+
+.table-loading-cell {
+    text-align: center;
+    padding: 3rem;
+}
+
+.table-loading-text {
+    margin-top: 10px;
+}
+
+.table-empty-cell {
+    text-align: center;
+    padding: 3rem;
+    color: var(--color-text-secondary);
+}
+
+.table-user-name {
+    font-weight: 500;
 }

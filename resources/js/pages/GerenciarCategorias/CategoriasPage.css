@@ -4,7 +4,7 @@
     grid-template-columns: 320px 45vw; /* Lateral um pouco mais larga */
     gap: 2rem;
     padding: 2rem;
-    background-color: #f8f9fa; /* Mesmo fundo cinza claro da pág. usuários */
+    background-color: var(--color-bg-alt); /* Mesmo fundo cinza claro da pág. usuários */
     box-sizing: border-box;
     font-family: 'Segoe UI', sans-serif;
     animation: fadeIn 0.5s ease-in-out;
@@ -38,7 +38,7 @@
     align-items: center;
     padding: 1.5rem;
     background-color: #fff;
-    border-bottom: 2px solid #f8f9fa;
+    border-bottom: 2px solid var(--color-bg-alt);
     flex-shrink: 0;
 }
 
@@ -113,7 +113,7 @@
 
 .turmas-table th {
     background-color: #faf8f8;
-    color: #6c757d;
+    color: var(--color-text-secondary);
     font-weight: 600;
     text-transform: uppercase;
     font-size: 0.8rem;
@@ -147,7 +147,7 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: white;
-    background-color: #6c757d; /* Padrão */
+    background-color: var(--color-text-secondary); /* Padrão */
 }
 
 /* Cores específicas se desejar manter a lógica de cores por ID */
@@ -155,14 +155,14 @@
 .badge-color-1 { background-color: #6610f2; }
 .badge-color-2 { background-color: #fd7e14; }
 .badge-color-3 { background-color: #20c997; }
-.badge-color-4 { background-color: #dc3545; }
+.badge-color-4 { background-color: var(--color-danger); }
 
 
 /* --- BOTÕES --- */
 
 /* Botão Principal de Adicionar (Estilo UsuariosPage) */
 .add-button { 
-    background-color: #28a745;
+    background-color: var(--color-primary);
     color: white;
     border: none;
     padding: 0.6rem 1.2rem;
@@ -178,7 +178,7 @@
 }
 
 .add-button:hover { 
-    background-color: #218838;
+    background-color: var(--color-primary-dark);
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(40, 167, 69, 0.2);
 }
@@ -186,7 +186,7 @@
 /* Botão Pequeno (+) da Lateral */
 .add-button-small {
     background-color: #e8f5e9; 
-    color: #28a745; 
+    color: var(--color-primary); 
     border: 1px solid transparent;
     width: 32px; height: 32px; 
     border-radius: 8px;
@@ -197,7 +197,7 @@
 }
 
 .add-button-small:hover { 
-    background-color: #28a745; 
+    background-color: var(--color-primary); 
     color: white;
 }
 
@@ -223,8 +223,8 @@
 .edit-button { background-color: #17a2b8; } /* Azul Petróleo */
 .edit-button:hover { background-color: #138496; }
 
-.delete-button { background-color: #dc3545; } /* Vermelho */
-.delete-button:hover { background-color: #c82333; }
+.delete-button { background-color: var(--color-danger); } /* Vermelho */
+.delete-button:hover { background-color: var(--color-danger-dark); }
 
 
 .btn-icon-sm:hover { background-color: #e9ecef; color: #495057; }
@@ -261,4 +261,15 @@
     .panel-central {
         min-height: 500px;
     }
+}
+
+.cat-loading-text {
+    padding: 10px;
+    color: var(--color-text-secondary);
+}
+
+.table-loading-turmas {
+    text-align: center;
+    padding: 40px;
+    color: var(--color-text-secondary);
 }
