@@ -236,4 +236,25 @@ describe('ContagemPage (Inspetora)', () => {
     expect(api.saveContagemOperation.mock.calls[0][1]).toBe(api.saveContagemOperation.mock.calls[1][1]);
     expect(Swal.showValidationMessage).toHaveBeenCalledWith('Falha de rede');
   });
+
+  it('exibe alunos com necessidade NAI diariamente sem exigir agendamento no cronograma', async () => {
+    api.getTodasNecessidades.mockResolvedValue([{ id: 6, necessidade: 'NAI' }]);
+    api.getNecessidadeComAlunos.mockResolvedValue({
+      id: 6,
+      necessidade: 'NAI',
+      alunos: [{ id: 25, nome: 'Lucas NAI', turmas_id: 1, alunos_has_necessidades_id: 88 }],
+    });
+    let capturedHtml = null;
+    Swal.fire.mockImplementation(async options => {
+      capturedHtml = options?.html;
+      return { isDismissed: true };
+    });
+
+    render(<MemoryRouter><ContagemPage /></MemoryRouter>);
+    await waitFor(() => expect(screen.getByText('1º Ano A')).toBeInTheDocument());
+    screen.getByText('1º Ano A').closest('.turma-card').click();
+
+    await waitFor(() => expect(api.getNecessidadeComAlunos).toHaveBeenCalledWith(6));
+    expect(capturedHtml?.textContent).toContain('Lucas NAI');
+  });
 });

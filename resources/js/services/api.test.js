@@ -54,6 +54,9 @@ import {
   getContagensPorRange,
   getDashboardPorData,
   getAlunosNesPorData,
+  getAlunosNesPorRange,
+  getPaginaAlunosNesPorRange,
+  getTodosAlunosNesPorRange,
   getContextoEscolar,
   getChatMessages,
   getChatMessagesPage,
@@ -379,6 +382,15 @@ describe('cliente da API - Cobertura Completa', () => {
 
       await getAlunosNesPorData('2026-09-02');
       expect(fetch).toHaveBeenCalledWith('/api/contagem-nes?data=2026-09-02', expect.any(Object));
+
+      await getAlunosNesPorRange('2026-09-01', '2026-09-05');
+      expect(fetch).toHaveBeenCalledWith('/api/contagem-nes?data_inicio=2026-09-01&data_fim=2026-09-05', expect.any(Object));
+
+      await getPaginaAlunosNesPorRange('2026-09-01', '2026-09-05', 2, 50);
+      expect(fetch).toHaveBeenCalledWith('/api/contagem-nes?page=2&limit=50&data_inicio=2026-09-01&data_fim=2026-09-05', expect.any(Object));
+
+      await getTodosAlunosNesPorRange('2026-09-01', '2026-09-05');
+      expect(fetch).toHaveBeenCalledWith('/api/contagem-nes?page=1&limit=100&data_inicio=2026-09-01&data_fim=2026-09-05', expect.any(Object));
     });
   });
 

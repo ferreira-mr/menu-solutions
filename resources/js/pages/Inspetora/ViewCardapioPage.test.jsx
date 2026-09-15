@@ -28,7 +28,7 @@ describe('ViewCardapioPage', () => {
     await waitFor(() => {
       const iframe = document.querySelector('iframe');
       expect(iframe).toBeInTheDocument();
-      expect(iframe.src).toContain('cardapio_hoje.pdf');
+      expect(iframe.src).toContain('/uploads/pdf/cardapio_hoje.pdf');
     });
   });
 
