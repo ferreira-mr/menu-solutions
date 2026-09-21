@@ -130,16 +130,21 @@ if (-not $sshOnline) {
 # 5. Empacotamento e Sincronização do Código da Aplicação
 Write-Host "==> Empacotando codigo do Menu Solutions (com assets compilados)..." -ForegroundColor Yellow
 $AppCodeTar = Join-Path $CacheDir "app_code.tar.gz"
-tar.exe -czf $AppCodeTar --exclude=node_modules --exclude=.git --exclude=deploy/cache --exclude=coverage -C $RootDir app bootstrap config database public resources routes storage composer.json package.json .env.example artisan
+tar.exe -czf $AppCodeTar --exclude=node_modules --exclude=.git --exclude=deploy/cache --exclude=coverage --exclude=public/hot -C $RootDir app bootstrap config database public resources routes storage composer.json package.json .env.example artisan
+if ($LASTEXITCODE -ne 0) { throw "Falha ao empacotar o código da aplicação." }
 
 Write-Host "==> Transferindo codigo e scripts de provisionamento para a VM..." -ForegroundColor Yellow
 scp.exe -i $KeyFile -P $HostSshPort -o StrictHostKeyChecking=no -o UserKnownHostsFile=NUL $AppCodeTar "vagrant@127.0.0.1:/tmp/app_code.tar.gz"
+if ($LASTEXITCODE -ne 0) { throw "Falha ao transferir o pacote da aplicação para a VM." }
 scp.exe -i $KeyFile -P $HostSshPort -o StrictHostKeyChecking=no -o UserKnownHostsFile=NUL (Join-Path $ScriptDir "provision-vm.sh") "vagrant@127.0.0.1:/tmp/provision-vm.sh"
+if ($LASTEXITCODE -ne 0) { throw "Falha ao transferir o script de provisionamento para a VM." }
 scp.exe -i $KeyFile -P $HostSshPort -o StrictHostKeyChecking=no -o UserKnownHostsFile=NUL (Join-Path $ScriptDir "nginx-menu.conf") "vagrant@127.0.0.1:/tmp/nginx-menu.conf"
+if ($LASTEXITCODE -ne 0) { throw "Falha ao transferir a configuração do Nginx para a VM." }
 
 # 6. Execução do Provisionamento (Nginx, PHP 8.3, Composer, Migrations, Seeders)
 Write-Host "==> Executando instalacao e configuracao dos servicos dentro do Ubuntu..." -ForegroundColor Yellow
 ssh.exe -i $KeyFile -p $HostSshPort -o StrictHostKeyChecking=no -o UserKnownHostsFile=NUL vagrant@127.0.0.1 "sudo bash /tmp/provision-vm.sh"
+if ($LASTEXITCODE -ne 0) { throw "Falha no provisionamento interno da VM." }
 
 Write-Host "`n[SUCESSO] VM '$VmName' provisionada e pronta para operacao!" -ForegroundColor Green
 EOT

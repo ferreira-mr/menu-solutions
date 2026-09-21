@@ -10,7 +10,9 @@
     <link rel="manifest" href="{{ asset('manifest.json') }}">
     <title>Menu Solutions</title>
 
-    @viteReactRefresh
+    @env('local')
+        @viteReactRefresh
+    @endenv
     @vite(['resources/css/app.css', 'resources/js/main.jsx'])
 </head>
 <body>

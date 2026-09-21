@@ -211,6 +211,8 @@ up
 5. Provisiona os serviços dentro do Ubuntu (Nginx, PHP 8.3-FPM, SQLite, Composer, migrações e catálogo inicial; contas são criadas pelo bootstrap protegido do primeiro gestor).
 6. Valida a disponibilidade e exibe os links de acesso.
 
+> **Importante — assets da VM:** a VM usa exclusivamente o build de produção em `public/build`. O arquivo `public/hot`, criado pelo `npm run dev`, aponta o Laravel para o servidor Vite local na porta `5173` e causa tela branca/`ERR_CONNECTION_REFUSED` quando é levado para a VM. O fluxo `up` exclui esse arquivo do pacote, remove qualquer resíduo dentro da VM e valida que o HTML final referencia `/build/assets/`.
+
 ---
 
 ### 1.1. Bootstrap do primeiro gestor
@@ -279,6 +281,15 @@ php artisan view:cache
 
 O servidor web de produção (Nginx ou Apache) deve apontar o document root para a pasta `public/`.
 
+Em produção, não execute `npm run dev` nem mantenha `public/hot` no diretório servido. Se uma tela branca aparecer, verifique:
+
+```bash
+test ! -e public/hot
+test -f public/build/manifest.json
+```
+
+O HTML da aplicação deve referenciar arquivos em `/build/assets/`, nunca `:5173`, `@vite/client`, `resources/css/app.css` ou `resources/js/main.jsx`.
+
 ---
 
 ## Testes Automatizados & Qualidade
@@ -333,9 +344,9 @@ npx playwright test --ui
 ```
 
 > **Credenciais de Teste E2E (criadas pelo `E2eSeeder`):**
-> - **Inspetora**: NIF `11111111111` | Senha: `password`
-> - **Nutricionista**: NIF `22222222222` | Senha: `password`
-> - **Diretoria**: NIF `33333333333` | Senha: `password`
+> - **Inspetora**: Usuário `inspetora` | Senha: `inspetora`
+> - **Nutricionista**: Usuário `nutricionista` | Senha: `nutricionista`
+> - **Diretora**: Usuário `diretora` | Senha: `diretora`
 
 ---
 

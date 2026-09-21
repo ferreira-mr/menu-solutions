@@ -71,6 +71,12 @@ while ($MaxRetries -gt 0) {
 
 Write-Host ""
 if ($Online) {
+    if ($res.Content -match '5173|@vite/client|resources/(css|js)/') {
+        Write-Error "A aplicação respondeu, mas está apontando para o Vite de desenvolvimento. Remova public/hot e execute o deploy novamente."
+    }
+    if ($res.Content -notmatch '/build/assets/') {
+        Write-Error "A aplicação respondeu, mas não entregou os assets compilados de produção em /build/assets/."
+    }
     Write-Host "`n[SUCESSO] O Menu Solutions esta no ar e pronto para uso!" -ForegroundColor Green
 } else {
     Write-Host "`n[AVISO] A VM esta rodando, mas a aplicacao ainda pode estar finalizando os servicos internos." -ForegroundColor Yellow

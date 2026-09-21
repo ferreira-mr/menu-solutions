@@ -118,6 +118,14 @@ Para permitir a operação em escolas públicas ou unidades do SESI/SENAI em com
   5. Sincronização e provisionamento do Nginx, PHP 8.3-FPM, SQLite e migrações/seeders oficiais.
   6. Validação do health check HTTP e exibição das URLs de acesso local e na rede escolar.
 
+#### Regra obrigatória: Vite dev versus build de produção
+
+- A VM escolar serve somente os assets compilados em `public/build` pelo Nginx.
+- O arquivo `public/hot` é um marcador local do Vite em desenvolvimento e **nunca** pode ser enviado para a VM. Quando presente, o Laravel gera URLs para `http://[::1]:5173`, causando tela branca e erros `ERR_CONNECTION_REFUSED` para `@vite/client`, `app.css` e `main.jsx`.
+- A view `resources/views/app.blade.php` só deve chamar `@viteReactRefresh` em ambiente `local`.
+- O empacotamento Terraform deve excluir `public/hot`, o provisionamento deve removê-lo antes de criar o cache das views e o `up.ps1` deve rejeitar uma página que contenha referências a `5173`, `@vite/client` ou aos caminhos-fonte `resources/css`/`resources/js`.
+- Após `npm run dev`, antes de empacotar uma VM, confirme que existe `public/build/manifest.json` e que `public/hot` não será incluído no pacote.
+
 ### 5.3. Portabilidade via Appliance (.OVA)
 - Para escolas onde não é permitida a instalação do Terraform, a VM gerada pode ser empacotada em um único arquivo `.OVA` executando:
   ```powershell

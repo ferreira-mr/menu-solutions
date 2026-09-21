@@ -92,6 +92,9 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
+# Falhar cedo se o frontend de produção não tiver sido empacotado.
+test -f "$APP_DIR/public/build/manifest.json"
+
 # 8. Permissões de escrita para o Nginx/PHP-FPM
 echo "==> Ajustando permissões de www-data..."
 chown -R www-data:www-data "$APP_DIR"
