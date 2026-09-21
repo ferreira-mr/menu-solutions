@@ -18,24 +18,24 @@ class E2eSeeder extends Seeder
 
         foreach ([
             [
-                'nif' => '22222222222',
-                'name' => 'Nutricionista E2E',
+                'nif' => 'nutricionista',
+                'name' => 'Nutricionista',
                 'email' => 'e2e-nutri@example.test',
-                'password' => 'password',
+                'password' => 'nutricionista',
                 'nivel_user' => 2,
             ],
             [
-                'nif' => '33333333333',
-                'name' => 'Diretora E2E',
+                'nif' => 'diretora',
+                'name' => 'Diretora',
                 'email' => 'e2e-diretora@example.test',
-                'password' => 'password',
+                'password' => 'diretora',
                 'nivel_user' => 3,
             ],
             [
-                'nif' => '11111111111',
-                'name' => 'Inspetora E2E',
+                'nif' => 'inspetora',
+                'name' => 'Inspetora',
                 'email' => 'e2e-inspetora@example.test',
-                'password' => 'password',
+                'password' => 'inspetora',
                 'nivel_user' => 1,
             ],
         ] as $account) {

@@ -76,7 +76,7 @@ const LoginPage = () => {
           Swal.fire({
             icon: 'error',
             title: 'Acesso Negado',
-            text: 'NIF ou senha incorretos. Por favor, verifique seus dados.',
+            text: 'Usuário ou senha incorretos. Por favor, verifique seus dados.',
             confirmButtonText: 'Tentar Novamente',
             confirmButtonColor: '#d33',
           });
@@ -106,15 +106,15 @@ const LoginPage = () => {
           <div className="inputBox">
             <input 
               type="text" 
-              id="nif"
+              id="username"
               value={nif}
               onChange={(e) => setNif(e.target.value)}
               required
-              aria-label="NIF"
+              aria-label="Usuário"
               aria-describedby={error ? 'login-error-msg' : undefined}
               autoComplete="username"
             />
-            <span>NIF</span>
+            <span>Usuário</span>
             <i></i>
           </div>
 

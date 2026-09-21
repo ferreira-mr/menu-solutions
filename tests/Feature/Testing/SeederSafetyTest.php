@@ -135,7 +135,7 @@ class SeederSafetyTest extends TestCase
             Artisan::call('migrate:fresh', ['--database' => 'sqlite', '--no-interaction' => true]);
             $this->seed(E2eSeeder::class);
 
-            $account = User::where('nif', '22222222222')->firstOrFail();
+            $account = User::where('nif', 'nutricionista')->firstOrFail();
             $account->update(['password' => Hash::make('senha-alterada')]);
             $authorization = Autorizado::where('titulo', 'Autorização Lanche Especial')->firstOrFail();
             $authorization->update(['conteudo' => 'histórico preservado']);
