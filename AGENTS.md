@@ -7,9 +7,9 @@ Este documento estabelece as diretrizes arquiteturais, padrões de código, regr
 ## 1. Contexto do Projeto
 
 - **Aplicação**: Sistema full stack de gestão de alimentação escolar, contagem de alunos, controle de produção/desperdício de refeições, dietas especiais (NES) e chat corporativo para o SESI.
-- **Backend**: Laravel 11 rodando em PHP 8.4 (API RESTful protegida por Laravel Sanctum).
+- **Backend**: Laravel 12 rodando em PHP 8.2+ (PHP 8.3 na VM escolar; PHP 8.4 também é suportado), com API RESTful protegida por Laravel Sanctum.
 - **Frontend**: Single Page Application (SPA) em React 19 + Vite 7 + React Router 7.
-- **Banco de Dados**: SQLite em memória para testes e desenvolvimento rápido; MySQL em produção ou SQLite autônomo na VM escolar.
+- **Banco de Dados**: SQLite para desenvolvimento/testes e SQLite autônomo na VM escolar; MySQL é suportado em ambientes de produção compatíveis.
 - **Qualidade & Testes**: Suíte de testes automatizados (PHPUnit + Vitest + Playwright + ESLint).
 
 ---
@@ -26,7 +26,7 @@ Este documento estabelece as diretrizes arquiteturais, padrões de código, regr
      - `ProducaoConsumoService`: pesagens, sobras limpas, resto ingesta e soft-deletes auditados.
      - `AutorizadoService`: priorização de pendências e fluxo de aprovação pela diretoria.
      - `FileService`: upload seguro de fotos e cardápios PDF.
-3. **Enums Nativos do PHP 8.4**:
+3. **Enums Nativos do PHP 8.1+**:
    - **NUNCA** use números mágicos (`1`, `2`, `3`) ou strings literais soltas para perfis e status.
    - Use sempre:
      - `App\Enums\UserRole` (`Staff = 1`, `Nutri = 2`, `Diretor = 3`) com métodos `label()`, `isNutri()`, etc.
@@ -75,22 +75,22 @@ Este documento estabelece as diretrizes arquiteturais, padrões de código, regr
 
 ## 4. Bateria de Testes e Procedimentos de Validação
 
-Antes de concluir qualquer tarefa ou realizar commits, execute a verificação completa das 3 camadas de teste:
+As quantidades de testes não são fixas e podem mudar. Antes de concluir qualquer tarefa ou realizar commits, execute a verificação completa:
 
 ```bash
-# 1. Backend: 59 testes PHPUnit (266 asserções)
+# 1. Backend
 php artisan test
 
-# 2. Frontend: 116 testes Vitest (32 arquivos)
+# 2. Frontend
 npm run test:front
 
-# 3. Linter: ESLint 9 (0 erros, 0 avisos)
+# 3. Linter
 npm run lint
 
-# 4. Build de Produção Vite
+# 4. Build de produção
 npm run build
 
-# 5. E2E: 20 cenários Playwright em navegador Chromium real
+# 5. E2E em Chromium real
 npm run test:e2e
 ```
 
@@ -136,6 +136,11 @@ Para permitir a operação em escolas públicas ou unidades do SESI/SENAI em com
 
 ### 5.4. Documentação Operacional
 - O guia completo passo a passo voltado a operadores e técnicos de TI da escola reside em [`deploy/docs/GUIA_IMPLANTACAO_ESCOLA.md`](deploy/docs/GUIA_IMPLANTACAO_ESCOLA.md).
+
+### 5.5. Instalação e credenciais
+- Uma instalação de produção nova não cria contas padrão. Use `app:bootstrap-admin` para criar o primeiro gestor e depois cadastre os demais usuários pela tela de gerenciamento.
+- As contas `inspetora`, `nutricionista` e `diretora` são fixtures exclusivas do `E2eSeeder`, que só pode ser executado em runtime de testes descartável.
+- O frontend exibe o campo de login como **Usuário**; o contrato legado da API permanece `POST /api/login` com `{ nif, password }`.
 
 ---
 

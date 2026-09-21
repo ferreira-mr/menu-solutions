@@ -43,9 +43,14 @@ Em redes corporativas ou escolares:
 Se você deseja gerar a VM automaticamente utilizando o código de Infraestrutura como Código deste repositório:
 
 ### Passo 1: Abrir o terminal PowerShell
-Navegue até a pasta do Terraform:
+Na raiz do repositório, execute o fluxo recomendado:
 ```powershell
-cd c:\Projetos\contador-v2\deploy\terraform
+powershell -ExecutionPolicy Bypass -File .\up.ps1
+```
+
+O `up.ps1` compila o frontend, inicializa/aplica o Terraform, cria ou inicia a VM, transfere o código e executa o provisionamento interno. Se preferir controlar o Terraform manualmente, navegue até a pasta:
+```powershell
+cd .\deploy\terraform
 ```
 
 ### Passo 2: Inicializar o Terraform
@@ -65,22 +70,20 @@ copy terraform.tfvars.example terraform.tfvars
 > * Opção A: Pause o Apache no Painel de Controle do XAMPP antes de iniciar a VM.
 > * Opção B: No arquivo `terraform.tfvars`, altere `host_http_port = 8080`. O acesso passará a ser feito por `http://<IP>:8080`.
 
-### Passo 4: Criar e configurar a VM
+### Passo 4: Criar, iniciar e provisionar a VM
 ```powershell
 terraform apply -auto-approve
 ```
-O Terraform criará a máquina virtual no VirtualBox com 2 vCPUs, 2048 MB de RAM, placa de rede em modo NAT e as regras de Port Forwarding da porta 80 e 2222 ativas.
+O Terraform cria a máquina virtual no VirtualBox com 2 vCPUs, 2048 MB de RAM, placa de rede em modo NAT e as regras de Port Forwarding das portas 80 e 2222. O provisionamento é executado automaticamente pelo host; não execute `provision-vm.sh` em `/var/www/contador-v2`, pois o script é transferido temporariamente para `/tmp` dentro da VM.
 
-### Passo 5: Inicializar a VM e Provisionar a Aplicação
-Você pode iniciar a VM diretamente pelo VirtualBox ou via comando:
+### Passo 5: Validar a instalação
+Após o término do `terraform apply`, confirme o estado e o acesso:
 ```powershell
-& "C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" startvm "MenuSolutions-ContadorV2"
+& "C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" showvminfo "MenuSolutions-ContadorV2" --machinereadable | Select-String "VMState|Forwarding"
+Invoke-WebRequest http://127.0.0.1 -UseBasicParsing
 ```
 
-Dentro da VM Ubuntu (ou via SSH `ssh -p 2222 usuario@127.0.0.1`), execute o script de provisionamento:
-```bash
-sudo bash /var/www/contador-v2/deploy/terraform/scripts/provision-vm.sh
-```
+O HTML deve retornar `200` e referenciar assets em `/build/assets/`, nunca `:5173` ou `@vite/client`.
 
 ---
 
@@ -160,7 +163,13 @@ New-NetFirewallRule -DisplayName "Menu Solutions (Porta 8080 HTTP)" `
 
 A instalação cria somente o catálogo inicial (categorias, turmas, dias e necessidades). Ela não cria contas E2E, senhas conhecidas nem fatos de demonstração.
 
-Depois que a VM estiver iniciada, abra um terminal no Ubuntu (ou entre por SSH) e execute:
+Depois que a VM estiver iniciada, entre por SSH a partir do computador hospedeiro:
+
+```powershell
+ssh -i .\deploy\cache\vagrant_key -p 2222 vagrant@127.0.0.1
+```
+
+Dentro da VM, execute:
 
 ```bash
 cd /var/www/contador-v2

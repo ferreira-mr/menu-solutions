@@ -3,7 +3,7 @@
 Sistema integrado full stack para gestão de contagens de alunos, planejamento nutricional, controle de produção e desperdício de refeições, cronograma de dietas especiais e comunicação em tempo real no ambiente escolar (SESI).
 
 O projeto é construído em uma arquitetura desacoplada e moderna:
-- **Backend (Laravel 11 / PHP 8.4)**: API RESTful protegida por tokens Laravel Sanctum, arquitetura em camadas com Enums nativos, Service Layer para regras de negócio (RN01 a RN17) e RBAC estrito.
+- **Backend (Laravel 12 / PHP 8.2+)**: API RESTful protegida por tokens Laravel Sanctum, arquitetura em camadas com Enums nativos, Service Layer para regras de negócio (RN01 a RN17) e RBAC estrito.
 - **Frontend (React 19 + Vite)**: SPA responsiva orientada a funcionalidades (*Feature-Driven Architecture*), cliente de API modular por domínio, roteamento aninhado com `<Outlet />` e Design System com tokens CSS centralizados.
 
 ---
@@ -26,9 +26,9 @@ O projeto é construído em uma arquitetura desacoplada e moderna:
 ## Tecnologias
 
 ### Backend
-- **Laravel 11** & **PHP 8.4**
+- **Laravel 12** & **PHP 8.2+** (a VM escolar usa PHP 8.3; PHP 8.4 também é suportado)
 - **Laravel Sanctum**: autenticação via Bearer Tokens para API
-- **SQLite** (testes e desenvolvimento rápido) / **MySQL** (produção)
+- **SQLite** (desenvolvimento, testes e VM escolar) / **MySQL** (ambiente de produção compatível)
 - **PHPUnit 11**: suíte de testes unitários e de integração de regras de negócio
 
 ### Frontend
@@ -129,6 +129,7 @@ contador-v2/
 - **Composer 2+**
 - **Node.js 20+** e **npm**
 - **SQLite** ou **MySQL**
+- Para a VM: **VirtualBox 7.x**, **Terraform 1.5+**, PowerShell e pelo menos 4 GB de RAM no computador hospedeiro.
 
 ---
 
@@ -136,8 +137,8 @@ contador-v2/
 
 ```bash
 # 1. Clonar o repositório e acessar a pasta
-git clone <url-do-repositorio>
-cd contador-v2
+git clone https://github.com/ferreira-mr/menu-solutions.git
+cd menu-solutions
 
 # 2. Instalar dependências do Backend (PHP)
 composer install
@@ -149,9 +150,11 @@ npm install
 cp .env.example .env
 php artisan key:generate
 
-# 5. Executar as migrações do banco de dados
-php artisan migrate
+# 5. Executar as migrações e o catálogo inicial
+php artisan migrate --seed
 ```
+
+Para criar um usuário gestor no ambiente local, execute `php artisan app:bootstrap-admin` e informe nome, usuário/NIF, e-mail e senha quando solicitado. A tela chama esse identificador de **Usuário**, mas o contrato da API continua usando o campo `nif`.
 
 Os PDFs de cardápio continuam referenciados pelo nome relativo e expostos através de `/uploads/pdf`; por padrão, o disco configurado `CARDAPIO_FILESYSTEM_DISK=uploads` grava em `public/uploads`. A criação, substituição e exclusão registram falhas de limpeza para retentativa sem alterar o contrato de URL.
 
@@ -294,14 +297,7 @@ O HTML da aplicação deve referenciar arquivos em `/build/assets/`, nunca `:517
 
 ## Testes Automatizados & Qualidade
 
-O projeto conta com **173 testes automatizados** distribuídos em 3 camadas complementares:
-
-```
-Total: 173 Testes Verdes (100% PASS)
-├── Backend (PHPUnit): 53 testes (245 asserções)
-├── Frontend (Vitest): 100 testes (32 arquivos)
-└── E2E (Playwright): 20 testes completos em navegador real
-```
+As quantidades de testes evoluem junto com o projeto. Os comandos abaixo executam as suítes atuais de backend, frontend, lint, build e E2E.
 
 ### 1. Testes do Backend (PHPUnit / Laravel)
 Testa autenticação Sanctum, matriz de RBAC, limites de contagem (RN14), upload estrito de PDF, ciclo de vida de autorizações e integridade relacional.
@@ -343,10 +339,12 @@ npm run test:e2e
 npx playwright test --ui
 ```
 
-> **Credenciais de Teste E2E (criadas pelo `E2eSeeder`):**
+> **Credenciais somente do runtime E2E descartável (criadas pelo `E2eSeeder`):**
 > - **Inspetora**: Usuário `inspetora` | Senha: `inspetora`
 > - **Nutricionista**: Usuário `nutricionista` | Senha: `nutricionista`
 > - **Diretora**: Usuário `diretora` | Senha: `diretora`
+>
+> Essas credenciais não devem ser usadas na VM ou em produção. A instalação de produção começa sem usuários e usa `app:bootstrap-admin` para criar o primeiro gestor.
 
 ---
 
