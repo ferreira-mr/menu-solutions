@@ -1,18 +1,19 @@
 /* Container Principal (Fundo Geral) */
 .estrutura-container {
     display: grid;
-    grid-template-columns: 320px 45vw; /* Lateral um pouco mais larga */
+    grid-template-columns: 320px 1fr;
     gap: 2rem;
     padding: 2rem;
-    background-color: var(--color-bg-alt); /* Mesmo fundo cinza claro da pág. usuários */
+    background-color: var(--color-bg-alt);
     box-sizing: border-box;
     font-family: 'Segoe UI', sans-serif;
     animation: fadeIn 0.5s ease-in-out;
-        box-shadow: 0 4px 8px rgba(40, 167, 69, 0.2);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.2);
     border-radius: 10px;
-    height: 80vh;
-    max-width: 80vw;
-    margin-top: 8vh;
+    min-height: calc(100vh - 160px);
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
 @keyframes fadeIn {
@@ -126,12 +127,11 @@
 }
 
 .turmas-table td {
-    padding: 0rem;
+    padding: 0.85rem 1rem;
     border-bottom: 1px solid #eee;
-    color: #574949;
-    vertical-align:auto;
+    color: #495057;
+    vertical-align: middle;
     text-align: center;
-    align-items: center;
 }
 
 .turmas-table tbody tr:hover { 

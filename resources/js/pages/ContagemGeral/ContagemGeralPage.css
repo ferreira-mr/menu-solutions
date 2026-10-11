@@ -2,27 +2,22 @@
 
 /* --- Container da Página (Seu estilo original) --- */
 .contagem-geral-container-custom {
-    width: 100%;
-    max-width: 80vw;
-    margin: 1rem auto; /* Margem superior reduzida */
-    padding: 1rem;     /* Padding reduzido */
+    width: 90%;
+    max-width: 1400px;
+    margin: 1rem auto;
+    padding: 1rem;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #333;
-    
-    /* CHAVE: Define a altura máxima e a transforma em um container flex */
-    min-height: 91vh;
-    height: 87vh; /* Garante que ocupe o espaço */
+    min-height: calc(100vh - 160px);
     display: flex;
     flex-direction: column;
-    margin-top: 11vh;
 }
 
 /* --- (NOVO) Seletor de View Principal (Calendário / Relatórios) --- */
 .main-view-toggle {
     display: flex;
     justify-content: center;
-    margin-top: -10px;
-    margin-bottom: -32px;
+    margin: 0 auto 1rem auto;
     background-color: #f4f4f4;
     padding: 8px;
     border-radius: 10px;

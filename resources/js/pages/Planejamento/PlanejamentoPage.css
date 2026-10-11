@@ -10,8 +10,9 @@
     
     /* Configuração de Tela Cheia (Fixed Viewport) */
     width: 100%;
-    height: calc(85vh - 10px); /* Desconta altura do Header da aplicação */
-    margin-top: 80px; 
+    min-height: calc(100vh - 160px);
+    height: calc(100vh - 180px);
+    margin: 0 auto; 
     padding: 24px;
     box-sizing: border-box;
     

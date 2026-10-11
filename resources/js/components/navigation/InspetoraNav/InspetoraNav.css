@@ -10,7 +10,7 @@
     transition: right 0.3s ease;
     padding-top: 11vh;
     box-shadow: -2px 0px 5px rgba(0, 0, 0, 0.5);
-
+    overflow-y: auto;
 }
 
 /* Nome do usuário centralizado */
@@ -98,18 +98,18 @@
   }
 @media (max-width: 768px) {
   .menu-lateral {
-    width: 200px;
-    right: -200px;
+    width: 250px;
+    right: -250px;
   }
-    .menu-lateral .sair {
-    position: absolute;
-    bottom: 20px;
+  .menu-lateral .sair {
+    position: relative;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
     width: 100%;
     text-align: center;
     padding: 10px;
     background-color: var(--color-brand-red-light);
     color: white;
     cursor: pointer;
-    margin-bottom: 40px;
-}
+  }
 }

@@ -1,8 +1,9 @@
 /* --- Container Principal --- */
 .cronograma-container {
     width: 100%;
-    height: calc(90vh - 10vh); /* Ajuste conforme seu header */
-    margin-top: 80px;
+    min-height: calc(100vh - 160px);
+    height: calc(100vh - 180px);
+    margin: 0 auto;
     background-color: #f4f6f8; /* Fundo suave */
     display: flex;
     flex-direction: column;

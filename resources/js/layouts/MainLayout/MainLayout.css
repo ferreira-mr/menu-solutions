@@ -2,29 +2,33 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  width: 100%;
+  position: relative;
+  overflow-x: hidden;
 }
 
 main {
-  height: 90vh;
+  flex: 1 0 auto;
+  width: 100%;
   padding: 20px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   transition: margin-right 0.3s ease;
   margin-right: 0;
-  padding-bottom: 80px;
-  overflow-y: hidden; /* "none" não é valor válido */
+  box-sizing: border-box;
 }
 
 .main-content {
   position: relative;
   background-repeat: no-repeat;
   background-position: center;
-  background-size: auto 100%; /* altura = main, largura automática */
-  background-attachment: fixed; /* opcional */
+  background-size: cover;
+  background-attachment: fixed;
   background-color: #000;
-  height: 89vh; /* ocupa altura total da viewport (ou mude pra 87vh pra igualar ao main) */
-  overflow: hidden;
+  min-height: calc(100vh - 140px);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 @media (max-width: 768px) {

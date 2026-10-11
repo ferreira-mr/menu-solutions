@@ -7,9 +7,8 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #333;
     
-    /* Ajuste para tela cheia menos o navbar */
-    height: calc(100vh - 80px);
-    margin-top: 80px; 
+    min-height: calc(100vh - 160px);
+    margin: 0 auto;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
