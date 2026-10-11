@@ -71,7 +71,7 @@ export function safePublicAssetUrl(basePath, fileName, fallback) {
 }
 
 export function safePaginatorLabel(label) {
-    if (label === '&laquo; Previous') return '« Previous';
-    if (label === 'Next &raquo;') return 'Next »';
+    if (label === '&laquo; Previous' || label === '« Previous') return '« Anterior';
+    if (label === 'Next &raquo;' || label === 'Next »') return 'Próximo »';
     return typeof label === 'string' ? label : '';
 }

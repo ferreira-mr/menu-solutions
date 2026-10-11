@@ -70,7 +70,7 @@ const AlunoCard = ({ aluno, type, turmasMap, onAdd, onEdit, onDelete, onSchedule
 
 export const buildPlanningPdf = ({ completeData, scheduleDays, classNames }) => {
     const doc = new jsPDF();
-    doc.setFontSize(18); doc.text("Relatório de Contagens - Menu Solutions", 14, 20);
+    doc.setFontSize(18); doc.text("Relatório de Planejamento de Dietas Especiais - Menu Solutions", 14, 20);
     doc.setFontSize(10); doc.text(`Gerado em: ${new Date().toLocaleDateString()}`, 14, 28);
 
     const rows = [];
@@ -381,7 +381,7 @@ const PlanejamentoPage = () => {
         <section className="planejamento-container-grid">
             <div className="panel-lateral panel-necessidades">
                 <div className="panel-header">
-                    <h3>Categorias</h3>
+                    <h3>Necessidades Especiais (Dietas)</h3>
                     <button className="add-button-small" onClick={handleAddNecessidade}>+</button>
                 </div>
                 <div className="list-container">

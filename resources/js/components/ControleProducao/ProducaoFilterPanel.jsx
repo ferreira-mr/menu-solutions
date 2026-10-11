@@ -146,7 +146,12 @@ const ProducaoFilterPanel = ({
                 </button>
                 <button 
                     className="btn-baixar" 
-                    onClick={() => handleDownloadPdf(reportData, "Relatório Filtrado", logo)}
+                    onClick={() => {
+                        const reportTitle = (filters?.startDate && filters?.endDate)
+                            ? `Período: ${new Date(filters.startDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' })} a ${new Date(filters.endDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}`
+                            : (filters?.startDate ? `A partir de: ${new Date(filters.startDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}` : 'Relatório Geral de Produção e Consumo');
+                        handleDownloadPdf(reportData, reportTitle, logo);
+                    }}
                     disabled={!reportData} 
                 >
                     <i className="bi bi-download"></i> Baixar PDF

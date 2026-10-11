@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2/dist/sweetalert2.all.min.js';
 import { getUserData, updateUserData, changePassword } from '../../services/api'; 
+import placeholderAvatar from '../../assets/img/avatar.png';
 import './ProfilePage.css';
 
 const ProfilePage = () => {
@@ -27,7 +28,7 @@ const ProfilePage = () => {
         switch(parseInt(nivel)) {
             case 1: return 'Inspetora / Apoio';
             case 2: return 'Nutricionista';
-            case 3: return 'Administrador';
+            case 3: return 'Diretora';
             default: return 'Usuário do Sistema';
         }
     };
@@ -38,13 +39,13 @@ const ProfilePage = () => {
             const response = await getUserData();
             
             // Ajuste para pegar os dados (verifique se o backend retorna 'nif')
-            const userData = response.data || response; 
+            const userData = response?.data || response || {}; 
             
             setUser({
-                id: userData.id,
-                name: userData.name,
-                nif: userData.nif, // Mapeando o NIF vindo do banco
-                nivel_user: userData.nivel_user
+                id: userData.id || '',
+                name: userData.name || '',
+                nif: userData.nif || '', // Mapeando o NIF vindo do banco
+                nivel_user: userData.nivel_user || 1
             });
 
         } catch (error) {
@@ -121,7 +122,7 @@ const ProfilePage = () => {
                 <div className="left-column">
                     <div className="profile-card identity-card">
                         <img 
-                            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || '')}&background=28a745&color=fff&size=128&bold=true`}
+                            src={placeholderAvatar}
                             alt="Avatar" 
                             className="avatar-large" 
                         />
