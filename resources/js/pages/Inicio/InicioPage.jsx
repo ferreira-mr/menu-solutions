@@ -23,7 +23,7 @@ const InicioPage = ({ userRole }) => {
       { texto: 'Gerenciar Usuários', icone: 'bi bi-person-video2', rota: '/nutri/gerenciar/usuarios' },
       { texto: 'Cronograma', icone: 'bi bi-calendar-week-fill', rota: '/nutri/cronograma' },
       { texto: 'Autorizados Direção', icone: 'bi bi-file-earmark-check-fill', rota: '/nutri/autorizados' },
-      { texto: 'Categorias', icone: 'bi bi-card-checklist', rota: '/nutri/planejamento' },
+      { texto: 'Dietas Especiais (NES)', icone: 'bi bi-card-checklist', rota: '/nutri/planejamento' },
       { texto: 'Meu Perfil', icone: 'bi bi-person-circle', rota: '/nutri/perfil', color: '#343a40' },
     ],
 

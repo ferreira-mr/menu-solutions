@@ -10,7 +10,8 @@ import Footer from '../../components/common/Footer/Footer';
 // --- IMPORTS DOS NAVS ---
 import InspetoraNav from '../../components/navigation/InspetoraNav/InspetoraNav';
 import NutriNav from '../../components/navigation/NutriNav/NutriNav';
-import DiretoraNav from '../../components/navigation/DiretoraNav/DiretoraNav'; // <--- 1. IMPORT NOVO
+import DiretoraNav from '../../components/navigation/DiretoraNav/DiretoraNav';
+import { ROLE_HOME_ROUTES } from '../../constants/roles';
 
 import './MainLayout.css';
 import background from '../../assets/img/main.jpg';
@@ -102,6 +103,11 @@ const MainLayout = ({ userRole, children }) => {
         <div className="app-container">
             <Header 
                 onMenuClick={toggleMenu} 
+                onLogoClick={() => {
+                    const userLevel = localStorage.getItem('userLevel');
+                    const homeRoute = ROLE_HOME_ROUTES[userLevel] || '/';
+                    navigate(homeRoute);
+                }}
                 userRole={userRole}
                 isMenuOpen={isMenuOpen}
             />

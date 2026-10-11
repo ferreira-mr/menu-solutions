@@ -7,8 +7,8 @@ const NutriNav = ({ isOpen, usuario, dataSelecionada, onLogout, onCloseMenu }) =
 
   // Lista de itens atualizada conforme sua solicitação
   const menuItems = [
-    // Botão Início (Adicionado manualmente para garantir navegação à home)
-    { texto: 'Início', icone: 'bi bi-house-door-fill', rota: '/' },
+    // Botão Início (Dashboard principal da nutri)
+    { texto: 'Início', icone: 'bi bi-house-door-fill', rota: '/nutri/dashboard' },
     
     // Itens da lista fornecida
     { texto: 'Controle de Produção', icone: 'bi bi-graph-up', rota: '/nutri/controle-producao' },
@@ -19,7 +19,7 @@ const NutriNav = ({ isOpen, usuario, dataSelecionada, onLogout, onCloseMenu }) =
     { texto: 'Gerenciar Usuários', icone: 'bi bi-person-video2', rota: '/nutri/gerenciar/usuarios' },
     { texto: 'Cronograma', icone: 'bi bi-calendar-week-fill', rota: '/nutri/cronograma' },
     { texto: 'Autorizados Direção', icone: 'bi bi-file-earmark-check-fill', rota: '/nutri/autorizados' },
-    { texto: 'Necessidades', icone: 'bi bi-card-checklist', rota: '/nutri/planejamento' },
+    { texto: 'Dietas Especiais (NES)', icone: 'bi bi-card-checklist', rota: '/nutri/planejamento' },
     { texto: 'Meu Perfil', icone: 'bi bi-person-circle', rota: '/nutri/perfil' },
   ];
 

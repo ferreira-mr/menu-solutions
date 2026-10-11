@@ -10,9 +10,24 @@ const Header = ({ onMenuClick, onLogoClick, userRole, isMenuOpen }) => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // O botão de voltar só aparece se não estivermos na página inicial (dashboard)
-    const showBackButton = location.pathname !== '/dashboard';
+    // Rotas de entrada/início onde o botão voltar não deve ser exibido
+    const HOME_ROUTES = [
+        '/dashboard',
+        '/inspetora/inicio',
+        '/nutri/dashboard',
+        '/nutri/inicio',
+        '/diretora/inicio',
+    ];
+    const showBackButton = !HOME_ROUTES.includes(location.pathname);
     const iconeClasses = `bi bi-list ${isMenuOpen ? 'girar' : ''}`;
+
+    const handleLogoClick = () => {
+        if (onLogoClick) {
+            onLogoClick();
+        } else {
+            navigate(-1);
+        }
+    };
 
     return (
         <header className="header">
@@ -33,7 +48,7 @@ const Header = ({ onMenuClick, onLogoClick, userRole, isMenuOpen }) => {
                     alt="Logo" 
                     className="logo-principal" 
                     style={{ cursor: 'pointer' }} 
-                    onClick={onLogoClick} 
+                    onClick={handleLogoClick} 
                 />
                 <img src={setas2} alt="" className="setas-flanco" aria-hidden="true" />
             </div>
