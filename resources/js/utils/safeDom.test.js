@@ -21,8 +21,8 @@ describe('safeDom', () => {
   });
 
   it('converte somente os rótulos conhecidos da paginação', () => {
-    expect(safePaginatorLabel('&laquo; Previous')).toBe('« Previous');
-    expect(safePaginatorLabel('Next &raquo;')).toBe('Next »');
+    expect(safePaginatorLabel('&laquo; Previous')).toBe('« Anterior');
+    expect(safePaginatorLabel('Next &raquo;')).toBe('Próximo »');
     expect(safePaginatorLabel('<img onerror="x">')).toBe('<img onerror="x">');
   });
 });
