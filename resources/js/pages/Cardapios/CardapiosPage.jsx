@@ -81,10 +81,12 @@ const CardapiosPage = () => {
     };
 
     const handleView = (path) => {
+        if (!path) return;
         let url = path;
         if (!/^https?:\/\//i.test(path)) {
-            const cleanBaseUrl = API_BASE_URL.replace('/api', '');
-            url = `${cleanBaseUrl}/uploads/pdf/${path}`; 
+            const cleanBaseUrl = API_BASE_URL.replace(/\/api\/?$/, '');
+            const cleanFilePath = path.replace(/^\/?(uploads\/pdf\/|uploads\/)/, '');
+            url = `${cleanBaseUrl}/uploads/pdf/${cleanFilePath}`; 
         }
         const safeUrl = safeHttpUrl(url, null);
         if (safeUrl) window.open(safeUrl, '_blank');

@@ -94,7 +94,7 @@
 }
 
 /* Centralização do último item (10º) no grid de 3 colunas */
-.buttons-section.wide-grid .main-button:last-child {
+.buttons-section.wide-grid .main-button:nth-child(10):last-child {
   grid-column: 2; 
 }
 

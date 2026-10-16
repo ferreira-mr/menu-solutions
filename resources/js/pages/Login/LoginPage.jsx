@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2/dist/sweetalert2.all.min.js';
 import { loginUser, getUserData } from '../../services/api';
 import { showTermsModal, showPrivacyModal } from '../../utils/modals';
+import { ROLE_HOME_ROUTES } from '../../constants/roles';
 import './LoginPage.css';
 import logo from '../../assets/img/code.png';
 
@@ -14,19 +15,16 @@ const LoginPage = () => {
   const navigate = useNavigate();
 
   const navigateBasedOnLevel = (level) => {
-    // Converte para string para garantir comparação correta
-    switch (String(level)) {
-      case '1': navigate('/inspetora/inicio'); break;
-      case '2': navigate('/nutri/dashboard'); break;
-      case '3': navigate('/diretora/inicio'); break; // Adicionado nível Diretora
-      default:
-        Swal.fire({
-          icon: 'error',
-          title: 'Acesso Negado',
-          text: 'Seu nível de usuário não tem uma página de destino configurada.',
-        });
-        localStorage.clear();
-        break;
+    const route = ROLE_HOME_ROUTES[Number(level)];
+    if (route) {
+      navigate(route);
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Acesso Negado',
+        text: 'Seu nível de usuário não tem uma página de destino configurada.',
+      });
+      localStorage.clear();
     }
   };
 
@@ -72,7 +70,12 @@ const LoginPage = () => {
       const errorMessage = err.message || 'Falha desconhecida.';
       
       // Se a API retornar 401 no endpoint /login, é erro de credenciais
-      if (errorMessage.includes('401') || errorMessage.toLowerCase().includes('unauthorized')) {
+      if (
+        err?.status === 401 ||
+        errorMessage.includes('401') ||
+        errorMessage.toLowerCase().includes('unauthorized') ||
+        errorMessage.toLowerCase().includes('credenciais')
+      ) {
           Swal.fire({
             icon: 'error',
             title: 'Acesso Negado',

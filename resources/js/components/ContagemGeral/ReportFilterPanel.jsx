@@ -50,8 +50,9 @@ const ReportFilterPanel = ({
             case 'diario':
                 return (
                     <div className="filter-group">
-                        <label>Selecione o Dia</label>
+                        <label htmlFor="filter-report-dia">Selecione o Dia</label>
                         <input
+                            id="filter-report-dia"
                             type="date"
                             value={filters.date}
                             onChange={(e) => handleFilter('date', e.target.value)}
@@ -61,14 +62,16 @@ const ReportFilterPanel = ({
             case 'semanal':
                  return (
                     <div className="filter-group">
-                        <label>Data Início (Semana)</label>
+                        <label htmlFor="filter-report-semana-ini">Data Início (Semana)</label>
                         <input
+                            id="filter-report-semana-ini"
                             type="date"
                             value={filters.startDate}
                             onChange={(e) => handleFilter('startDate', e.target.value)}
                         />
-                         <label>Data Fim (Semana)</label>
+                         <label htmlFor="filter-report-semana-fim">Data Fim (Semana)</label>
                         <input
+                            id="filter-report-semana-fim"
                             type="date"
                             value={filters.endDate}
                             onChange={(e) => handleFilter('endDate', e.target.value)}
@@ -78,15 +81,17 @@ const ReportFilterPanel = ({
             case 'mensal':
                 return (
                     <div className="filter-group">
-                        <label>Selecione o Mês</label>
+                        <label htmlFor="filter-report-mes">Selecione o Mês</label>
                         <select
+                            id="filter-report-mes"
                             value={filters.month}
                             onChange={(e) => handleFilter('month', parseInt(e.target.value))}
                         >
                             {MONTHS.map((m, i) => <option key={i} value={i}>{m}</option>)}
                         </select>
-                        <label>Ano</label>
+                        <label htmlFor="filter-report-ano-mes">Ano</label>
                         <input
+                            id="filter-report-ano-mes"
                             type="number"
                             value={filters.year}
                             onChange={(e) => handleFilter('year', parseInt(e.target.value))}
@@ -97,8 +102,9 @@ const ReportFilterPanel = ({
             case 'anual':
                  return (
                     <div className="filter-group">
-                        <label>Selecione o Ano</label>
+                        <label htmlFor="filter-report-ano">Selecione o Ano</label>
                          <input
+                            id="filter-report-ano"
                             type="number"
                             value={filters.year}
                             onChange={(e) => handleFilter('year', parseInt(e.target.value))}
@@ -108,14 +114,16 @@ const ReportFilterPanel = ({
             case 'personalizado':
                 return (
                     <div className="filter-group">
-                        <label>Data Início</label>
+                        <label htmlFor="filter-report-custom-ini">Data Início</label>
                         <input
+                            id="filter-report-custom-ini"
                             type="date"
                             value={filters.startDate}
                             onChange={(e) => handleFilter('startDate', e.target.value)}
                         />
-                         <label>Data Fim</label>
+                         <label htmlFor="filter-report-custom-fim">Data Fim</label>
                         <input
+                            id="filter-report-custom-fim"
                             type="date"
                             value={filters.endDate}
                             onChange={(e) => handleFilter('endDate', e.target.value)}
@@ -136,7 +144,9 @@ const ReportFilterPanel = ({
             <div className="filter-section">
                  <h4 className="filter-section-title">Tipo de Dado</h4>
                 <div className="filter-group">
+                    <label htmlFor="filter-report-tipo-dado" className="visually-hidden">Tipo de Dado</label>
                     <select
+                        id="filter-report-tipo-dado"
                         value={dataType}
                         onChange={(e) => onDataTypeChange(e.target.value)}
                     >

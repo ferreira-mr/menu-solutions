@@ -298,7 +298,10 @@ const ContagemPage = () => {
         photoObjectUrls.forEach(objectUrl => URL.revokeObjectURL(objectUrl));
         photoObjectUrls.clear();
       });
-    } catch (error) { console.error(error); }
+    } catch (error) {
+      console.error("Erro no fluxo de contagem:", error);
+      Swal.fire('Erro!', error?.message || 'Não foi possível preparar a contagem. Tente novamente.', 'error');
+    }
   };
 
   if (loading) return <div className="carregando"><div className="spinner"></div><p>Carregando...</p></div>;

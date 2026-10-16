@@ -4,7 +4,7 @@
     max-width: 1600px;
     margin: 0 auto;
     padding: 2rem;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: var(--font-family-base);
     color: #333;
     
     min-height: calc(100vh - 160px);
@@ -155,12 +155,13 @@
     box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
 }
 
-.search-icon {
+.producao-container-v2 .search-icon {
     position: absolute;
-
+    left: 1rem;
     top: 50%;
     transform: translateY(-50%);
     color: #adb5bd;
+    pointer-events: none;
 }
 
 /* Área da Tabela */
@@ -289,4 +290,25 @@
     max-width: 500px;
     margin: 0 1rem;
     position: relative;
+}
+
+@media (max-width: 1024px) {
+    .producao-layout-grid-v2,
+    .producao-layout-grid-v2.mode-report {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+    .content-header {
+        height: auto;
+        padding: 1rem;
+        flex-wrap: wrap;
+    }
+    .header-actions {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+    .search-bar-wrapper {
+        width: 100%;
+        flex: 1 1 200px;
+    }
 }

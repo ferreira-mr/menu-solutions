@@ -105,16 +105,18 @@ const ProducaoFilterPanel = ({
             <div className="filter-section">
                 <h4 className="filter-section-title">Filtros de Relatório</h4>
                 <div className="filter-group">
-                    <label>Data Início</label>
+                    <label htmlFor="filter-start-date">Data Início</label>
                     <input
+                        id="filter-start-date"
                         type="date"
                         value={filters.startDate}
                         onChange={(e) => handleFilter('startDate', e.target.value)}
                     />
                 </div>
                 <div className="filter-group">
-                    <label>Data Fim</label>
+                    <label htmlFor="filter-end-date">Data Fim</label>
                     <input
+                        id="filter-end-date"
                         type="date"
                         value={filters.endDate}
                         onChange={(e) => handleFilter('endDate', e.target.value)}
@@ -125,8 +127,9 @@ const ProducaoFilterPanel = ({
             {/* Seção 2: Busca por Nome */}
             <div className="filter-section">
                 <div className="filter-group">
-                    <label>Buscar por Nome</label>
+                    <label htmlFor="filter-search-name">Buscar por Nome</label>
                     <input
+                        id="filter-search-name"
                         type="text"
                         value={filters.searchTerm}
                         onChange={(e) => handleFilter('searchTerm', e.target.value)}

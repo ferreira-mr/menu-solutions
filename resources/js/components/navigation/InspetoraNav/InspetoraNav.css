@@ -57,7 +57,8 @@
     margin-top: 90%;
 }
 
-.menu-lateral.aberto {
+.menu-lateral.aberto,
+.menu-lateral.ativo {
     right: 0px;
 }
 

@@ -4,7 +4,7 @@
     max-width: 1600px;
     margin: 0 auto;
     padding: 2rem;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: var(--font-family-base);
     color: #333;
     min-height: calc(100vh - 160px);
     margin: 0 auto;
@@ -90,6 +90,8 @@
 /* Cores da Borda Lateral baseadas no Status */
 .auth-card.pendente { border-left-color: var(--color-brand-yellow); } /* Amarelo */
 .auth-card.confirmado { border-left-color: var(--color-primary); } /* Verde */
+.auth-card.recusado { border-left-color: var(--color-danger, #dc3545); } /* Vermelho */
+
 
 .auth-card-body {
     padding: 1.2rem;
@@ -140,6 +142,8 @@
 
 .status-pill.pendente { background-color: #fff3cd; color: #856404; }
 .status-pill.confirmado { background-color: #d4edda; color: #155724; }
+.status-pill.recusado { background-color: #f8d7da; color: #721c24; }
+
 
 /* Botões de Ação do Card */
 .auth-actions {
@@ -187,6 +191,11 @@
     border-radius: 50px;
     background-color: var(--color-bg-alt);
     outline: none;
+}
+
+.search-input:focus {
+    border-color: var(--color-brand-red);
+    box-shadow: var(--focus-ring);
 }
 
 .search-icon {

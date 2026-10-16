@@ -23,7 +23,7 @@ const InspetoraNav = ({ isOpen, usuario, dataSelecionada, onLogout, onCloseMenu 
       </div>
       <hr />
       <div className="nome-usuario-container">
-        <small style={{ fontSize: '0.8rem', opacity: 0.8 }}></small><br/>
+        <small style={{ fontSize: '0.8rem', opacity: 0.8 }}>Data de Hoje:</small><br/>
         <span>{dataSelecionada}</span>
       </div>
       <hr />

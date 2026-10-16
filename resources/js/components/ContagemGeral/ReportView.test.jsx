@@ -47,4 +47,27 @@ describe('ReportView', () => {
       expect(api.getTodosAlunosNesPorRange).toHaveBeenCalled();
     });
   });
+
+  it('gera relatório semanal com título formatado corretamente', async () => {
+    api.getTodosContagensPorRange.mockResolvedValue([]);
+    api.getTodosAlunosNesPorRange.mockResolvedValue([]);
+
+    await act(async () => {
+      render(<ReportView />);
+    });
+
+    const btnSemanal = screen.getByText('Semanal');
+    await act(async () => {
+      fireEvent.click(btnSemanal);
+    });
+
+    const btnGerar = screen.getByRole('button', { name: /gerar relatório/i });
+    await act(async () => {
+      fireEvent.click(btnGerar);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Relatório Semanal:/i)).toBeInTheDocument();
+    });
+  });
 });

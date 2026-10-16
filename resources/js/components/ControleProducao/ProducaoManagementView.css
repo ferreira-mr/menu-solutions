@@ -117,12 +117,3 @@
 
 .delete-button { background-color: var(--color-danger); }
 .delete-button:hover { background-color: var(--color-danger-dark); }
-
-/* Estilos do Modal (mantidos) */
-.swal2-input {
-  width: 90% !important;
-  margin: 10px auto !important;
-}
-.swal2-container {
-  z-index: 10000 !important;
-}

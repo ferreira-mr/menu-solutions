@@ -82,7 +82,7 @@ describe('MainLayout', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: '' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /menu|^$/i })).toBeInTheDocument();
     });
 
     const menuBtn = container.querySelector('.menu-hamburguer');

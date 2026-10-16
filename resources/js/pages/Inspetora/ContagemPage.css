@@ -5,7 +5,7 @@
 /* ------------------------------
    VARIÁVEIS DE TEMA
    ------------------------------ */
-   :root {
+.contagem-section, .swal2-popup {
     --cor-primaria: var(--color-brand-red); /* Preto principal para botões e cards */
     --cor-primaria-hover: var(--color-brand-red-hover); /* Preto mais claro para efeito hover */
     --cor-completo: #1a1a1a; /* Preto levemente acinzentado */
@@ -23,7 +23,7 @@
    FONTE PADRÃO
    ------------------------------ */
 .contagem-section {
-    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    font-family: var(--font-family-base);
 }
 
 /* ------------------------------

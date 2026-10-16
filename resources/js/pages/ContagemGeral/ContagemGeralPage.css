@@ -6,7 +6,7 @@
     max-width: 1400px;
     margin: 1rem auto;
     padding: 1rem;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: var(--font-family-base);
     color: #333;
     min-height: calc(100vh - 160px);
     display: flex;

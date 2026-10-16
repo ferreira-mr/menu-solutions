@@ -1,5 +1,5 @@
 import Swal from 'sweetalert2/dist/sweetalert2.all.min.js';
-import { API_BASE_URL } from '../../config/apiConfig';
+import { API_BASE_URL, APP_BASE } from '../../config/apiConfig';
 
 /**
  * Função Central de Fetch: Lida com token, erros, JSON e FormData.
@@ -31,14 +31,16 @@ export const apiFetch = async (endpoint, options = {}) => {
                     icon: 'warning', 
                     confirmButtonColor: '#8B0000' 
                 });
-                window.location.href = '/';
+                window.location.href = APP_BASE ? `${APP_BASE}/` : '/';
                 throw new Error('Sessão expirada.');
             }
         }
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({ message: `Erro ${response.status} - ${response.statusText}` }));
-            throw new Error(errorData.message || 'Ocorreu um erro na requisição.');
+            const error = new Error(errorData.message || 'Ocorreu um erro na requisição.');
+            error.status = response.status;
+            throw error;
         }
 
         if (response.status === 204) return { success: true };

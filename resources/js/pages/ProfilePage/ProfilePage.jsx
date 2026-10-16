@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2/dist/sweetalert2.all.min.js';
 import { getUserData, updateUserData, changePassword } from '../../services/api'; 
+import { ROLE_LABELS } from '../../constants/roles';
 import placeholderAvatar from '../../assets/img/avatar.png';
 import './ProfilePage.css';
 
 const ProfilePage = () => {
-    const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
     
     // Dados do Usuário (Agora com NIF ao invés de Email)
@@ -23,14 +22,13 @@ const ProfilePage = () => {
         new_password: '',
         new_password_confirmation: ''
     });
+    const [isSavingProfile, setIsSavingProfile] = useState(false);
+    const [isSavingPassword, setIsSavingPassword] = useState(false);
 
     const getNivelLabel = (nivel) => {
-        switch(parseInt(nivel)) {
-            case 1: return 'Inspetora / Apoio';
-            case 2: return 'Nutricionista';
-            case 3: return 'Diretora';
-            default: return 'Usuário do Sistema';
-        }
+        const parsed = parseInt(nivel, 10);
+        if (parsed === 1) return 'Inspetora / Apoio';
+        return ROLE_LABELS[parsed] || 'Usuário do Sistema';
     };
 
     const fetchProfile = async () => {
@@ -63,9 +61,14 @@ const ProfilePage = () => {
     // Atualizar Dados Pessoais (Apenas Nome, pois NIF é chave de acesso)
     const handleUpdateProfile = async (e) => {
         e.preventDefault();
+        if (isSavingProfile) return;
         try {
-            // Enviamos o nome para atualização. O NIF geralmente não muda.
+            setIsSavingProfile(true);
             await updateUserData(user.id, { name: user.name });
+            if (typeof window !== 'undefined' && window.localStorage) {
+                localStorage.setItem('userName', user.name);
+                window.dispatchEvent(new CustomEvent('user:updated', { detail: { name: user.name } }));
+            }
             
             // --- ALERTA DE SUCESSO AUTOMÁTICO ---
             Swal.fire({
@@ -77,12 +80,15 @@ const ProfilePage = () => {
             });
         } catch (error) {
             Swal.fire('Erro!', 'Falha ao atualizar perfil.', 'error');
+        } finally {
+            setIsSavingProfile(false);
         }
     };
 
     // Alterar Senha
     const handleChangePassword = async (e) => {
         e.preventDefault();
+        if (isSavingPassword) return;
         
         if (passwordData.new_password !== passwordData.new_password_confirmation) {
             Swal.fire('Atenção', 'As novas senhas não coincidem.', 'warning');
@@ -90,6 +96,7 @@ const ProfilePage = () => {
         }
 
         try {
+            setIsSavingPassword(true);
             await changePassword(passwordData);
             
             // --- ALERTA DE SUCESSO AUTOMÁTICO ---
@@ -105,6 +112,8 @@ const ProfilePage = () => {
         } catch (error) {
             const msg = error.message || 'Erro ao alterar senha.';
             Swal.fire('Erro!', msg, 'error');
+        } finally {
+            setIsSavingPassword(false);
         }
     };
 
@@ -145,8 +154,9 @@ const ProfilePage = () => {
                         <h3 className="form-section-title"><i className="bi bi-person-lines-fill"></i> Informações Pessoais</h3>
                         <form onSubmit={handleUpdateProfile}>
                             <div className="form-group">
-                                <label>Nome Completo</label>
+                                <label htmlFor="profile-nome">Nome Completo</label>
                                 <input 
+                                    id="profile-nome"
                                     type="text" 
                                     className="form-input" 
                                     value={user.name}
@@ -155,8 +165,9 @@ const ProfilePage = () => {
                                 />
                             </div>
                             <div className="form-group">
-                                <label>NIF (Login do Usuário)</label>
+                                <label htmlFor="profile-nif">NIF (Login do Usuário)</label>
                                 <input 
+                                    id="profile-nif"
                                     type="text" 
                                     className="form-input input-disabled" 
                                     value={user.nif}
@@ -166,8 +177,8 @@ const ProfilePage = () => {
                                 <small className="helper-text">O NIF é utilizado para login e não pode ser alterado por aqui.</small>
                             </div>
                             <div className="form-action-container">
-                                <button type="submit" className="btn-save">
-                                    <i className="bi bi-check-lg"></i> Salvar Dados
+                                <button type="submit" className="btn-save" disabled={isSavingProfile}>
+                                    <i className="bi bi-check-lg"></i> {isSavingProfile ? 'Salvando...' : 'Salvar Dados'}
                                 </button>
                             </div>
                         </form>
@@ -178,8 +189,9 @@ const ProfilePage = () => {
                         <h3 className="form-section-title"><i className="bi bi-shield-lock-fill"></i> Alterar Senha</h3>
                         <form onSubmit={handleChangePassword}>
                             <div className="form-group">
-                                <label>Senha Atual</label>
+                                <label htmlFor="profile-senha-atual">Senha Atual</label>
                                 <input 
+                                    id="profile-senha-atual"
                                     type="password" 
                                     className="form-input"
                                     placeholder="Digite sua senha atual"
@@ -191,8 +203,9 @@ const ProfilePage = () => {
                             
                             <div className="grid-2-col">
                                 <div className="form-group">
-                                    <label>Nova Senha</label>
+                                    <label htmlFor="profile-nova-senha">Nova Senha</label>
                                     <input 
+                                        id="profile-nova-senha"
                                         type="password" 
                                         className="form-input"
                                         placeholder="Min. 8 caracteres"
@@ -203,8 +216,9 @@ const ProfilePage = () => {
                                 </div>
 
                                 <div className="form-group">
-                                    <label>Confirmar Nova Senha</label>
+                                    <label htmlFor="profile-confirmar-senha">Confirmar Nova Senha</label>
                                     <input 
+                                        id="profile-confirmar-senha"
                                         type="password" 
                                         className="form-input"
                                         placeholder="Repita a nova senha"
@@ -216,8 +230,8 @@ const ProfilePage = () => {
                             </div>
 
                             <div className="form-action-container">
-                                <button type="submit" className="btn-save btn-password">
-                                    <i className="bi bi-key-fill"></i> Atualizar Senha
+                                <button type="submit" className="btn-save btn-password" disabled={isSavingPassword}>
+                                    <i className="bi bi-key-fill"></i> {isSavingPassword ? 'Atualizando...' : 'Atualizar Senha'}
                                 </button>
                             </div>
                         </form>

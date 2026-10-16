@@ -7,20 +7,15 @@ import {
     updateConteudoAutorizado, 
     deleteAutorizado 
 } from '../../services/api';
-import { USER_ROLES } from '../../constants/roles';
+import { usePermissions } from '../../hooks/usePermissions';
 import { createDomElement } from '../../utils/safeDom';
 import './AutorizadosPage.css';
 
-const LEVEL_INSPETORA = String(USER_ROLES.STAFF);
-const LEVEL_NUTRI = String(USER_ROLES.NUTRI);
-const LEVEL_DIRETORA = String(USER_ROLES.DIRETORA);
-
 const AutorizadosPage = () => {
+    const { isNutri, isDiretor } = usePermissions();
     const [autorizados, setAutorizados] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    
-    const userLevel = localStorage.getItem('userLevel');
 
     const fetchData = useCallback(async () => {
         setLoading(true);
@@ -162,10 +157,10 @@ const AutorizadosPage = () => {
     const handleRefuse = (item) => handleDecision(item, 'recusado');
 
     // --- CONFIGURAÇÃO DE PERMISSÕES ---
-    const canCreate = userLevel === LEVEL_NUTRI;
-    const canApprove = userLevel === LEVEL_DIRETORA;
-    const canEdit = userLevel === LEVEL_NUTRI;
-    const canDelete = userLevel === LEVEL_NUTRI; 
+    const canCreate = isNutri;
+    const canApprove = isDiretor;
+    const canEdit = isNutri;
+    const canDelete = isNutri; 
 
     return (
         <section className="autorizados-container">

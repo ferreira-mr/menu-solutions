@@ -43,9 +43,14 @@ const MainLayout = ({ userRole, children }) => {
         }
     };
 
-    // Efeito para buscar dados do usuário e data
+    // Efeito para fechar o menu na navegação de rota
     useEffect(() => {
-        const fetchInitialData = async () => {
+        setIsMenuOpen(false);
+    }, [location.pathname]);
+
+    // Efeito para buscar dados do usuário na montagem e ouvir atualizações de perfil
+    useEffect(() => {
+        const fetchUserData = async () => {
             try {
                 const data = await getUserData();
                 const userName = data?.data?.name || data?.name || localStorage.getItem('userName') || 'Usuário';
@@ -54,14 +59,31 @@ const MainLayout = ({ userRole, children }) => {
                 console.error("Não foi possível buscar os dados do usuário. Forçando logout.", error);
                 handleFinalLogout(false); 
             }
-
-            const dataFormatada = schoolDay.split('-').reverse().join('/');
-            setDataAtual(dataFormatada);
         };
 
-        fetchInitialData();
+        fetchUserData();
+
+        const handleUserUpdated = () => {
+            const storedName = localStorage.getItem('userName');
+            if (storedName) {
+                setUsuario(storedName);
+            } else {
+                fetchUserData();
+            }
+        };
+
+        window.addEventListener('user:updated', handleUserUpdated);
+        return () => window.removeEventListener('user:updated', handleUserUpdated);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [location.pathname, schoolDay]);
+    }, []);
+
+    // Efeito para formatar a data escolar corrente
+    useEffect(() => {
+        if (schoolDay) {
+            const dataFormatada = schoolDay.split('-').reverse().join('/');
+            setDataAtual(dataFormatada);
+        }
+    }, [schoolDay]);
 
     // Efeito para fechar o menu ao clicar fora
     useEffect(() => {

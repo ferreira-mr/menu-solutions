@@ -48,7 +48,16 @@ const Header = ({ onMenuClick, onLogoClick, userRole, isMenuOpen }) => {
                     alt="Logo" 
                     className="logo-principal" 
                     style={{ cursor: 'pointer' }} 
-                    onClick={handleLogoClick} 
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Ir para a página inicial"
+                    onClick={handleLogoClick}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleLogoClick();
+                        }
+                    }}
                 />
                 <img src={setas2} alt="" className="setas-flanco" aria-hidden="true" />
             </div>
@@ -64,6 +73,7 @@ const Header = ({ onMenuClick, onLogoClick, userRole, isMenuOpen }) => {
                     className="menu-hamburguer" 
                     onClick={onMenuClick}
                     aria-expanded={isMenuOpen}
+                    aria-label={isMenuOpen ? 'Fechar menu' : 'Abrir menu'}
                 >
                     <i id="iconeMenu" className={iconeClasses} aria-hidden="true"></i>
                 </button>

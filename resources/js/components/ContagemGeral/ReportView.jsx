@@ -82,15 +82,20 @@ const ReportView = () => {
                  endDate = toISODateString(new Date(Date.UTC(filters.year, 11, 31)));
                  title = `Relatório Anual: ${filters.year}`;
                 break;
+            case 'semanal':
+                startDate = filters.startDate;
+                endDate = filters.endDate;
+                title = `Relatório Semanal: ${formatFriendlyDate(startDate)} a ${formatFriendlyDate(endDate)}`;
+                break;
             case 'personalizado':
                 startDate = filters.startDate;
                 endDate = filters.endDate;
-                title = `Relatório Personalizado: ${formatFriendlyDate(startDate)} a ${formatFriendlyDate(endDate)}`; // <-- Erro estava aqui
+                title = `Relatório Personalizado: ${formatFriendlyDate(startDate)} a ${formatFriendlyDate(endDate)}`;
                 break;
-            // TODO: Adicionar "semanal"
             default:
                 startDate = filters.date;
                 endDate = filters.date;
+                title = `Relatório: ${formatFriendlyDate(startDate)}`;
         }
 
         setCurrentReportTitle(title);

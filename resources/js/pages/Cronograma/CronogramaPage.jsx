@@ -13,6 +13,7 @@ const CronogramaPage = () => {
     const [filterId, setFilterId] = useState('all');
     const [isLoading, setIsLoading] = useState(true);
     const [isDragging, setIsDragging] = useState(false);
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const navigate = useNavigate();
 
     const fetchData = async () => {
@@ -205,8 +206,21 @@ const CronogramaPage = () => {
                 <div className="cronograma-board-wrapper">
                     
                     {/* --- SIDEBAR RETRÁTIL --- */}
-                    <div className={`sidebar-drawer ${isDragging ? 'is-dragging' : ''}`}>
-                        <div className="drawer-tab">
+                    <div className={`sidebar-drawer ${isDrawerOpen ? 'is-open' : ''} ${isDragging ? 'is-dragging' : ''}`}>
+                        <div
+                            className="drawer-tab"
+                            role="button"
+                            tabIndex={0}
+                            aria-label={isDrawerOpen ? 'Fechar lista de alunos' : 'Abrir lista de alunos'}
+                            aria-expanded={isDrawerOpen}
+                            onClick={() => setIsDrawerOpen(prev => !prev)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    setIsDrawerOpen(prev => !prev);
+                                }
+                            }}
+                        >
                             <i className="bi bi-list-task"></i>
                             <span className="vertical-text">Alunos</span>
                         </div>

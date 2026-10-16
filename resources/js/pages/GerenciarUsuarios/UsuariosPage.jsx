@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2/dist/sweetalert2.all.min.js';
 import { getUsers, addUser, updateUser, deleteUser } from '../../services/api';
+import { ROLE_LABELS } from '../../constants/roles';
 import { createDomElement, createSelect, safePaginatorLabel } from '../../utils/safeDom';
 import './UsuariosPage.css';
 
 const UsuariosPage = () => {
-    const navigate = useNavigate();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [pagination, setPagination] = useState(null);
@@ -34,12 +33,11 @@ const UsuariosPage = () => {
 
     // Helper para exibir o nível com estilo
     const getNivelLabel = (nivel) => {
-        switch(parseInt(nivel)) {
-            case 1: return { text: 'Inspetora', class: 'nivel-1' };
-            case 2: return { text: 'Nutricionista', class: 'nivel-2' };
-            case 3: return { text: 'Diretora', class: 'nivel-3' };
-            default: return { text: 'Outro', class: 'nivel-1' };
-        }
+        const parsed = parseInt(nivel, 10);
+        return {
+            text: ROLE_LABELS[parsed] || 'Outro',
+            class: `nivel-${parsed || 1}`
+        };
     };
 
     // --- CRIAR / EDITAR USUÁRIO ---

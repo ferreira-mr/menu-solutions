@@ -12,7 +12,7 @@
     width: 80vw;
 }
 
-.profile-header {
+.profile-header, .profile-header-top {
     margin-bottom: 1.5rem;
     display: flex;
     justify-content: space-between;
@@ -191,7 +191,9 @@
     outline: none;
 }
 
-.form-input:disabled {
+.form-input:disabled,
+.form-input[readonly],
+.form-input.input-disabled {
     background-color: #e9ecef;
     cursor: not-allowed;
 }
@@ -250,3 +252,22 @@
     display: flex;
     justify-content: flex-end;
 }
+
+.grid-2-col {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+.helper-text {
+    font-size: 0.78rem;
+    color: var(--color-text-muted, #6c757d);
+    margin-top: -0.25rem;
+}
+
+.user-email-display {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary, #555);
+    margin: 0.25rem 0 0;
+}
+

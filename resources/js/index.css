@@ -35,3 +35,25 @@ button:focus:not(:focus-visible) {
 .swal2-container {
   z-index: var(--z-modal) !important;
 }
+
+/* Spinner utilitário compatível com componentes que usam .spinner-border */
+@keyframes spinner-border-spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner-border {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  vertical-align: -0.125em;
+  border: 0.25em solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: 0.75s linear infinite spinner-border-spin;
+}
+
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.2em;
+}

@@ -52,7 +52,7 @@ const CalendarView = () => {
                 (nec.alunos || []).forEach(aluno => {
                     const relacaoId = aluno.alunos_has_necessidades_id;
                     if (relacaoId) {
-                        dMap.set(String(relacaoId), aluno.descricao || '<i>Nenhuma descrição disponível.</i>');
+                        dMap.set(String(relacaoId), aluno.descricao || 'Nenhuma descrição disponível.');
                     }
                 });
             });

@@ -1,5 +1,5 @@
 
-:root {
+.chat-container {
     --header-height: 70px;
     --fonte: var(--font-family-base);
 
@@ -15,21 +15,13 @@
 
     --sombra: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 
               0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
 
-/* ----------------------------------------------------- */
-/* CONTAINER PRINCIPAL */
-/* ----------------------------------------------------- */
-
-.chat-container {
     width: 100%;
     max-width: 1600px;
     padding: 22px;
 
-    /* RESOLUÇÃO: fixa o container e impede de subir */
-    height: calc(100vh - var(--header-height));
+    height: calc(100vh - var(--header-height, 70px));
     margin: 0 auto;
-    margin-top: var(--header-height);
 
     display: flex;
     gap: 24px;
@@ -38,8 +30,7 @@
     background-color: var(--fundo-geral);
     box-shadow: var(--sombra);
 
-    overflow: hidden; /* impede overflow roxo */
-    margin-bottom: -30vh;
+    overflow: hidden;
 }
 
 
@@ -169,7 +160,8 @@
     justify-content: space-between;
     border-bottom: 1px solid var(--fundo-geral);
     background-color: white;
-    width: 60vw;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .chat-user-profile {
@@ -208,9 +200,9 @@
     display: flex;
     flex-direction:column;
     gap: 8px;
-    width: 60vw;
+    width: 100%;
+    box-sizing: border-box;
     min-height: 50vh;
-    
 }
 
 .chat-history-button {
@@ -327,21 +319,15 @@
 
 
 @media (max-width: 768px) {
-    body {
-        overflow: hidden;
-        position: fixed;
-        width: 100%;
-    }
-
     .chat-container {
         position: fixed;
-        top: var(--header-height);
+        top: var(--header-height, 70px);
         left: 0;
         right: 0;
         bottom: 0;
         padding: 0 !important;
         margin-top: 0 !important;
-        height: calc(100vh - var(--header-height)) !important;
+        height: calc(100vh - var(--header-height, 70px)) !important;
         width: 100vw !important;
         margin-bottom: 0 !important;
         display: flex;

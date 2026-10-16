@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#000000">
     <meta name="description" content="Menu Solutions">
+    <meta name="app-base" content="{{ request()->getBasePath() }}">
     <link rel="icon" href="{{ asset('favicon.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('logo192.png') }}">
     <link rel="manifest" href="{{ asset('manifest.json') }}">

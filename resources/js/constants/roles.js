@@ -13,7 +13,7 @@ export const ROLE_NAMES = {
 export const ROLE_LABELS = {
   [USER_ROLES.STAFF]: 'Inspetora',
   [USER_ROLES.NUTRI]: 'Nutricionista',
-  [USER_ROLES.DIRETORA]: 'Diretoria',
+  [USER_ROLES.DIRETORA]: 'Diretora',
 };
 
 export const ROLE_HOME_ROUTES = {

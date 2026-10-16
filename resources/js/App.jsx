@@ -3,7 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-
 
 // Importações de Constantes e Layout
 import { ROLE_NAMES, ROLE_HOME_ROUTES } from './constants/roles';
+import { APP_BASE } from './config/apiConfig';
 import MainLayout from './layouts/MainLayout/MainLayout';
+
 
 // Importações de Features (Feature-Driven Architecture)
 import { LoginPage } from './features/auth';
@@ -54,7 +56,7 @@ const RoleShell = ({ role }) => (
 
 function App() {
   return (
-    <Router>
+    <Router basename={APP_BASE || undefined}>
       <Routes>
         {/* ROTA PÚBLICA */}
         <Route path="/" element={<PublicRoute><LoginPage /></PublicRoute>} />

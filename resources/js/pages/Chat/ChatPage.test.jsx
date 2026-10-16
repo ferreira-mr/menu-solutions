@@ -87,7 +87,7 @@ describe('ChatPage (Comunicação da Equipe)', () => {
     const input = screen.getByPlaceholderText(/escreva uma mensagem/i);
     fireEvent.change(input, { target: { value: 'Turmas do 1º ano já lançadas!' } });
 
-    const sendBtn = screen.getByRole('button', { name: '' });
+    const sendBtn = screen.getByRole('button', { name: /enviar|^$/i });
     fireEvent.click(sendBtn);
 
     await waitFor(() => {

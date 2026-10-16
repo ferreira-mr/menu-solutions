@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { USER_ROLES, ROLE_NAMES } from '../constants/roles';
+import { APP_BASE } from '../config/apiConfig';
 import { getUserData, logoutUser } from '../services/api';
 
 export const useAuth = () => {
@@ -43,7 +44,7 @@ export const useAuth = () => {
       // Ignora erro de rede no logout
     } finally {
       localStorage.clear();
-      window.location.href = '/';
+      window.location.href = APP_BASE ? `${APP_BASE}/` : '/';
     }
   };
 

@@ -2,7 +2,7 @@
 import React, { useMemo } from 'react';
 import { formatFriendlyDate, formatFriendlyTime } from './utils';
 import { summarizeContagemTotals } from '../../features/contagem/countTotals';
-import { selectEffectiveContagens } from '../../features/contagem/schoolCalendar';
+import { selectEffectiveContagens, getSchoolDateFromInstant } from '../../features/contagem/schoolCalendar';
 import './ReportPreview.css'; 
 
 // Importe sua logo (ajuste o caminho se necessário)
@@ -75,7 +75,7 @@ const ReportPreview = ({ data, loading, title, dataType }) => {
         // Agrupa Necessidades
          if (dataType === 'tudo' || dataType === 'necessidades') {
             data.necessidades.forEach(item => {
-                const dateStr = item.data_hora_contagem.split('T')[0];
+                const dateStr = getSchoolDateFromInstant(item.data_hora_contagem) || String(item.data_hora_contagem).slice(0, 10);
                 if (!map.has(dateStr)) map.set(dateStr, { contagens: [], necessidades: [] });
                 map.get(dateStr).necessidades.push(item);
             });

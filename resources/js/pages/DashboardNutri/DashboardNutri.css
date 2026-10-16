@@ -102,7 +102,11 @@
 
 /* Cores Especiais */
 .dash-card.nai-card .dash-card-header {
-  background-color: #FFC000; /* Verde Escuro */
+  background-color: #FFC000;
+  color: #212529;
+}
+.dash-card.nai-card .dash-card-header .bi {
+  color: #212529;
 }
 .dash-card.total-card .dash-card-header {
   background-color: #212529; /* Preto */

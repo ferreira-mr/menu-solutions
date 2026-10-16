@@ -1,19 +1,29 @@
-import { USER_ROLES } from '../constants/roles';
+import { USER_ROLES, ROLE_NAMES, ROLE_LABELS, ROLE_HOME_ROUTES } from '../constants/roles';
 
 export const usePermissions = () => {
   const level = Number(localStorage.getItem('userLevel'));
+  const isStaff = level === USER_ROLES.STAFF;
+  const isNutri = level === USER_ROLES.NUTRI;
+  const isDiretor = level === USER_ROLES.DIRETORA;
 
   return {
     userLevel: level,
-    isStaff: level === USER_ROLES.STAFF,
-    isNutri: level === USER_ROLES.NUTRI,
-    isDiretora: level === USER_ROLES.DIRETORA,
-    canCreateAutorizado: level === USER_ROLES.NUTRI,
-    canApproveAutorizado: level === USER_ROLES.DIRETORA,
-    canDeleteAutorizado: level === USER_ROLES.NUTRI,
-    canManageCatalog: level === USER_ROLES.NUTRI,
-    canManageUsers: level === USER_ROLES.NUTRI || level === USER_ROLES.DIRETORA,
-    canCount: level === USER_ROLES.STAFF || level === USER_ROLES.NUTRI,
+    roleName: ROLE_NAMES[level] || null,
+    roleLabel: ROLE_LABELS[level] || 'Usuário',
+    homeRoute: ROLE_HOME_ROUTES[level] || '/',
+    isStaff,
+    isInspetora: isStaff,
+    isNutri,
+    isDiretor,
+    isDiretora: isDiretor,
+    canApprove: isDiretor,
+    canCreateAutorizado: isNutri,
+    canApproveAutorizado: isDiretor,
+    canDeleteAutorizado: isNutri,
+    canManageCatalog: isNutri,
+    canManageCatalogs: isNutri,
+    canManageUsers: isNutri || isDiretor,
+    canCount: isStaff || isNutri,
   };
 };
 

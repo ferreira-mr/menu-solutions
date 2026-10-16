@@ -21,3 +21,12 @@
     padding: 3rem;
     overflow-y: auto; /* Scroll para a área de preview */
 }
+
+@media (max-width: 1024px) {
+    .report-main-grid-v2 {
+        grid-template-columns: 1fr;
+    }
+    .report-preview-area {
+        padding: 1rem;
+    }
+}

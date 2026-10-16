@@ -11,6 +11,7 @@ import ProducaoFilterPanel from '../../components/ControleProducao/ProducaoFilte
 
 // Importa funções de data
 import { toISODateString, parseISODateAsUTC, formatFriendlyDate } from '../../components/ContagemGeral/utils';
+import { getSchoolDate } from '../../features/contagem';
 import { createDomElement } from '../../utils/safeDom';
 
 import './ControleProducaoPage.css'; // O CSS V2 "Bonito"
@@ -81,15 +82,17 @@ const ControleProducaoPage = () => {
     const handleAddItem = () => {
         const form = createDomElement('div', { className: 'swal-form-container' });
         [
-            ['swal-nome', 'text', 'Nome do Alimento'],
-            ['swal-data', 'date', '', new Date().toISOString().split('T')[0]],
-            ['swal-quantidade', 'number', 'Quantidade (ex: 10.50)', '', '0.01'],
-            ['swal-medida', 'text', 'Medida (kg, g, L)'],
-            ['swal-pessoas', 'number', 'Pessoas'],
-            ['swal-sobra', 'number', 'Sobra Limpa (ex: 1.25)', '', '0.01'],
-            ['swal-desperdicio', 'number', 'Desperdício (ex: 0.50)', '', '0.01'],
-        ].forEach(([id, type, placeholder, value = '', step]) => {
-            form.append(createDomElement('input', {
+            ['swal-nome', 'text', 'Nome do Alimento', 'Nome do Alimento'],
+            ['swal-data', 'date', '', 'Data da Produção', getSchoolDate()],
+            ['swal-quantidade', 'number', 'Quantidade (ex: 10.50)', 'Quantidade Produzida', '', '0.01'],
+            ['swal-medida', 'text', 'Medida (kg, g, L)', 'Unidade de Medida'],
+            ['swal-pessoas', 'number', 'Pessoas', 'Número de Pessoas'],
+            ['swal-sobra', 'number', 'Sobra Limpa (ex: 1.25)', 'Sobra Limpa', '', '0.01'],
+            ['swal-desperdicio', 'number', 'Desperdício (ex: 0.50)', 'Desperdício (Resto Ingesta)', '', '0.01'],
+        ].forEach(([id, type, placeholder, labelText, value = '', step]) => {
+            const group = createDomElement('div', { className: 'swal-field-group', style: 'text-align: left; margin-bottom: 8px;' });
+            group.append(createDomElement('label', { for: id, textContent: labelText, style: 'display: block; font-size: 0.85rem; font-weight: 600; color: #495057; margin-bottom: 2px;' }));
+            group.append(createDomElement('input', {
                 id,
                 type,
                 placeholder,
@@ -97,6 +100,7 @@ const ControleProducaoPage = () => {
                 ...(step ? { step } : {}),
                 className: 'swal2-input',
             }));
+            form.append(group);
         });
 
         Swal.fire({

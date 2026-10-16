@@ -5,6 +5,7 @@ import {
     getChatMessages,
     sendMessage,
 } from '../../services/api';
+import { ROLE_LABELS } from '../../constants/roles';
 import placeholderAvatar from '../../assets/img/avatar.png';
 import './ChatPage.css';
 
@@ -83,6 +84,7 @@ const ChatPage = () => {
     const [loadingOlderMessages, setLoadingOlderMessages] = useState(false);
     const [messagePagination, setMessagePagination] = useState({ currentPage: 1, lastPage: 1 });
     const [messageError, setMessageError] = useState('');
+    const [isSending, setIsSending] = useState(false);
 
     const messagesEndRef = useRef(null);
     const messagesContainerRef = useRef(null);
@@ -151,7 +153,9 @@ const ChatPage = () => {
         void initChat();
 
         pollingInterval.current = setInterval(() => {
-            if (mountedRef.current) void fetchMessages({ page: 1 });
+            if (mountedRef.current && typeof document !== 'undefined' && document.visibilityState !== 'hidden') {
+                void fetchMessages({ page: 1 });
+            }
         }, 3000);
 
         return () => {
@@ -182,8 +186,9 @@ const ChatPage = () => {
 
     const handleSendMessage = async (event) => {
         event.preventDefault();
-        if (!newMessage.trim() || !currentUser) return;
+        if (!newMessage.trim() || !currentUser || isSending) return;
 
+        setIsSending(true);
         const now = new Date();
         const formattedDate = now.toISOString().slice(0, 19).replace('T', ' ');
         const payload = {
@@ -203,6 +208,8 @@ const ChatPage = () => {
             }, 100);
         } catch (error) {
             setNewMessage(messageText);
+        } finally {
+            setIsSending(false);
         }
     };
 
@@ -270,7 +277,7 @@ const ChatPage = () => {
                                     {contact.name} {contact.id === currentUser?.id ? '(Você)' : ''}
                                 </div>
                                 <div className="contact-role">
-                                    {contact.nivel_user === 1 ? 'Inspetora' : contact.nivel_user === 2 ? 'Nutricionista' : 'Diretora'}
+                                    {ROLE_LABELS[contact.nivel_user] || 'Usuário'}
                                 </div>
                             </div>
                         </div>
@@ -291,7 +298,7 @@ const ChatPage = () => {
                     </div>
                 </div>
 
-                <div className="messages-area" ref={messagesContainerRef}>
+                <div className="messages-area" ref={messagesContainerRef} role="log" aria-live="polite">
                     {messagePagination.currentPage < messagePagination.lastPage && (
                         <button
                             type="button"
@@ -326,11 +333,12 @@ const ChatPage = () => {
                         type="text"
                         className="chat-input"
                         placeholder="Escreva uma mensagem..."
+                        aria-label="Escreva uma mensagem"
                         value={newMessage}
                         onChange={(event) => setNewMessage(event.target.value)}
                     />
-                    <button type="submit" className="btn-send" disabled={!newMessage.trim()}>
-                        <i className="bi bi-send-fill"></i>
+                    <button type="submit" className="btn-send" disabled={!newMessage.trim() || isSending} aria-label="Enviar mensagem">
+                        <i className="bi bi-send-fill" aria-hidden="true"></i>
                     </button>
                 </form>
             </main>

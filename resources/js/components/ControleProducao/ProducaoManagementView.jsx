@@ -2,6 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import Swal from 'sweetalert2/dist/sweetalert2.all.min.js';
 import { addProducao, updateProducao, deleteProducao } from '../../services/api';
+import { getSchoolDate } from '../../features/contagem';
 import { createDomElement } from '../../utils/safeDom';
 import './ProducaoManagementView.css'; 
 
@@ -19,16 +20,18 @@ const ProducaoManagementView = ({ initialData, isLoading, onDataChange }) => {
     const handleOpenModal = (item = null) => {
         const form = createDomElement('div', { className: 'swal-form-container' });
         const fields = [
-            ['swal-nome', 'text', 'Nome do Alimento', item?.nome_alimento || ''],
-            ['swal-data', 'date', '', item?.data_alimento || new Date().toISOString().split('T')[0]],
-            ['swal-quantidade', 'number', 'Quantidade (ex: 10.50)', item?.quantidade_alimento || '', '0.01'],
-            ['swal-medida', 'text', 'Medida (kg, g, L)', item?.medida_alimento || ''],
-            ['swal-pessoas', 'number', 'Pessoas', item?.pessoas_alimento || ''],
-            ['swal-sobra', 'number', 'Sobra Limpa (ex: 1.25)', item?.sobra_limpa_alimento || '', '0.01'],
-            ['swal-desperdicio', 'number', 'Desperdício (ex: 0.50)', item?.desperdicio_alimento || '', '0.01'],
+            ['swal-nome', 'text', 'Nome do Alimento', 'Nome do Alimento', item?.nome_alimento || ''],
+            ['swal-data', 'date', '', 'Data da Produção', item?.data_alimento || getSchoolDate()],
+            ['swal-quantidade', 'number', 'Quantidade (ex: 10.50)', 'Quantidade Produzida', item?.quantidade_alimento || '', '0.01'],
+            ['swal-medida', 'text', 'Medida (kg, g, L)', 'Unidade de Medida', item?.medida_alimento || ''],
+            ['swal-pessoas', 'number', 'Pessoas', 'Número de Pessoas', item?.pessoas_alimento || ''],
+            ['swal-sobra', 'number', 'Sobra Limpa (ex: 1.25)', 'Sobra Limpa', item?.sobra_limpa_alimento || '', '0.01'],
+            ['swal-desperdicio', 'number', 'Desperdício (ex: 0.50)', 'Desperdício (Resto Ingesta)', item?.desperdicio_alimento || '', '0.01'],
         ];
-        fields.forEach(([id, type, placeholder, value, step]) => {
-            form.append(createDomElement('input', {
+        fields.forEach(([id, type, placeholder, labelText, value, step]) => {
+            const group = createDomElement('div', { className: 'swal-field-group', style: 'text-align: left; margin-bottom: 8px;' });
+            group.append(createDomElement('label', { for: id, textContent: labelText, style: 'display: block; font-size: 0.85rem; font-weight: 600; color: #495057; margin-bottom: 2px;' }));
+            group.append(createDomElement('input', {
                 id,
                 type,
                 placeholder,
@@ -36,6 +39,7 @@ const ProducaoManagementView = ({ initialData, isLoading, onDataChange }) => {
                 ...(step ? { step } : {}),
                 className: 'swal2-input',
             }));
+            form.append(group);
         });
 
         Swal.fire({

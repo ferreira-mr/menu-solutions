@@ -3,7 +3,8 @@ import laravel from 'laravel-vite-plugin';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+    base: command === 'build' ? (process.env.VITE_BASE || '/sgc/build/') : '',
     plugins: [
         laravel({
             input: ['resources/css/app.css', 'resources/js/main.jsx'],
@@ -24,4 +25,4 @@ export default defineConfig({
             },
         },
     },
-});
+}));
