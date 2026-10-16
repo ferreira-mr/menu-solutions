@@ -189,7 +189,7 @@ class ContagemOperationService
                     ]);
                 }
             } elseif ($presence !== null) {
-                $presence->delete();
+                $presence->forceDelete();
             }
         }
 

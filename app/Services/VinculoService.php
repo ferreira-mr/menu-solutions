@@ -14,6 +14,11 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class VinculoService
 {
+    public function __construct(
+        private readonly ?SchoolCalendarService $schoolCalendar = null
+    ) {
+    }
+
     public function attachNecessidades(Aluno $aluno, array $necessidadeIds): Aluno
     {
         return DB::transaction(function () use ($aluno, $necessidadeIds): Aluno {
@@ -96,6 +101,20 @@ class VinculoService
                 ->lockForUpdate()
                 ->findOrFail($relacaoId);
             $this->assertActiveRelation($relacao);
+
+            $calendar = $this->schoolCalendar ?? app(SchoolCalendarService::class);
+            [$startUtc, $endUtc] = $calendar->utcWindowForDate($calendar->currentDate());
+
+            $existing = ContagemNe::query()
+                ->where('alunos_has_necessidades_id', $relacao->id)
+                ->where('created_at', '>=', $startUtc->toDateTimeString())
+                ->where('created_at', '<', $endUtc->toDateTimeString())
+                ->lockForUpdate()
+                ->first();
+
+            if ($existing) {
+                return $existing;
+            }
 
             return ContagemNe::create([
                 'alunos_has_necessidades_id' => $relacao->id,

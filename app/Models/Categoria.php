@@ -33,7 +33,7 @@ class Categoria extends Model
      *
      * @var array<int, string>
      */
-    protected $fillable = ['nome_categoria'];
+    protected $fillable = ['nome_categoria', 'inclui_total_regular'];
 
     protected function casts(): array
     {

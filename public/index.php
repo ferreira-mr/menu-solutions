@@ -5,6 +5,14 @@ use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
 
+// Suporte a implantação em subdiretório (ex.: Apache DocumentRoot /var/www/html servindo /sgc)
+if (isset($_SERVER['REQUEST_URI'], $_SERVER['SCRIPT_NAME']) && str_contains($_SERVER['SCRIPT_NAME'], '/public/index.php')) {
+    $scriptDir = dirname(dirname($_SERVER['SCRIPT_NAME']));
+    if ($scriptDir !== '' && $scriptDir !== '/' && $scriptDir !== '\\' && str_starts_with($_SERVER['REQUEST_URI'], $scriptDir)) {
+        $_SERVER['SCRIPT_NAME'] = rtrim($scriptDir, '/') . '/index.php';
+    }
+}
+
 // Determine if the application is in maintenance mode...
 if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
     require $maintenance;

@@ -44,7 +44,7 @@ class ChatController extends Controller
             'users_id' => auth()->id(),
         ]);
 
-        return (new ChatResource($chat))->response()->setStatusCode(201);
+        return (new ChatResource($chat->load('user')))->response()->setStatusCode(201);
     }
 
     /**
@@ -52,7 +52,7 @@ class ChatController extends Controller
      */
     public function show(Chat $chat)
     {
-        return (new ChatResource($chat))->response();
+        return (new ChatResource($chat->load('user')))->response();
     }
 
     /**
@@ -60,14 +60,18 @@ class ChatController extends Controller
      */
     public function update(Request $request, Chat $chat)
     {
-        abort_unless((int) $chat->users_id === (int) auth()->id(), 403, 'Você só pode editar suas próprias mensagens');
-
-        $chat->update($request->validate([
+        $validated = $request->validate([
             'mensagem_chat' => 'sometimes|string|max:100',
             'visto' => 'sometimes|in:s,n',
-        ]));
+        ]);
 
-        return (new ChatResource($chat))->response();
+        if (array_key_exists('mensagem_chat', $validated) || ! array_key_exists('visto', $validated)) {
+            abort_unless((int) $chat->users_id === (int) auth()->id(), 403, 'Você só pode editar suas próprias mensagens');
+        }
+
+        $chat->update($validated);
+
+        return (new ChatResource($chat->load('user')))->response();
     }
 
     /**

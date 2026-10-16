@@ -27,11 +27,11 @@ class UserService
             throw new ConflictHttpException('Não é permitido alterar o próprio nível de acesso.');
         }
 
-        if ($roleChanged && $this->isManager($user) && (int) $attributes['nivel_user'] === UserRole::Staff->value) {
-            $this->ensureAnotherManagerExists($user);
-        }
-
         return DB::transaction(function () use ($user, $attributes, $passwordChanged, $roleChanged): User {
+            if ($roleChanged && $this->isManager($user) && (int) $attributes['nivel_user'] === UserRole::Staff->value) {
+                $this->ensureAnotherManagerExists($user);
+            }
+
             $user->update($attributes);
 
             if ($passwordChanged || $roleChanged) {
@@ -44,11 +44,11 @@ class UserService
 
     public function delete(User $user, ?User $actor = null): void
     {
-        if ($this->isManager($user)) {
-            $this->ensureAnotherManagerExists($user);
-        }
-
         DB::transaction(function () use ($user): void {
+            if ($this->isManager($user)) {
+                $this->ensureAnotherManagerExists($user);
+            }
+
             $user->delete();
             $user->tokens()->delete();
         });
@@ -74,6 +74,7 @@ class UserService
         $hasAnotherManager = User::query()
             ->whereKeyNot($user->id)
             ->whereIn('nivel_user', [UserRole::Nutri->value, UserRole::Diretor->value])
+            ->lockForUpdate()
             ->exists();
 
         if (! $hasAnotherManager) {

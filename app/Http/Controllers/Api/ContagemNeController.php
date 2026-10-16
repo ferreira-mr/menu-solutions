@@ -83,7 +83,7 @@ class ContagemNeController extends Controller
             (int) $request->validated('alunos_has_necessidades_id'),
         );
 
-        return (new ContagemNeResource($contagemNe))->response()->setStatusCode(201);
+        return (new ContagemNeResource($contagemNe->load(['alunosHasNecessidade.aluno', 'alunosHasNecessidade.necessidade'])))->response()->setStatusCode(201);
     }
 
     /**
@@ -91,7 +91,7 @@ class ContagemNeController extends Controller
      */
     public function show(ContagemNe $contagemNe)
     {
-        return new ContagemNeResource($contagemNe);
+        return new ContagemNeResource($contagemNe->load(['alunosHasNecessidade.aluno', 'alunosHasNecessidade.necessidade']));
     }
 
     /**
@@ -108,7 +108,7 @@ class ContagemNeController extends Controller
             (int) $request->validated('alunos_has_necessidades_id'),
         );
 
-        return new ContagemNeResource($contagemNe);
+        return new ContagemNeResource($contagemNe->load(['alunosHasNecessidade.aluno', 'alunosHasNecessidade.necessidade']));
     }
 
     /**

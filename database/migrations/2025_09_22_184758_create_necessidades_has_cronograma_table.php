@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('necessidades_has_cronograma', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('alunos_has_necessidades_id')->constrained();
+            $table->foreignId('alunos_has_necessidades_id')->constrained('alunos_has_necessidades')->cascadeOnDelete();
             $table->foreignId('cronograma_id')->constrained();
             $table->timestamps();
-            $table->unique(['alunos_has_necessidades_id', 'cronograma_id']);
+            $table->unique(['alunos_has_necessidades_id', 'cronograma_id'], 'nec_has_crono_aluno_nec_crono_unique');
         });
     }
 

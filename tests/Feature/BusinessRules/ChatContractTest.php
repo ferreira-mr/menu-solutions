@@ -84,6 +84,29 @@ class ChatContractTest extends TestCase
         $this->assertSoftDeleted('chat', ['id' => $chat->id]);
     }
 
+    public function test_recipient_can_mark_message_as_seen(): void
+    {
+        $author = User::factory()->create(['nivel_user' => 1]);
+        $recipient = User::factory()->create(['nivel_user' => 2]);
+
+        $chat = Chat::create([
+            'mensagem_chat' => 'Olá!',
+            'visto' => 'n',
+            'data' => now(),
+            'users_id' => $author->id,
+        ]);
+
+        $this->actingAs($recipient, 'sanctum')
+            ->putJson('/api/chats/'.$chat->id, ['visto' => 's'])
+            ->assertOk()
+            ->assertJsonPath('data.visto', 's');
+
+        $this->assertDatabaseHas('chat', [
+            'id' => $chat->id,
+            'visto' => 's',
+        ]);
+    }
+
     public function test_get_chat_members_returns_all_participants_with_messages(): void
     {
         $user1 = User::factory()->create(['name' => 'Ana Inspetora', 'nivel_user' => 1]);

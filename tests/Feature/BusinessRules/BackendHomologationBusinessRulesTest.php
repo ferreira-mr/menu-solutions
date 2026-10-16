@@ -233,4 +233,93 @@ class BackendHomologationBusinessRulesTest extends TestCase
         $this->assertSame(15, (int) $response->json('totals.total_outros'));
         $this->assertSame(43, (int) $response->json('totals.total_combinado'));
     }
+
+    public function test_contagen_is_subclass_of_canonical_contagem(): void
+    {
+        $contagen = new \App\Models\Contagen();
+        $this->assertInstanceOf(Contagem::class, $contagen);
+    }
+
+    public function test_category_inclui_total_regular_can_be_set_via_api(): void
+    {
+        $nutri = $this->user(UserRole::Nutri, '20000000008');
+
+        $response = $this->api($nutri)->postJson('/api/categorias', [
+            'nome_categoria' => 'Projetos Especiais',
+            'inclui_total_regular' => false,
+        ])->assertCreated();
+
+        $this->assertFalse((bool) $response->json('data.inclui_total_regular'));
+
+        $this->assertDatabaseHas('categorias', [
+            'nome_categoria' => 'Projetos Especiais',
+            'inclui_total_regular' => false,
+        ]);
+    }
+
+    public function test_unmarking_presence_today_via_operacao_allows_removing_student_need_relation(): void
+    {
+        $nutri = $this->user(UserRole::Nutri, '20000000009');
+        $categoria = Categoria::create(['nome_categoria' => 'Médio']);
+        $turma = Turma::create(['nome_turma' => '1A', 'categorias_id' => $categoria->id]);
+        $aluno = Aluno::factory()->create(['turmas_id' => $turma->id]);
+        $necessidade = Necessidade::create(['necessidade' => 'Diabetes']);
+        $relacao = AlunosHasNecessidade::create(['alunos_id' => $aluno->id, 'necessidades_id' => $necessidade->id]);
+
+        $uuid = (string) \Illuminate\Support\Str::uuid();
+
+        // 1. Marca presença hoje
+        $createResponse = $this->api($nutri)
+            ->withHeader('Idempotency-Key', $uuid)
+            ->postJson('/api/contagens/operacao', [
+                'turmas_id' => $turma->id,
+                'qtd_contagem' => 25,
+                'presencas' => [
+                    [
+                        'relacao_id' => $relacao->id,
+                        'presente' => true,
+                    ],
+                ],
+            ])->assertCreated();
+
+        $this->assertDatabaseHas('contagem_nes', [
+            'alunos_has_necessidades_id' => $relacao->id,
+        ]);
+
+        $contagemId = $createResponse->json('data.contagem.id');
+
+        // 2. Desmarca presença no mesmo dia
+        $uuid2 = (string) \Illuminate\Support\Str::uuid();
+        $presenca = ContagemNe::where('alunos_has_necessidades_id', $relacao->id)->first();
+
+        $this->api($nutri)
+            ->withHeader('Idempotency-Key', $uuid2)
+            ->postJson('/api/contagens/operacao', [
+                'contagem_id' => $contagemId,
+                'turmas_id' => $turma->id,
+                'qtd_contagem' => 25,
+                'presencas' => [
+                    [
+                        'relacao_id' => $relacao->id,
+                        'presenca_id' => $presenca->id,
+                        'presente' => false,
+                    ],
+                ],
+            ])->assertOk();
+
+        // Presença foi removida
+        $this->assertDatabaseMissing('contagem_nes', [
+            'alunos_has_necessidades_id' => $relacao->id,
+        ]);
+
+        // 3. Agora a nutricionista consegue desvincular o aluno da necessidade sem 409
+        $this->api($nutri)
+            ->deleteJson("/api/necessidades/{$necessidade->id}/alunos", [
+                'alunos' => $aluno->id,
+            ])->assertNoContent();
+
+        $this->assertDatabaseMissing('alunos_has_necessidades', [
+            'id' => $relacao->id,
+        ]);
+    }
 }

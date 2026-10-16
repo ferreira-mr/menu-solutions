@@ -24,6 +24,7 @@ class CategoriaRequest extends FormRequest
     {
         return [
             'nome_categoria' => 'required|string|max:250',
+            'inclui_total_regular' => 'sometimes|boolean',
         ];
     }
 }

@@ -25,12 +25,12 @@ class ContagemOperacaoRequest extends FormRequest
     {
         return [
             'idempotency_key' => ['required', 'uuid'],
-            'contagem_id' => ['nullable', 'integer', 'exists:contagens,id'],
+            'contagem_id' => ['nullable', 'integer', Rule::exists('contagens', 'id')->whereNull('deleted_at')],
             'turmas_id' => ['required', 'integer', Rule::exists('turmas', 'id')->whereNull('deleted_at')],
             'qtd_contagem' => ['required', 'integer', 'min:0', 'max:2147483647'],
             'presencas' => ['nullable', 'array'],
             'presencas.*.relacao_id' => ['required', 'integer', 'exists:alunos_has_necessidades,id'],
-            'presencas.*.presenca_id' => ['nullable', 'integer', 'exists:contagem_nes,id'],
+            'presencas.*.presenca_id' => ['nullable', 'integer', Rule::exists('contagem_nes', 'id')->whereNull('deleted_at')],
             'presencas.*.presente' => ['required', 'boolean'],
         ];
     }

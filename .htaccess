@@ -1,0 +1,16 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /sgc/
+
+    # Security: block direct access to framework code, configs, tests, logs and storage
+    RewriteRule ^(?:\.env(?:\..*)?|\.git|composer\.(?:json|lock)|package(?:\-lock)?\.json|phpunit\.xml|vite\.config\.js|AGENTS\.md) - [F,L]
+    RewriteRule ^(?:app|bootstrap|config|database|resources|routes|storage|tests|vendor)(?:/|$) - [F,L]
+
+    # If requested resource exists inside public/, serve it directly
+    RewriteCond %{DOCUMENT_ROOT}/sgc/public/$1 -f [OR]
+    RewriteCond %{DOCUMENT_ROOT}/sgc/public/$1 -d
+    RewriteRule ^(.*)$ public/$1 [L]
+
+    # Route all other application routes to public/index.php
+    RewriteRule ^(.*)$ public/index.php [L]
+</IfModule>

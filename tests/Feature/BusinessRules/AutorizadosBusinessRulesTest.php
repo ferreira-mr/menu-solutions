@@ -124,4 +124,21 @@ class AutorizadosBusinessRulesTest extends TestCase
 
         $this->assertDatabaseMissing('autorizados', ['id' => $autorizado->id]);
     }
+
+    public function test_nutri_cannot_delete_decided_autorizado(): void
+    {
+        $nutri = $this->user(2);
+
+        $autorizado = Autorizado::forceCreate([
+            'titulo' => 'Aprovado',
+            'conteudo' => 'Texto',
+            'status' => 'confirmado',
+        ]);
+
+        $this->actingAs($nutri, 'sanctum')
+            ->deleteJson("/api/autorizados/{$autorizado->id}")
+            ->assertStatus(409);
+
+        $this->assertDatabaseHas('autorizados', ['id' => $autorizado->id]);
+    }
 }

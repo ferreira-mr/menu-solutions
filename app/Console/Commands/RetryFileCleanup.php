@@ -18,6 +18,10 @@ class RetryFileCleanup extends Command
 
         if ($this->argument('id') !== null) {
             $query->whereKey((int) $this->argument('id'));
+        } else {
+            $query->where(function ($q): void {
+                $q->whereNull('next_attempt_at')->orWhere('next_attempt_at', '<=', now());
+            });
         }
 
         $failures = $query->get();
